@@ -1,0 +1,17 @@
+# Docker related
+development/Dockerfile
+development/docker-compose*.yml
+development/*.env
+
+# Linting, etc.
+.yamllint
+.flake8
+.bandit.yml
+.pydocstyle.ini
+
+# Other
+FAQ.md
+.gitignore
+.github
+tasks.py
+LICENSE

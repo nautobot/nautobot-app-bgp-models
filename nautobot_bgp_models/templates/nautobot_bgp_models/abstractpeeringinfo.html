@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load buttons %}
+{% load helpers %}
+{% load plugins %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            {% block pre_left_panel %}{% endblock %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Attributes</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Description</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.description %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Enabled</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.enabled %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>VRF</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.vrf default="Global" %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Router-ID</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.router_id %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Autonomous System</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.autonomous_system %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Update Source</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.update_source %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading"><strong>Address-Families</strong></div>
+                <table class="table table-hover panel-body">
+                    {% for af in object.addressfamily_set.all %}
+                        <tr>
+                            <td><a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% include 'inc/custom_fields_panel.html' %}
+            {% include 'inc/relationships_panel.html' %}
+            {% plugin_left_page object %}
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Limits</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Maximum-paths (iBGP)</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.maximum_paths_ibgp %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Maximum-paths (eBGP)</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.maximum_paths_ebgp %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Maximum-paths (eiBGP)</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.maximum_paths_eibgp %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Maximum Prefixes</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.maximum_prefix %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>BFD</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Multiplier</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.bfd_multiplier %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Minimum Interval</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.bfd_minimum_interval %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Fast Detection</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.bfd_fast_detection %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Policy</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Enforce First AS</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.enforce_first_as %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Send Community eBGP</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.send_community_ebgp %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% plugin_right_page object %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            {% plugin_full_width_page object %}
+        </div>
+    </div>
+{% endblock %}

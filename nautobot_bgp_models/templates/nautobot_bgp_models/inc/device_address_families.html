@@ -1,0 +1,26 @@
+{% load helpers %}
+{% if address_families %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>BGP Address-Families</strong></div>
+        <table class="table table-hover panel-body">
+            <tr>
+                <th>AFI-SAFI</th>
+                <th>Peer Group</th>
+                <th>Peer Endpoint</th>
+            </tr>
+            {% for af in address_families %}
+                <tr>
+                    <td>
+                        <a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ af.peer_group.get_absolute_url }}">{{ af.peer_group | placeholder }}</a>
+                    </td>
+                    <td>
+                        <a href="{{ af.peer_endpoint.get_absolute_url }}">{{ af.peer_endpoint | placeholder }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}

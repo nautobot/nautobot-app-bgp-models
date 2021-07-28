@@ -1,0 +1,66 @@
+{% extends 'generic/object_edit.html' %}
+{% load static %}
+{% load form_helpers %}
+{% load helpers %}
+
+{% block form %}
+    {% block pre_form %}{% endblock %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Attributes</strong></div>
+        <div class="panel-body">
+            {% render_field form.description %}
+            {% render_field form.enabled %}
+            {% render_field form.vrf %}
+            {% render_field form.router_id %}
+            {% render_field form.autonomous_system %}
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Update Source</strong></div>
+        <div class="panel-body">
+            {% with vm_tab_active=form.initial.update_source_vminterface %}
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation"{% if not vm_tab_active %} class="active"{% endif %}>
+                        <a href="#update_source_interface" role="tab" data-toggle="tab">Interface</a>
+                    </li>
+                    <li role="presentation"{% if vm_tab_active %} class="active"{% endif %}>
+                        <a href="#update_source_vminterface" role="tab" data-toggle="tab">Virtual Interface</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane{% if not vm_tab_active %} active{% endif %}" id="update_source_interface">
+                        {% render_field form.update_source_interface %}
+                    </div>
+                    <div class="tab-pane{% if vm_tab_active %} active{% endif %}" id="update_source_vminterface">
+                        {% render_field form.update_source_vminterface %}
+                    </div>
+                </div>
+            {% endwith %}
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Limits</strong></div>
+        <div class="panel-body">
+            {% render_field form.maximum_paths_ibgp %}
+            {% render_field form.maximum_paths_ebgp %}
+            {% render_field form.maximum_paths_eibgp %}
+            {% render_field form.maximum_prefix %}
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>BFD</strong></div>
+        <div class="panel-body">
+            {% render_field form.bfd_multiplier %}
+            {% render_field form.bfd_minimum_interval %}
+            {% render_field form.bfd_fast_detection %}
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Miscellaneous</strong></div>
+        <div class="panel-body">
+            {% render_field form.enforce_first_as %}
+            {% render_field form.send_community_ebgp %}
+        </div>
+    </div>
+    {% include 'inc/extras_features_edit_form_fields.html' %}
+{% endblock %}

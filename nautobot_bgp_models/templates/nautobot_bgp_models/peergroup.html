@@ -1,0 +1,70 @@
+{% extends 'nautobot_bgp_models/abstractpeeringinfo.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+
+{% block header %}
+    <div class="row">
+        <div class="col">
+            <ol class="breadcrumb">
+                <li><a href="{% url 'plugins:nautobot_bgp_models:peergroup_list' %}">BGP Peer Groups</a></li>
+                <li>{{ object }}</li>
+            </ol>
+        </div>
+    </div>
+    <div class="pull-right noprint">
+        {% plugin_buttons object %}
+        {% if perms.nautobot_bgp_models.change_peergroup %}
+            {% edit_button object %}
+        {% endif %}
+        {% if perms.nautobot_bgp_models.delete_peergroup %}
+            {% delete_button object %}
+        {% endif %}
+    </div>
+    <h1>{{ object }}</h1>
+    {% include 'inc/created_updated.html' %}
+    <div class="pull-right noprint">
+        {% custom_links object %}
+    </div>
+    <ul class="nav nav-tabs">
+        <li role="presentation"{% if not active_tab %} class="active"{% endif %}>
+            <a href="{{ object.get_absolute_url }}">Peer Group</a>
+        </li>
+        {% if perms.extras.view_objectchange %}
+            <li role="presentation"{% if active_tab == 'changelog' %} class="active"{% endif %}>
+                <a href="{% url 'plugins:nautobot_bgp_models:peergroup_changelog' pk=object.pk %}">Change Log</a>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block pre_left_panel %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <strong>BGP Peer Group</strong>
+        </div>
+        <table class="table table-hover panel-body attr-table">
+            <tr>
+                <td>Device</td>
+                <td>
+                    <a href="{{ object.device.get_absolute_url }}">{{ object.device }}</a>
+                </td>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td>{{ object.name }}</td>
+            </tr>
+            <tr>
+                <td>Role</td>
+                <td>
+                    <a href="{% url 'plugins:nautobot_bgp_models:peeringrole' pk=object.role.pk %}">
+                        <label class="label" style="color: {{ object.role.color|fgcolor }}; background-color: #{{ object.role.color }}">
+                            {{ object.role }}
+                        </label>
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}
