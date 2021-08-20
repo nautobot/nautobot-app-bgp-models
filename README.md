@@ -42,7 +42,7 @@ This model represents the shared configuration of a single BGP peer relationship
 > The nature of a session as BGP “internal” or “external” is useful in the construction of queries and filters, but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `PeerSession` model.
 
 ### PeerEndpoint
-This model represents the configuration of a single device with respect to a single BGP peering session. It does not store configuration that must match symmetrically between peer devices (such as a common authentication key), which would instead be stored on a `PeerSession` record (see below). 
+This model represents the configuration of a single device with respect to a single BGP peering session. It does not store configuration that must match symmetrically between peer devices (such as a common authentication key), which would instead be stored on a `PeerSession` record (see above). 
 
 Note that in the case of an external peering (device in the locally managed network peering to a remote endpoint belonging to an AS not managed within this network), while there generally will not be a Device record representing the remote endpoint, there will need to be a `PeerEndpoint` record representing it, at a minimum storing the IP address and ASN of the remote endpoint.
 It has an optional FK to a Nautobot Device record, an optional foreign-key relationship to a PeerGroup (as a peer session may or may not belong to a peer-group), and additional keys including
