@@ -45,7 +45,9 @@ This model represents the shared configuration of a single BGP peer relationship
 This model represents the configuration of a single device with respect to a single BGP peering session. It does not store configuration that must match symmetrically between peer devices (such as a common authentication key), which would instead be stored on a `PeerSession` record (see above). 
 
 Note that in the case of an external peering (device in the locally managed network peering to a remote endpoint belonging to an AS not managed within this network), while there generally will not be a Device record representing the remote endpoint, there will need to be a `PeerEndpoint` record representing it, at a minimum storing the IP address and ASN of the remote endpoint.
-It has an optional FK to a Nautobot Device record, an optional foreign-key relationship to a PeerGroup (as a peer session may or may not belong to a peer-group), and additional keys including
+
+It has an optional FK to a Nautobot `Device` record, an optional foreign-key relationship to a `PeerGroup` (as a peer session may or may not belong to a peer-group), and additional keys including:
+
 - Local IP (FK to Nautobot IPAddress)
 - Session (FK to PeerSession)
 - VRF (optional, FK to a Nautobot VRF)
