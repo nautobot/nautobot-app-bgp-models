@@ -31,7 +31,7 @@ All the data models introduced by the BGP plugin support the following Nautobot 
 > The data model defined by this plugin takes inspiration from the IETF BGP data model (https://tools.ietf.org/html/draft-ietf-idr-bgp-model-10), and the [Peering Manager](https://github.com/peering-manager/peering-manager) open-source application.
 
 ### AutonomousSystem
-This model represents a network-wide description of a BGP autonomous system (AS). It has fields including the actual AS number (ASN), a description field, and a FK to a Nautobot Status object.
+This model represents a network-wide description of a BGP autonomous system (AS). It has fields including the actual AS number (ASN), a description field, and a foreign key (FK) to a Nautobot `Status` object.
 
 ### PeerSession
 This model represents the shared configuration of a single BGP peer relationship between two devices. It has FKs to two BGPPeerEndpoint records, and additional fields including:
