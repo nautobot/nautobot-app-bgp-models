@@ -34,7 +34,7 @@ All the data models introduced by the BGP plugin support the following Nautobot 
 This model represents a network-wide description of a BGP autonomous system (AS). It has fields including the actual AS number (ASN), a description field, and a foreign key (FK) to a Nautobot `Status` object.
 
 ### PeerSession
-This model represents the shared configuration of a single BGP peer relationship between two devices. It has FKs to two BGPPeerEndpoint records, and additional fields including:
+This model represents the shared configuration of a single BGP peer relationship between two devices. It has FKs to two `PeerEndpoint` records (representing the two devices involved in the session), and additional fields including:
 - Status (FK to Nautobot Status)
 - Role (FK to PeeringRole)
 - Authentication Key (optional, string, encrypted at rest)
