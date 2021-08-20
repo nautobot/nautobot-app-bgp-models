@@ -48,13 +48,13 @@ Note that in the case of an external peering (device in the locally managed netw
 
 It has an optional FK to a Nautobot `Device` record, an optional foreign-key relationship to a `PeerGroup` (as a peer session may or may not belong to a peer-group), and additional keys including:
 
-- Local IP (FK to Nautobot IPAddress)
-- Session (FK to PeerSession)
-- VRF (optional, FK to a Nautobot VRF)
-- Update-Source Interface or VM Interface (optional, FK to Nautobot Interface/VM Interface)
-- Router-ID (optional, FK to Nautobot IPAddress)
-- ASN (optional, FK to AutonomousSystem)
-- Peer (optional, FK to PeerEndpoint)
+- Local IP (FK to Nautobot `IPAddress`)
+- Session (FK to `PeerSession`)
+- VRF (optional, FK to a Nautobot `VRF`)
+- Update-Source `Interface` or `VMInterface` (optional, FK to Nautobot Interface/VM Interface)
+- Router-ID (optional, FK to Nautobot `IPAddress`)
+- ASN (optional, FK to `AutonomousSystem`)
+- Peer (optional, FK to `PeerEndpoint`)
 - Description (string)
 - Enabled (bool)
 - Import Policy (optional, string)
@@ -73,16 +73,13 @@ This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-S
 - Export Policy (optional, string)
 - Static Redistribution Policy (optional, string)
 
-
-
-
 ### PeerGroup
 This model represents common/template configuration for a group of functionally related BGP peers. It has a foreign-key (FK) to a Device, a locally unique Name field, and additional fields including:
 - Role (FK to PeeringRole)
 - VRF (optional, FK to a Nautobot VRF)
-- Update-Source Interface or VM Interface (optional, FK to Nautobot Interface/VM Interface)
-- Router-ID (optional, FK to Nautobot IPAddress)
-- ASN (optional, FK to AutonomousSystem)
+- Update-Source `Interface` or `VM Interface` (optional, FK to Nautobot Interface/VM Interface)
+- Router-ID (optional, FK to Nautobot `IPAddress`)
+- ASN (optional, FK to `AutonomousSystem`)
 - Description (string)
 - Enabled (bool)
 - Maximum-paths (iBGP, eBGP, eiBGP) (optional, integers)
