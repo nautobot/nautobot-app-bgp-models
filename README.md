@@ -75,7 +75,8 @@ This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-S
 
 
 
-## PeerGroup
+
+### PeerGroup
 This model represents common/template configuration for a group of functionally related BGP peers. It has a foreign-key (FK) to a Device, a locally unique Name field, and additional fields including:
 - Role (FK to PeeringRole)
 - VRF (optional, FK to a Nautobot VRF)
