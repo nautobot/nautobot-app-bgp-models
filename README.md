@@ -1,8 +1,86 @@
 # Nautobot BGP Models Plugin
 
-A plugin for [Nautobot](https://github.com/nautobot/nautobot).
+A plugin for [Nautobot](https://github.com/nautobot/nautobot) to extend the core models with BGP specific models.
 
-Initial development of this plugin was sponsored by Riot Games, Inc.
+> Initial development of this plugin was sponsored by Riot Games, Inc.
+ 
+## Data Models
+
+This plugin adds the following new data models into Nautobot:
+- AutonomousSystem
+- PeerSession
+- PeerEndpoint
+- PeerGroup
+- PeeringRole
+- AddressFamily
+The BGP plugin also makes use of a number of custom fields added to the Device model, and defines several custom relationships between data models. 
+
+A key motivation behind this design is the idea that the Source of Truth should take a network-wide view of the BGP configuration, rather than a device-per-device view. This most directly applies to the data models for autonomous systems (ASNs) and BGP peering sessions.
+
+All the data models introduced by the BGP plugin support the following Nautobot features:
+- Rest API
+- GraphQL
+- Custom fields
+- Custom Links
+- Relationships
+- Change logging
+- Custom data validation logic
+- Webhooks
+
+> The data model defined by this plugin takes inspiration from the IETF BGP data model (https://tools.ietf.org/html/draft-ietf-idr-bgp-model-10), and the [Peering Manager](https://github.com/peering-manager/peering-manager) open-source application.
+
+### AutonomousSystem
+This model represents a network-wide description of a BGP autonomous system (AS). It has fields including the actual AS number (ASN), a description field, and a FK to a Nautobot Status object.
+
+### PeerSession
+This model represents the shared configuration of a single BGP peer relationship between two devices. It has FKs to two BGPPeerEndpoint records, and additional fields including:
+- Status (FK to Nautobot Status)
+- Role (FK to PeeringRole)
+- Authentication Key (optional, string, encrypted at rest)
+
+> The nature of a session as BGP “internal” or “external” is useful in the construction of queries and filters, but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `PeerSession` model.
+
+### PeerEndpoint
+This model represents the configuration of a single device with respect to a single BGP peering session. It does not store configuration that must match symmetrically between peer devices (such as a common authentication key), which would instead be stored on a `PeerSession` record (see below). 
+
+Note that in the case of an external peering (device in the locally managed network peering to a remote endpoint belonging to an AS not managed within this network), while there generally will not be a Device record representing the remote endpoint, there will need to be a `PeerEndpoint` record representing it, at a minimum storing the IP address and ASN of the remote endpoint.
+It has an optional FK to a Nautobot Device record, an optional foreign-key relationship to a PeerGroup (as a peer session may or may not belong to a peer-group), and additional keys including
+- Local IP (FK to Nautobot IPAddress)
+- VRF (optional, FK to a Nautobot VRF)
+- Update-Source Interface (optional, FK to Nautobot Interface)
+- Router-ID (optional, FK to Nautobot IPAddress)
+- ASN (optional, FK to AutonomousSystem)
+- Description (string)
+- Enabled (bool)
+- Import Policy (optional, string)
+- Export Policy (optional, string)
+- Maximum Prefixes (optional, integer)
+- Send-Community (optional, boolean)
+- Enforce First ASN (optional, boolean)
+
+### AddressFamily
+This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-SAFI configuration may be applied at various levels (global, peer-group, peer-session), this model attempts to represent any of those. It has a FK to a Nautobot device record, a locally unique AFI (address-family identifier) field, optional foreign-key relationships to `PeerGroup` or `PeerSession` (mutually exclusive, either or both may be null but both may not be non-null simultaneously) and additional fields including:
+- Import Policy (optional, string)
+- Export Policy (optional, string)
+- Static Redistribution Policy (optional, string)
+## PeerGroup
+This model represents common/template configuration for a group of functionally related BGP peers. It has a foreign-key (FK) to a Device, a locally unique Name field, and additional fields including:
+- Role (FK to PeeringRole)
+- VRF (optional, FK to a Nautobot VRF)
+- Update-Source Interface (optional, FK to Nautobot Interface)
+- Router-ID (optional, FK to Nautobot IPAddress)
+- ASN (optional, FK to AutonomousSystem)
+- Description (string)
+- Enabled (bool)
+- Maximum-paths (iBGP, eBGP, eiBGP) - optional integers
+- Multipath (optional, bool)
+- BFD multiplier (optional, integer)
+- BFD minimum interval (optional, integer)
+- BFD fast-detection (optional, bool)
+
+### PeeringRole
+This model operates similarly to Nautobot’s Status and Tag models, in that instances of this model describe various valid values for the type field on `PeerGroup` and/or `PeerSession`. Similar to those models, this model has fields including a unique name, unique slug, and a HTML color value.
+
 
 ## Installation
 
@@ -20,28 +98,13 @@ To ensure Nautobot BGP Models Plugin is automatically re-installed during future
 # echo nautobot-bgp-models >> local_requirements.txt
 ```
 
-Once installed, the plugin needs to be enabled in your `nautobot_configuration.py`
+Once installed, the plugin needs to be enabled in your `nautobot_config.py`
 
 ```python
 # In your configuration.py
 PLUGINS = ["nautobot_bgp_models"]
-
-# PLUGINS_CONFIG = {
-#   "nautobot_bgp_models": {
-#     ADD YOUR SETTINGS HERE
-#   }
-# }
 ```
 
-The plugin behavior can be controlled with the following list of settings
-
-- TODO
-
-## Usage
-
-### API
-
-TODO
 
 ## Contributing
 
@@ -162,7 +225,3 @@ Each command can be executed with `invoke <command>`. Environment variables `INV
 
 For any questions or comments, please check the [FAQ](FAQ.md) first and feel free to swing by the [Network to Code slack channel](https://networktocode.slack.com/) (channel #networktocode).
 Sign up [here](http://slack.networktocode.com/)
-
-## Screenshots
-
-TODO
