@@ -68,7 +68,7 @@ It has an optional FK to a Nautobot `Device` record, an optional foreign-key rel
 - Enforce First ASN (optional, boolean)
 
 ### AddressFamily
-This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-SAFI configuration may be applied at various levels (global, peer-group, peer-session), this model attempts to represent any of those. It has a FK to a Nautobot device record, a locally unique AFI (address-family identifier) field, optional foreign-key relationships to `PeerGroup` or `PeerSession` (mutually exclusive, either or both may be null but both may not be non-null simultaneously) and additional fields including:
+This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-SAFI configuration may be applied at various levels (global, peer-group, peer-session), this model attempts to represent any of those. It has a FK to a Nautobot `Device` record, a locally unique AFI (address-family identifier) field, optional foreign-key relationships to `PeerGroup` or `PeerSession` (mutually exclusive, either or both may be null but both may not be non-null simultaneously) and additional fields including:
 - Import Policy (optional, string)
 - Export Policy (optional, string)
 - Static Redistribution Policy (optional, string)
