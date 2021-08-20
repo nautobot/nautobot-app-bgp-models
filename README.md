@@ -13,6 +13,7 @@ This plugin adds the following new data models into Nautobot:
 - PeerGroup
 - PeeringRole
 - AddressFamily
+
 The BGP plugin also makes use of a number of custom fields added to the Device model, and defines several custom relationships between data models. 
 
 A key motivation behind this design is the idea that the Source of Truth should take a network-wide view of the BGP configuration, rather than a device-per-device view. This most directly applies to the data models for autonomous systems (ASNs) and BGP peering sessions.
