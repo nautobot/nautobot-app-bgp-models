@@ -92,7 +92,7 @@ This model represents common/template configuration for a group of functionally 
 - BFD fast-detection (optional, bool)
 
 ### PeeringRole
-This model operates similarly to Nautobot’s Status and Tag models, in that instances of this model describe various valid values for the type field on `PeerGroup` and/or `PeerSession`. Similar to those models, this model has fields including a unique name, unique slug, and a HTML color value.
+This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the type field on `PeerGroup` and/or `PeerSession`. Similar to those models, this model has fields including a unique name, unique slug, and a HTML color value.
 
 
 ## Installation
