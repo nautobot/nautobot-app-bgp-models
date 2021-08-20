@@ -46,16 +46,22 @@ This model represents the configuration of a single device with respect to a sin
 Note that in the case of an external peering (device in the locally managed network peering to a remote endpoint belonging to an AS not managed within this network), while there generally will not be a Device record representing the remote endpoint, there will need to be a `PeerEndpoint` record representing it, at a minimum storing the IP address and ASN of the remote endpoint.
 It has an optional FK to a Nautobot Device record, an optional foreign-key relationship to a PeerGroup (as a peer session may or may not belong to a peer-group), and additional keys including
 - Local IP (FK to Nautobot IPAddress)
+- Session (FK to PeerSession)
 - VRF (optional, FK to a Nautobot VRF)
-- Update-Source Interface (optional, FK to Nautobot Interface)
+- Update-Source Interface or VM Interface (optional, FK to Nautobot Interface/VM Interface)
 - Router-ID (optional, FK to Nautobot IPAddress)
 - ASN (optional, FK to AutonomousSystem)
+- Peer (optional, FK to PeerEndpoint)
 - Description (string)
 - Enabled (bool)
 - Import Policy (optional, string)
 - Export Policy (optional, string)
 - Maximum Prefixes (optional, integer)
+- Maximum-paths (iBGP, eBGP, eiBGP) (optional, integers)
 - Send-Community (optional, boolean)
+- BFD multiplier (optional, integer)
+- BFD minimum interval (optional, integer)
+- BFD fast-detection (optional, bool)
 - Enforce First ASN (optional, boolean)
 
 ### AddressFamily
@@ -63,16 +69,19 @@ This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-S
 - Import Policy (optional, string)
 - Export Policy (optional, string)
 - Static Redistribution Policy (optional, string)
+
+
+
 ## PeerGroup
 This model represents common/template configuration for a group of functionally related BGP peers. It has a foreign-key (FK) to a Device, a locally unique Name field, and additional fields including:
 - Role (FK to PeeringRole)
 - VRF (optional, FK to a Nautobot VRF)
-- Update-Source Interface (optional, FK to Nautobot Interface)
+- Update-Source Interface or VM Interface (optional, FK to Nautobot Interface/VM Interface)
 - Router-ID (optional, FK to Nautobot IPAddress)
 - ASN (optional, FK to AutonomousSystem)
 - Description (string)
 - Enabled (bool)
-- Maximum-paths (iBGP, eBGP, eiBGP) - optional integers
+- Maximum-paths (iBGP, eBGP, eiBGP) (optional, integers)
 - Multipath (optional, bool)
 - BFD multiplier (optional, integer)
 - BFD minimum interval (optional, integer)
