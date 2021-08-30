@@ -114,7 +114,17 @@ Once installed, the plugin needs to be enabled in your `nautobot_config.py`
 # In your configuration.py
 PLUGINS = ["nautobot_bgp_models"]
 ```
-
+```python
+PLUGINS_CONFIG = {
+    "nautobot_bgp_models": {
+        "default_statuses": {
+            "AutonomousSystem": ["active", "available", "planned"],
+            "PeerSession": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
+        }
+    }
+}
+```
+In the `default_statuses` section, you can define a list of default statuses to assign to `AutonomousSystem` and/or `PeerSession`. The lists must be composed of valid slugs of existing status object.
 
 ## Contributing
 
