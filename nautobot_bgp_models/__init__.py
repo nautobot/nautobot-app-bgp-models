@@ -25,7 +25,12 @@ class NautobotBGPModelsConfig(PluginConfig):
     required_settings = []
     min_version = "1.0.2"
     max_version = "1.999"
-    default_settings = {}
+    default_settings = {
+        "default_statuses": {
+            "AutonomousSystem": ["active", "available", "planned"],
+            "PeerSession": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
+        }
+    }
     caching_config = {}
 
     def ready(self):
@@ -35,10 +40,12 @@ class NautobotBGPModelsConfig(PluginConfig):
         from .signals import (  # pylint: disable=import-outside-toplevel
             post_migrate_create_custom_fields,
             post_migrate_create_relationships,
+            post_migrate_create_statuses,
         )
 
         post_migrate.connect(post_migrate_create_custom_fields, sender=self)
         post_migrate.connect(post_migrate_create_relationships, sender=self)
+        post_migrate.connect(post_migrate_create_statuses, sender=self)
 
 
 config = NautobotBGPModelsConfig  # pylint:disable=invalid-name
