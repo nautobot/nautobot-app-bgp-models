@@ -69,10 +69,3 @@ def delete_device_objects(sender, instance, **kwargs):  # pylint: disable=unused
     content_type = ContentType.objects.get_for_model(instance)
     PeerGroup.objects.filter(device_content_type=content_type, device_object_id=instance.pk).delete()
     AddressFamily.objects.filter(device_content_type=content_type, device_object_id=instance.pk).delete()
-
-
-@receiver(pre_delete, sender="nautobot_bgp_models.PeerEndpoint")
-def delete_peerendpoint_session(sender, instance, **kwargs):  # pylint: disable=unused-argument
-    """Delete the associated PeerSession when deleting a PeerEndpoint."""
-    if instance.session:
-        instance.session.delete()

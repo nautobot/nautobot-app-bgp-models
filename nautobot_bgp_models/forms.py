@@ -273,6 +273,27 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
             *AbstractPeeringInfoForm.Meta.fields,
         )
 
+    def save(self, commit=True):
+        """Save model changes on successful form submission."""
+        endpoint = super().save(commit=commit)
+
+        if commit:
+            endpoint_z = endpoint.session.endpoint_z()
+            if not endpoint_z:
+                # if there is no endpoint_z there is no peer to configure
+                return endpoint
+            elif endpoint_z == endpoint:
+                peer = endpoint.session.endpoint_a()
+            else:
+                peer = endpoint_z
+
+            endpoint.peer = peer
+            endpoint.save()
+            peer.peer = endpoint
+            peer.save()
+
+        return endpoint
+
 
 class PeerEndpointFilterForm(AbstractPeeringInfoFilterForm):
     """Form for filtering PeerEndpoint records in combination with PeerEndpointFilterSet."""
@@ -289,56 +310,34 @@ class PeerSessionForm(
 ):
     """Form for creating/updating PeerSession records."""
 
-    endpoints = forms.ModelMultipleChoiceField(
-        # TODO: session_isnull=True or session==instance being edited
-        # queryset=models.PeerEndpoint.objects.filter(session__isnull=True),
-        queryset=models.PeerEndpoint.objects.all(),
-        required=True,
-        help_text="Select the two peer endpoints involved in this session",
-    )
-
     class Meta:
         model = models.PeerSession
         fields = (
             "role",
             "status",
-            "endpoints",
             "authentication_key",
         )
 
-    def clean(self):
-        """Form validation logic."""
-        # pylint: disable=attribute-defined-outside-init
-        if self.instance:
-            self.original_endpoints = self.instance.endpoints.all()
-        else:
-            self.original_endpoints = []
+    # def save(self, commit=True):
+    #     """Save model changes on successful form submission."""
+    #     session = super().save(commit=commit)
 
-        super().clean()
+    #     for original_endpoint in self.original_endpoints:
+    #         if original_endpoint not in self.cleaned_data["endpoints"]:
+    #             original_endpoint.peer = None
+    #             original_endpoint.session = None
+    #             original_endpoint.save()
 
-        if "endpoints" not in self.cleaned_data or len(self.cleaned_data["endpoints"]) != 2:
-            self.add_error("endpoints", "Please select exactly two peer endpoints.")
+    #     if commit:
+    #         endpoint_a, endpoint_z = self.cleaned_data["endpoints"]
+    #         endpoint_a.peer = endpoint_z
+    #         endpoint_a.session = session
+    #         endpoint_a.save()
+    #         endpoint_z.peer = endpoint_a
+    #         endpoint_z.session = session
+    #         endpoint_z.save()
 
-    def save(self, commit=True):
-        """Save model changes on successful form submission."""
-        session = super().save(commit=commit)
-
-        for original_endpoint in self.original_endpoints:
-            if original_endpoint not in self.cleaned_data["endpoints"]:
-                original_endpoint.peer = None
-                original_endpoint.session = None
-                original_endpoint.save()
-
-        if commit:
-            endpoint_a, endpoint_z = self.cleaned_data["endpoints"]
-            endpoint_a.peer = endpoint_z
-            endpoint_a.session = session
-            endpoint_a.save()
-            endpoint_z.peer = endpoint_a
-            endpoint_z.session = session
-            endpoint_z.save()
-
-        return session
+    #     return session
 
 
 class PeerSessionFilterForm(

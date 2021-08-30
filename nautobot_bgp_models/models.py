@@ -367,7 +367,7 @@ class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
     )
     session = models.ForeignKey(
         to="PeerSession",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         related_name="endpoints",
@@ -385,6 +385,17 @@ class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
     def get_absolute_url(self):
         """Get the URL for a detailed view of a single PeerEndpoint."""
         return reverse("plugins:nautobot_bgp_models:peerendpoint", args=[self.pk])
+
+    def clean(self):
+        """Model validation logic for PeerEndpoint."""
+
+        if not self.session:
+            raise ValidationError("A PeerEndpoint must be attached to a PeerSession.")
+
+        if self.session.endpoints.count() >= 2:
+            raise ValidationError("The maximum number of PeerEndpoint for this session has been reached already (2).")
+
+        super().clean()
 
     def get_autonomous_system(self):
         """Get the (possibly inherited) AutonomousSystem for this PeerEndpoint."""
