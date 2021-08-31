@@ -145,7 +145,7 @@ class PeerEndpointSerializer(
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peerendpoint-detail")
 
     peer = NestedPeerEndpointSerializer(required=False, allow_null=True)  # noqa: F405
-    session = NestedPeerSessionSerializer(required=False, allow_null=True)  # noqa: F405
+    session = NestedPeerSessionSerializer(required=True, allow_null=True)  # noqa: F405
 
     update_source_content_type = ContentTypeField(
         queryset=ContentType.objects.filter(
@@ -169,13 +169,30 @@ class PeerEndpointSerializer(
             "tags",
         ]
 
+    def create(self, validated_data):
+        """Create a new PeerEndpoint and update the peer on both sides."""
+        record = super().create(validated_data)
+        record.session.update_peers()
+        return record
+
+    def update(self, instance, validated_data):
+        """When updating an existing PeerEndpoint, ensure peer is properly setup on both side."""
+        session_has_been_updated = False
+        if instance.session.pk != validated_data.get("session"):
+            session_has_been_updated = True
+
+        result = super().update(instance, validated_data)
+
+        if session_has_been_updated:
+            result.session.update_peers()
+
+        return result
+
 
 class PeerSessionSerializer(CustomFieldModelSerializer, StatusModelSerializerMixin):
     """REST API serializer for PeerSession records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peersession-detail")
-
-    endpoints = NestedPeerEndpointSerializer(many=True)  # noqa: F405
 
     class Meta:
         model = models.PeerSession
@@ -185,47 +202,7 @@ class PeerSessionSerializer(CustomFieldModelSerializer, StatusModelSerializerMix
             "role",
             "authentication_key",
             "status",
-            "endpoints",
         ]
-
-    def validate(self, data):
-        """Extract and store the 'endpoints' value from the provided data before proceeding with validation."""
-        self.endpoints = data.pop("endpoints", [])
-        for endpoint in self.endpoints:
-            if endpoint.peer:
-                raise serializers.ValidationError(f"{endpoint} is already peered with {endpoint.peer}")
-            if endpoint.session:
-                raise serializers.ValidationError(f"{endpoint} is already a member of session {endpoint.session}")
-        return super().validate(data)
-
-    def create(self, validated_data):
-        """Create a new PeerSession and associate its endpoints to it and to one another."""
-        record = super().create(validated_data)
-        record.endpoints.set(self.endpoints)
-        endpoints = self.endpoints[:2]
-        endpoints[0].peer = endpoints[1]
-        endpoints[1].peer = endpoints[0]
-        endpoints[0].save()
-        endpoints[1].save()
-        return record
-
-    def update(self, instance, validated_data):
-        """Update an existing PeerSession and possibly its endpoints as well."""
-        original_endpoints = instance.endpoints.all()
-        result = super().update(instance, validated_data)
-        if self.endpoints:
-            for original_endpoint in original_endpoints:
-                if original_endpoint not in self.endpoints:
-                    original_endpoint.peer = None
-                    original_endpoint.session = None
-                    original_endpoint.save()
-            instance.endpoints.set(self.endpoints)
-            endpoints = self.endpoints[:2]
-            endpoints[0].peer = endpoints[1]
-            endpoints[1].peer = endpoints[0]
-            endpoints[0].save()
-            endpoints[1].save()
-        return result
 
 
 class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModelSerializer):

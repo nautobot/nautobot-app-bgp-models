@@ -268,6 +268,7 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
     class Meta:
         model = models.PeerEndpoint
         fields = (
+            "session",
             "peer_group",
             "local_ip",
             *AbstractPeeringInfoForm.Meta.fields,
@@ -278,19 +279,7 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
         endpoint = super().save(commit=commit)
 
         if commit:
-            endpoint_z = endpoint.session.endpoint_z()
-            if not endpoint_z:
-                # if there is no endpoint_z there is no peer to configure
-                return endpoint
-            elif endpoint_z == endpoint:
-                peer = endpoint.session.endpoint_a()
-            else:
-                peer = endpoint_z
-
-            endpoint.peer = peer
-            endpoint.save()
-            peer.peer = endpoint
-            peer.save()
+            endpoint.session.update_peers()
 
         return endpoint
 
@@ -317,27 +306,6 @@ class PeerSessionForm(
             "status",
             "authentication_key",
         )
-
-    # def save(self, commit=True):
-    #     """Save model changes on successful form submission."""
-    #     session = super().save(commit=commit)
-
-    #     for original_endpoint in self.original_endpoints:
-    #         if original_endpoint not in self.cleaned_data["endpoints"]:
-    #             original_endpoint.peer = None
-    #             original_endpoint.session = None
-    #             original_endpoint.save()
-
-    #     if commit:
-    #         endpoint_a, endpoint_z = self.cleaned_data["endpoints"]
-    #         endpoint_a.peer = endpoint_z
-    #         endpoint_a.session = session
-    #         endpoint_a.save()
-    #         endpoint_z.peer = endpoint_a
-    #         endpoint_z.session = session
-    #         endpoint_z.save()
-
-    #     return session
 
 
 class PeerSessionFilterForm(
