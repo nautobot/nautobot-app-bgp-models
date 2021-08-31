@@ -285,14 +285,12 @@ class PeerSessionTestCase(TestCase):
             models.PeerSession.objects.create(status=status_reserved, role=peeringrole_external),
         ]
 
-        endpoints = [
-            models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[1], session=sessions[0]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[3], session=sessions[1]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[4], session=sessions[2]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2]),
-        ]
+        models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0])
+        models.PeerEndpoint.objects.create(local_ip=addresses[1], session=sessions[0])
+        models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1])
+        models.PeerEndpoint.objects.create(local_ip=addresses[3], session=sessions[1])
+        models.PeerEndpoint.objects.create(local_ip=addresses[4], session=sessions[2])
+        models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2])
 
     def test_id(self):
         """Test filtering by id."""

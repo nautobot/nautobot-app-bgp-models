@@ -386,9 +386,6 @@ class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
 
     def clean(self):
         """Model validation logic for PeerEndpoint."""
-        if not self.session:
-            raise ValidationError("A PeerEndpoint must be attached to a PeerSession.")
-
         if not self.present_in_database and self.session.endpoints.count() >= 2:
             raise ValidationError("The maximum number of PeerEndpoint for this session has been reached already (2).")
 

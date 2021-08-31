@@ -213,7 +213,7 @@ class PeerEndpointEditView(AbstractPeeringInfoEditView):
             obj.session = get_object_or_404(models.PeerSession, pk=url_kwargs["session"])
         return obj
 
-    def get_return_url(self, request, obj):
+    def get_return_url(self, request, obj, *args, **kwargs):
         """Return to main PeerSession page after edit."""
         return obj.session.get_absolute_url()
 
