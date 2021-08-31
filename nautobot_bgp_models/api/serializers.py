@@ -194,6 +194,8 @@ class PeerSessionSerializer(CustomFieldModelSerializer, StatusModelSerializerMix
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peersession-detail")
 
+    endpoints = NestedPeerEndpointSerializer(required=False, many=True)  # noqa: F405
+
     class Meta:
         model = models.PeerSession
         fields = [
@@ -202,6 +204,7 @@ class PeerSessionSerializer(CustomFieldModelSerializer, StatusModelSerializerMix
             "role",
             "authentication_key",
             "status",
+            "endpoints",
         ]
 
 
