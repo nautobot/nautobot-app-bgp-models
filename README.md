@@ -124,7 +124,7 @@ PLUGINS_CONFIG = {
     }
 }
 ```
-In the `default_statuses` section, you can define a list of default statuses to assign to `AutonomousSystem` and/or `PeerSession`. The lists must be composed of valid slugs of existing status object.
+In the `default_statuses` section, you can define a list of default statuses to make available to `AutonomousSystem` and/or `PeerSession`. The lists must be composed of valid slugs of existing Status objects.
 
 ## Contributing
 
