@@ -268,7 +268,6 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
     class Meta:
         model = models.PeerEndpoint
         fields = (
-            "session",
             "peer_group",
             "local_ip",
             *AbstractPeeringInfoForm.Meta.fields,

@@ -4,7 +4,7 @@
     <div class="panel-heading">
         <div class="pull-right">
             {% if not endpoint and perms.nautobot_bgp_models.add_peerendpoint %}
-                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_add' session=object.pk %}?return_url={{ object.get_absolute_url }}" class="btn btn-xs btn-success">
+                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_add' session=object.pk %}" class="btn btn-xs btn-success">
                     <span class="mdi mdi-plus-thick" aria-hidden="true"></span> Add
                 </a>
             {% endif %}
@@ -14,7 +14,7 @@
                 </a>
             {% endif %}
             {% if endpoint and perms.nautobot_bgp_models.change_peerendpoint  %}
-                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_edit' pk=endpoint.pk %}?return_url={{ object.get_absolute_url }}" class="btn btn-xs btn-warning">
+                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_edit' pk=endpoint.pk %}" class="btn btn-xs btn-warning">
                     <span class="mdi mdi-pencil" aria-hidden="true"></span> Edit
                 </a>
             {% endif %}
