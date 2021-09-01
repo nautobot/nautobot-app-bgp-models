@@ -365,9 +365,18 @@ class PeerSessionTestCase(TestCase):
         params = {"asn": [66000]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
+        params = {"asn": [66000, 12345]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+
     def test_address(self):
         """Test filtering by device name."""
         params = {"address": ["10.1.1.1"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+        params = {"address": ["10.1.1.1/32"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 0)
+
+        params = {"address": ["10.1.1.1/24"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
         params = {"address": ["10.1.1.1", "10.1.1.2"]}
