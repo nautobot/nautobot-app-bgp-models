@@ -24,6 +24,7 @@ class AutonomousSystemAPITestCase(APIViewTestCases.APIViewTestCase):
     bulk_update_data = {
         "description": "Reserved for use in documentation/sample code",
     }
+    choices_fields = ["status"]
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     validation_excluded_fields = ["status"]
@@ -405,6 +406,7 @@ class PeerSessionAPITestCase(APIViewTestCases.APIViewTestCase):
     model = models.PeerSession
     view_namespace = "plugins-api:nautobot_bgp_models"
     brief_fields = ["display", "id", "role", "status", "url"]
+    choices_fields = ["status"]
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     # Nautobot testing also doesn't correctly handle the reverse-relation that is "endpoints"
@@ -495,6 +497,7 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         "peer_group",
         "url",
     ]
+    choices_fields = ["afi_safi"]
 
     @classmethod
     def setUpTestData(cls):
