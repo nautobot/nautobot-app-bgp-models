@@ -245,24 +245,24 @@ class AbstractPeeringInfo(models.Model):
 class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
     """BGP peer group information."""
 
-    device_content_type = models.ForeignKey(
-        to=ContentType,
-        limit_choices_to=models.Q(
-            models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
-        ),
-        on_delete=models.CASCADE,
-        related_name="+",
-    )
-    device_object_id = models.UUIDField()
-    device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
+    # device_content_type = models.ForeignKey(
+    #     to=ContentType,
+    #     limit_choices_to=models.Q(
+    #         models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
+    #     ),
+    #     on_delete=models.CASCADE,
+    #     related_name="+",
+    # )
+    # device_object_id = models.UUIDField()
+    # device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
 
     name = models.CharField(max_length=100)
 
     role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups")
 
     class Meta:
-        ordering = ["device_content_type", "device_object_id", "name"]
-        unique_together = ["device_content_type", "device_object_id", "name"]
+        ordering = ["name"]
+        # unique_together = ["name"]
         verbose_name = "BGP peer group"
 
     def __str__(self):
@@ -289,7 +289,7 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
         # Add additional fields
         result.update(
             {
-                "device": {"value": self.device, "inherited": False},
+                # "device": {"value": self.device, "inherited": False},
                 "name": {"value": self.name, "inherited": False},
                 "role": {"value": self.role, "inherited": False},
             }
@@ -581,16 +581,16 @@ class AddressFamily(OrganizationalModel):
 
     afi_safi = models.CharField(max_length=64, choices=choices.AFISAFIChoices, verbose_name="AFI-SAFI")
 
-    device_content_type = models.ForeignKey(
-        to=ContentType,
-        limit_choices_to=models.Q(
-            models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
-        ),
-        on_delete=models.CASCADE,
-        related_name="+",
-    )
-    device_object_id = models.UUIDField()
-    device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
+    # device_content_type = models.ForeignKey(
+    #     to=ContentType,
+    #     limit_choices_to=models.Q(
+    #         models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
+    #     ),
+    #     on_delete=models.CASCADE,
+    #     related_name="+",
+    # )
+    # device_object_id = models.UUIDField()
+    # device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
 
     peer_group = models.ForeignKey(to=PeerGroup, on_delete=models.CASCADE, blank=True, null=True)
     peer_endpoint = models.ForeignKey(to=PeerEndpoint, on_delete=models.CASCADE, blank=True, null=True)
@@ -607,7 +607,7 @@ class AddressFamily(OrganizationalModel):
         # The below ordering puts all device-level AFs at the beginning of the list, then all peer-group-specific AFs,
         # and finally all peer-endpoint-specific AFs.
         ordering = ["-peer_endpoint", "-peer_group"]
-        unique_together = [("afi_safi", "device_content_type", "device_object_id", "peer_group", "peer_endpoint")]
+        unique_together = [("afi_safi", "peer_group", "peer_endpoint")]
         verbose_name = "BGP address-family"
         verbose_name_plural = "BGP address-families"
 
@@ -617,7 +617,7 @@ class AddressFamily(OrganizationalModel):
             return f"AFI-SAFI {self.afi_safi} for {self.peer_group}"
         if self.peer_endpoint:
             return f"AFI-SAFI {self.afi_safi} for {self.peer_endpoint}"
-        return f"AFI-SAFI {self.afi_safi} on {self.device}"
+        return f"AFI-SAFI {self.afi_safi}"
 
     def get_absolute_url(self):
         """Get the URL for a detailed view of a single AddressFamily."""
@@ -630,13 +630,13 @@ class AddressFamily(OrganizationalModel):
         if self.peer_group and self.peer_endpoint:
             raise ValidationError("An AddressFamily cannot reference both a peer-group and a peer endpoint")
 
-        if self.device and (
-            (self.peer_group and self.peer_group.device != self.device)
-            or (self.peer_endpoint and self.peer_endpoint.get_device() != self.device)
-        ):
-            raise ValidationError(
-                "Mismatch between the selected device and the selected peer-group/peer-endpoint's parent device"
-            )
+        # if self.device and (
+        #     (self.peer_group and self.peer_group.device != self.device)
+        #     or (self.peer_endpoint and self.peer_endpoint.get_device() != self.device)
+        # ):
+        #     raise ValidationError(
+        #         "Mismatch between the selected device and the selected peer-group/peer-endpoint's parent device"
+        #     )
 
         # Since NULL != NULL in database terms, unique_together as defined on the Meta class above doesn't exactly
         # work as might be expected, given that either peer_group or peer_endpoint (or both!) will be NULL.w
@@ -649,8 +649,8 @@ class AddressFamily(OrganizationalModel):
                 # this clean method will still be called, but no device_content_type value will have been selected.
                 # In that case referencing self.device_content_type will throw a RelatedObjectDoesNotExist exception;
                 # we must instead reference self.device_content_type_id, which does not have this behavior.
-                device_content_type_id=self.device_content_type_id,
-                device_object_id=self.device_object_id,
+                # device_content_type_id=self.device_content_type_id,
+                # device_object_id=self.device_object_id,
                 peer_group=self.peer_group,
                 peer_endpoint=self.peer_endpoint,
             )

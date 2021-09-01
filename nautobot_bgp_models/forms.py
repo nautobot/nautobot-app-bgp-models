@@ -184,18 +184,18 @@ class AbstractPeeringInfoForm(
 class PeerGroupForm(AbstractPeeringInfoForm):
     """Form for creating/updating PeerGroup records."""
 
-    device_device = utilities_forms.DynamicModelChoiceField(
-        queryset=Device.objects.all(),
-        required=False,
-        initial_params={"interfaces": "$update_source_interface"},
-        label="Device",
-    )
-    device_virtualmachine = utilities_forms.DynamicModelChoiceField(
-        queryset=VirtualMachine.objects.all(),
-        required=False,
-        initial_params={"interfaces": "$update_source_vminterface"},
-        label="Virtual Machine",
-    )
+    # device_device = utilities_forms.DynamicModelChoiceField(
+    #     queryset=Device.objects.all(),
+    #     required=False,
+    #     initial_params={"interfaces": "$update_source_interface"},
+    #     label="Device",
+    # )
+    # device_virtualmachine = utilities_forms.DynamicModelChoiceField(
+    #     queryset=VirtualMachine.objects.all(),
+    #     required=False,
+    #     initial_params={"interfaces": "$update_source_vminterface"},
+    #     label="Virtual Machine",
+    # )
 
     class Meta:
         model = models.PeerGroup
@@ -212,29 +212,29 @@ class PeerGroupForm(AbstractPeeringInfoForm):
         instance = kwargs.get("instance")
         initial = kwargs.get("initial", {}).copy()
 
-        if instance:
-            if isinstance(instance.device, Device):
-                initial["device_device"] = instance.device
-            elif isinstance(instance.device, VirtualMachine):
-                initial["device_virtualmachine"] = instance.device
+        # if instance:
+        #     if isinstance(instance.device, Device):
+        #         initial["device_device"] = instance.device
+        #     elif isinstance(instance.device, VirtualMachine):
+        #         initial["device_virtualmachine"] = instance.device
 
         kwargs["initial"] = initial
 
         super().__init__(*args, **kwargs)
 
-    def clean(self):
-        """Form validation logic."""
-        super().clean()
+    # def clean(self):
+    #     """Form validation logic."""
+    #     super().clean()
 
-        if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
-            raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
+    #     if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
+    #         raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
 
-        if self.cleaned_data.get("device_device"):
-            self.instance.device = self.cleaned_data.get("device_device")
-        elif self.cleaned_data.get("device_virtualmachine"):
-            self.instance.device = self.cleaned_data.get("device_virtualmachine")
-        else:
-            raise forms.ValidationError("A device or virtual machine must be selected.")
+    #     if self.cleaned_data.get("device_device"):
+    #         self.instance.device = self.cleaned_data.get("device_device")
+    #     elif self.cleaned_data.get("device_virtualmachine"):
+    #         self.instance.device = self.cleaned_data.get("device_virtualmachine")
+    #     else:
+    #         raise forms.ValidationError("A device or virtual machine must be selected.")
 
 
 class AbstractPeeringInfoFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
@@ -360,16 +360,16 @@ class AddressFamilyForm(
 ):
     """Form for creating/updating AddressFamily records."""
 
-    device_device = utilities_forms.DynamicModelChoiceField(
-        queryset=Device.objects.all(),
-        required=False,
-        label="Device",
-    )
-    device_virtualmachine = utilities_forms.DynamicModelChoiceField(
-        queryset=VirtualMachine.objects.all(),
-        required=False,
-        label="Virtual Machine",
-    )
+    # device_device = utilities_forms.DynamicModelChoiceField(
+    #     queryset=Device.objects.all(),
+    #     required=False,
+    #     label="Device",
+    # )
+    # device_virtualmachine = utilities_forms.DynamicModelChoiceField(
+    #     queryset=VirtualMachine.objects.all(),
+    #     required=False,
+    #     label="Virtual Machine",
+    # )
     multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
 
     peer_group = utilities_forms.DynamicModelChoiceField(
@@ -387,8 +387,8 @@ class AddressFamilyForm(
     class Meta:
         model = models.AddressFamily
         fields = (
-            "device_device",
-            "device_virtualmachine",
+            # "device_device",
+            # "device_virtualmachine",
             "afi_safi",
             "peer_group",
             "peer_endpoint",
@@ -404,29 +404,29 @@ class AddressFamilyForm(
         instance = kwargs.get("instance")
         initial = kwargs.get("initial", {}).copy()
 
-        if instance:
-            if isinstance(instance.device, Device):
-                initial["device_device"] = instance.device
-            elif isinstance(instance.device, VirtualMachine):
-                initial["device_virtualmachine"] = instance.device
+        # if instance:
+        #     if isinstance(instance.device, Device):
+        #         initial["device_device"] = instance.device
+        #     elif isinstance(instance.device, VirtualMachine):
+        #         initial["device_virtualmachine"] = instance.device
 
         kwargs["initial"] = initial
 
         super().__init__(*args, **kwargs)
 
-    def clean(self):
-        """Form validation logic."""
-        super().clean()
+    # def clean(self):
+    #     """Form validation logic."""
+    #     super().clean()
 
-        if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
-            raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
+    #     if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
+    #         raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
 
-        if self.cleaned_data.get("device_device"):
-            self.instance.device = self.cleaned_data.get("device_device")
-        elif self.cleaned_data.get("device_virtualmachine"):
-            self.instance.device = self.cleaned_data.get("device_virtualmachine")
-        else:
-            raise forms.ValidationError("A device or virtual machine must be selected.")
+    #     if self.cleaned_data.get("device_device"):
+    #         self.instance.device = self.cleaned_data.get("device_device")
+    #     elif self.cleaned_data.get("device_virtualmachine"):
+    #         self.instance.device = self.cleaned_data.get("device_virtualmachine")
+    #     else:
+    #         raise forms.ValidationError("A device or virtual machine must be selected.")
 
 
 class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):

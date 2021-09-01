@@ -95,12 +95,12 @@ class PeerGroupSerializer(
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peergroup-detail")
 
-    device_content_type = ContentTypeField(
-        queryset=ContentType.objects.filter(
-            Q(Q(app_label="dcim", model="device") | Q(app_label="virtualization", model="virtualmachine"))
-        ),
-    )
-    device = serializers.SerializerMethodField(read_only=True)
+    # device_content_type = ContentTypeField(
+    #     queryset=ContentType.objects.filter(
+    #         Q(Q(app_label="dcim", model="device") | Q(app_label="virtualization", model="virtualmachine"))
+    #     ),
+    # )
+    # device = serializers.SerializerMethodField(read_only=True)
 
     update_source_content_type = ContentTypeField(
         queryset=ContentType.objects.filter(
@@ -116,22 +116,22 @@ class PeerGroupSerializer(
         fields = [
             "id",
             "url",
-            "device_content_type",
-            "device_object_id",
-            "device",
+            # "device_content_type",
+            # "device_object_id",
+            # "device",
             "name",
             "role",
             *AbstractPeeringInfoSerializerMixin.Meta.fields,
         ]
 
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
-    def get_device(self, obj):
-        """Serializer method for 'device' GenericForeignKey field."""
-        if obj.device is None:
-            return None
-        serializer = get_serializer_for_model(obj.device, prefix="Nested")
-        context = {"request": self.context["request"]}
-        return serializer(obj.device, context=context).data
+    # @swagger_serializer_method(serializer_or_field=serializers.DictField)
+    # def get_device(self, obj):
+    #     """Serializer method for 'device' GenericForeignKey field."""
+    #     if obj.device is None:
+    #         return None
+    #     serializer = get_serializer_for_model(obj.device, prefix="Nested")
+    #     context = {"request": self.context["request"]}
+    #     return serializer(obj.device, context=context).data
 
 
 class PeerEndpointSerializer(
@@ -213,12 +213,12 @@ class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModel
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:addressfamily-detail")
 
-    device_content_type = ContentTypeField(
-        queryset=ContentType.objects.filter(
-            Q(Q(app_label="dcim", model="device") | Q(app_label="virtualization", model="virtualmachine"))
-        ),
-    )
-    device = serializers.SerializerMethodField(read_only=True)
+    # device_content_type = ContentTypeField(
+    #     queryset=ContentType.objects.filter(
+    #         Q(Q(app_label="dcim", model="device") | Q(app_label="virtualization", model="virtualmachine"))
+    #     ),
+    # )
+    # device = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.AddressFamily
@@ -226,9 +226,9 @@ class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModel
             "id",
             "url",
             "afi_safi",
-            "device_content_type",
-            "device_object_id",
-            "device",
+            # "device_content_type",
+            # "device_object_id",
+            # "device",
             "peer_group",
             "peer_endpoint",
             "export_policy",
@@ -238,11 +238,11 @@ class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModel
             "multipath",
         ]
 
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
-    def get_device(self, obj):
-        """Serializer method for 'device' GenericForeignKey field."""
-        if obj.device is None:
-            return None
-        serializer = get_serializer_for_model(obj.device, prefix="Nested")
-        context = {"request": self.context["request"]}
-        return serializer(obj.device, context=context).data
+    # @swagger_serializer_method(serializer_or_field=serializers.DictField)
+    # def get_device(self, obj):
+    #     """Serializer method for 'device' GenericForeignKey field."""
+    #     if obj.device is None:
+    #         return None
+    #     serializer = get_serializer_for_model(obj.device, prefix="Nested")
+    #     context = {"request": self.context["request"]}
+    #     return serializer(obj.device, context=context).data
