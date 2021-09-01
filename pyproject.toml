@@ -20,6 +20,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
+nautobot = "^1.1"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
@@ -76,6 +77,7 @@ disable = """,
     line-too-long,
     too-few-public-methods,
     too-many-ancestors,
+    consider-using-dict-items,
     """
 
 [tool.pylint.miscellaneous]

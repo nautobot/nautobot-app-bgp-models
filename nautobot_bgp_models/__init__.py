@@ -23,7 +23,7 @@ class NautobotBGPModelsConfig(PluginConfig):
     description = "Nautobot BGP Models Plugin."
     base_url = "bgp"
     required_settings = []
-    min_version = "1.0.2"
+    min_version = "1.1.0"
     max_version = "1.999"
     default_settings = {
         "default_statuses": {
