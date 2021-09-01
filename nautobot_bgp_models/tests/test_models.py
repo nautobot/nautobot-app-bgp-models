@@ -146,16 +146,21 @@ class PeerEndpointTestCase(TestCase):
 
     def setUp(self):
         """Per-test data setup."""
+
+        self.peersession = models.PeerSession.objects.create(role=self.peeringrole_internal, status=self.status_active)
+
         self.ipaddress_1 = IPAddress.objects.create(
             address="1.1.1.1/32", vrf=self.vrf, status=self.status_active, assigned_object=self.interface_1
         )
+
         self.peerendpoint_1 = models.PeerEndpoint.objects.create(
             local_ip=self.ipaddress_1,
             peer_group=self.peergroup_1,
             vrf=self.vrf,
+            session=self.peersession,
         )
         self.peerendpoint_1.clean()
-        self.peerendpoint_2 = models.PeerEndpoint.objects.create(local_ip=self.ipaddress_2)
+        self.peerendpoint_2 = models.PeerEndpoint.objects.create(local_ip=self.ipaddress_2, session=self.peersession)
         self.peerendpoint_2.clean()
 
     def test_str(self):
@@ -211,24 +216,20 @@ class PeerEndpointTestCase(TestCase):
         with self.assertRaises(models.PeerEndpoint.DoesNotExist):
             self.peerendpoint_1.refresh_from_db()
 
-    def test_deleting_endpoint_deletes_session(self):
-        """Deleting a PeerEndpoint should delete its associated PeerSession."""
-        peersession = models.PeerSession.objects.create(role=self.peeringrole_internal, status=self.status_active)
-        peersession.endpoints.set((self.peerendpoint_1, self.peerendpoint_2))
+    def test_deleting_session_deletes_endpoints(self):
+        """Deleting a PeerSession should delete its associated PeerEndpoints."""
+
         self.peerendpoint_1.peer = self.peerendpoint_2
         self.peerendpoint_2.peer = self.peerendpoint_1
         self.peerendpoint_1.validated_save()
         self.peerendpoint_2.validated_save()
-        self.assertEqual(self.peerendpoint_1.session, peersession)
-        self.assertEqual(self.peerendpoint_2.session, peersession)
 
-        self.peerendpoint_1.delete()
+        self.peersession.delete()
         with self.assertRaises(models.PeerSession.DoesNotExist):
-            peersession.refresh_from_db()
+            self.peersession.refresh_from_db()
 
-        self.peerendpoint_2.refresh_from_db()
-        self.assertIsNone(self.peerendpoint_2.peer)
-        self.assertIsNone(self.peerendpoint_2.session)
+        with self.assertRaises(models.PeerEndpoint.DoesNotExist):
+            self.peerendpoint_2.refresh_from_db()
 
 
 class PeerSessionTestCase(TestCase):
@@ -240,20 +241,42 @@ class PeerSessionTestCase(TestCase):
         status_active = Status.objects.get(slug="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.PeerSession))
 
-        address_1 = IPAddress.objects.create(address="1.1.1.1/32", status=status_active)
-        address_2 = IPAddress.objects.create(address="2.2.2.2/32", status=status_active)
-
-        endpoint_1 = models.PeerEndpoint.objects.create(local_ip=address_1)
-        endpoint_2 = models.PeerEndpoint.objects.create(local_ip=address_2)
-
         peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
 
         cls.peersession = models.PeerSession.objects.create(status=status_active, role=peeringrole_internal)
-        cls.peersession.endpoints.set([endpoint_1, endpoint_2])
+
+        address_1 = IPAddress.objects.create(address="1.1.1.1/32", status=status_active)
+        address_2 = IPAddress.objects.create(address="2.2.2.2/32", status=status_active)
+        models.PeerEndpoint.objects.create(local_ip=address_1, session=cls.peersession)
+        models.PeerEndpoint.objects.create(local_ip=address_2, session=cls.peersession)
 
     def test_str(self):
         """Test the string representation of a PeerSession."""
         self.assertEqual("1.1.1.1/32 (unknown AS) ↔︎ 2.2.2.2/32 (unknown AS)", str(self.peersession))
+
+    def test_update_peers(self):
+        """Test update_peers to update peer on both endpoints."""
+        endpoints = self.peersession.endpoints.all()
+        endpoint_a = endpoints[0]
+        endpoint_z = endpoints[1]
+        self.assertIsNone(endpoint_a.peer)
+        self.assertIsNone(endpoint_z.peer)
+
+        self.assertTrue(self.peersession.update_peers())
+        endpoint_a.refresh_from_db()
+        endpoint_z.refresh_from_db()
+        self.assertEqual(endpoint_a.peer, endpoint_z)
+        self.assertEqual(endpoint_z.peer, endpoint_a)
+        self.assertFalse(self.peersession.update_peers())
+
+        endpoint_a.delete()
+        endpoint_z.refresh_from_db()
+        self.peersession.refresh_from_db()
+        self.assertIsNone(self.peersession.update_peers())
+
+        endpoint_z.delete()
+        self.peersession.refresh_from_db()
+        self.assertIsNone(self.peersession.update_peers())
 
 
 class AddressFamilyTestCase(TestCase):
@@ -285,8 +308,9 @@ class AddressFamilyTestCase(TestCase):
             role=self.peeringrole_internal,
         )
 
+        peersession = models.PeerSession.objects.create(status=self.status_active, role=self.peeringrole_internal)
         address = IPAddress.objects.create(address="1.1.1.1/32", status=self.status_active, assigned_object=interface)
-        self.peerendpoint = models.PeerEndpoint.objects.create(local_ip=address)
+        self.peerendpoint = models.PeerEndpoint.objects.create(local_ip=address, session=peersession)
 
         self.addressfamily_1 = models.AddressFamily.objects.create(
             afi_safi=AFISAFIChoices.AFI_IPV4,

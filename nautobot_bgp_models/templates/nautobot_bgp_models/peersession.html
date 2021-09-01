@@ -48,14 +48,6 @@
                 </div>
                 <table class="table table-hover panel-body attr-table">
                     <tr>
-                        <td>Endpoint A</td>
-                        <td><a href="{{ object.endpoint_a.get_absolute_url }}">{{ object.endpoint_a }}</a></td>
-                    </tr>
-                    <tr>
-                        <td>Endpoint Z</td>
-                        <td><a href="{{ object.endpoint_z.get_absolute_url }}">{{ object.endpoint_z }}</a></td>
-                    </tr>
-                    <tr>
                         <td>Role</td>
                         <td>
                             <a href="{% url 'plugins:nautobot_bgp_models:peeringrole' pk=object.role.pk %}">
@@ -92,6 +84,8 @@
             {% plugin_left_page object %}
         </div>
         <div class="col-md-6">
+            {% include 'nautobot_bgp_models/inc/peerendpoint.html' with endpoint=object.endpoint_a side='A' %}
+            {% include 'nautobot_bgp_models/inc/peerendpoint.html' with endpoint=object.endpoint_z side='Z' %}
             {% plugin_right_page object %}
         </div>
     </div>

@@ -1,5 +1,6 @@
 """View classes for nautobot_bgp_models."""
 
+from django.shortcuts import get_object_or_404
 from nautobot.core.views import generic
 from nautobot.dcim.models import Device, Interface
 from nautobot.virtualization.models import VirtualMachine, VMInterface
@@ -205,6 +206,16 @@ class PeerEndpointEditView(AbstractPeeringInfoEditView):
     queryset = models.PeerEndpoint.objects.all()
     model_form = forms.PeerEndpointForm
     template_name = "nautobot_bgp_models/peerendpoint_edit.html"
+
+    def alter_obj(self, obj, request, url_args, url_kwargs):
+        """Inject session object into form from url args."""
+        if "session" in url_kwargs:
+            obj.session = get_object_or_404(models.PeerSession, pk=url_kwargs["session"])
+        return obj
+
+    def get_return_url(self, request, obj, *args, **kwargs):
+        """Return to main PeerSession page after edit."""
+        return obj.session.get_absolute_url()
 
 
 class PeerEndpointDeleteView(generic.ObjectDeleteView):

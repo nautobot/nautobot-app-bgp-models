@@ -61,20 +61,6 @@ menu_items = (
         ),
     ),
     PluginMenuItem(
-        link="plugins:nautobot_bgp_models:peerendpoint_list",
-        link_text="Peer Endpoints",
-        # TODO permissions
-        buttons=(
-            PluginMenuButton(
-                "plugins:nautobot_bgp_models:peerendpoint_add",
-                "Add",
-                "mdi mdi-plus-thick",
-                ButtonColorChoices.GREEN,
-                # TODO permissions
-            ),
-        ),
-    ),
-    PluginMenuItem(
         link="plugins:nautobot_bgp_models:peersession_list",
         link_text="Peer Sessions",
         # TODO permissions

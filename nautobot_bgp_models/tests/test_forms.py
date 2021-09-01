@@ -188,12 +188,24 @@ class PeerEndpointFormTestCase(TestCase):
         cls.virtualmachine_1 = VirtualMachine.objects.create(name="VM 1", cluster=cluster, status=status_active)
         cls.vminterface_1 = VMInterface.objects.create(name="eth0", virtual_machine=cls.virtualmachine_1)
 
+        cls.peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+
+        cls.session = models.PeerSession.objects.create(
+            role=cls.peeringrole,
+            status=status_active,
+        )
+        cls.address_1 = IPAddress.objects.create(address="10.1.1.1/24", status=status_active)
+        cls.address_2 = IPAddress.objects.create(address="10.1.1.2/24", status=status_active)
+
+        cls.endpoint_1 = models.PeerEndpoint.objects.create(local_ip=cls.address_1, session=cls.session)
+
     def test_update_source_cannot_be_both(self):
         """Update source cannot be both an Interface and a VMInterface."""
         data = {
             "local_ip": self.address.pk,
             "update_source_interface": self.interface_1,
             "update_source_vminterface": self.vminterface_1,
+            "session": self.session.pk,
         }
         form = self.form_class(data)
         self.assertFalse(form.is_valid())
@@ -202,46 +214,19 @@ class PeerEndpointFormTestCase(TestCase):
             form.errors["__all__"][0],
         )
 
-
-class PeerSessionFormTestCase(TestCase):
-    """Test the PeerSession create/edit form."""
-
-    form_class = forms.PeerSessionForm
-
-    @classmethod
-    def setUpTestData(cls):
-        """Set up class-wide data for the test."""
-        cls.status_active = Status.objects.get(slug="active")
-        cls.status_active.content_types.add(ContentType.objects.get_for_model(models.PeerSession))
-
-        cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="000000")
-
-        cls.address_1 = IPAddress.objects.create(address="10.1.1.1/24", status=cls.status_active)
-        cls.address_2 = IPAddress.objects.create(address="10.1.1.2/24", status=cls.status_active)
-        cls.address_3 = IPAddress.objects.create(address="10.1.1.3/24", status=cls.status_active)
-
-        cls.endpoint_1 = models.PeerEndpoint.objects.create(local_ip=cls.address_1)
-        cls.endpoint_2 = models.PeerEndpoint.objects.create(local_ip=cls.address_2)
-        cls.endpoint_3 = models.PeerEndpoint.objects.create(local_ip=cls.address_3)
-
-    def test_required_number_of_endpoints(self):
-        """Exactly two endpoints must be specified when creating a PeerSession."""
+    def test_set_peer(self):
+        """Endpoint peer will should be populated when a second endpoint is added to a PeerSession."""
         data = {
-            "status": self.status_active.pk,
-            "role": self.peeringrole_internal.pk,
+            "local_ip": self.address_2.pk,
+            "session": self.session.pk,
         }
 
-        for endpoints_value in [
-            [self.endpoint_1.pk],
-            [self.endpoint_1.pk, self.endpoint_2.pk, self.endpoint_3.pk],
-        ]:
-            data["endpoints"] = endpoints_value
-            form = self.form_class(data)
-            self.assertFalse(form.is_valid())
-            self.assertEqual(
-                "Please select exactly two peer endpoints.",
-                form.errors["endpoints"][0],
-            )
+        form = self.form_class(data)
+        self.assertTrue(form.is_valid())
+
+        form.save()
+        self.endpoint_1.refresh_from_db()
+        self.assertIsNotNone(self.endpoint_1.peer)
 
 
 class AddressFamilyFormTestCase(TestCase):

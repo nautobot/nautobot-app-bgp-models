@@ -11,7 +11,7 @@ router.register("autonomous-systems", views.AutonomousSystemViewSet)
 router.register("peering-roles", views.PeeringRoleViewSet)
 router.register("peer-groups", views.PeerGroupViewSet)
 router.register("peer-endpoints", views.PeerEndpointViewSet)
-router.register("peer-sessions", views.PeerSessionViewSet)
+router.register("sessions", views.PeerSessionViewSet)
 router.register("address-families", views.AddressFamilyViewSet)
 
 urlpatterns = router.urls

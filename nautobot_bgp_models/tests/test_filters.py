@@ -201,18 +201,23 @@ class PeerEndpointTestCase(TestCase):
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
         cls.peergroup = models.PeerGroup.objects.create(device=device, name="Group B", role=peeringrole)
 
-        models.PeerEndpoint.objects.create(local_ip=addresses[0], autonomous_system=asn)
+        peersession1 = models.PeerSession.objects.create(role=peeringrole, status=status_active)
+        peersession2 = models.PeerSession.objects.create(role=peeringrole, status=status_active)
+        peersession3 = models.PeerSession.objects.create(role=peeringrole, status=status_active)
+        models.PeerEndpoint.objects.create(local_ip=addresses[0], autonomous_system=asn, session=peersession1)
         models.PeerEndpoint.objects.create(
             local_ip=addresses[1],
             autonomous_system=asn,
             vrf=vrf,
             peer_group=cls.peergroup,
+            session=peersession2,
         )
         models.PeerEndpoint.objects.create(
             local_ip=addresses[2],
             vrf=vrf,
             peer_group=cls.peergroup,
             enabled=False,
+            session=peersession3,
         )
 
     def test_search(self):
@@ -271,17 +276,21 @@ class PeerSessionTestCase(TestCase):
             IPAddress.objects.create(address="10.1.1.6/24", status=status_reserved),
         ]
 
-        endpoints = [models.PeerEndpoint.objects.create(local_ip=address) for address in addresses]
-
         peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
         peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
 
-        session_1 = models.PeerSession.objects.create(status=status_active, role=peeringrole_internal)
-        session_1.endpoints.set(endpoints[0:2])
-        session_2 = models.PeerSession.objects.create(status=status_active, role=peeringrole_external)
-        session_2.endpoints.set(endpoints[2:4])
-        session_3 = models.PeerSession.objects.create(status=status_reserved, role=peeringrole_external)
-        session_3.endpoints.set(endpoints[4:6])
+        sessions = [
+            models.PeerSession.objects.create(status=status_active, role=peeringrole_internal),
+            models.PeerSession.objects.create(status=status_active, role=peeringrole_external),
+            models.PeerSession.objects.create(status=status_reserved, role=peeringrole_external),
+        ]
+
+        models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0])
+        models.PeerEndpoint.objects.create(local_ip=addresses[1], session=sessions[0])
+        models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1])
+        models.PeerEndpoint.objects.create(local_ip=addresses[3], session=sessions[1])
+        models.PeerEndpoint.objects.create(local_ip=addresses[4], session=sessions[2])
+        models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2])
 
     def test_id(self):
         """Test filtering by id."""
@@ -322,7 +331,8 @@ class AddressFamilyTestCase(TestCase):
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
         cls.peergroup = models.PeerGroup.objects.create(device=device, name="Group B", role=peeringrole)
 
-        cls.endpoint = models.PeerEndpoint.objects.create(local_ip=address)
+        peersession = models.PeerSession.objects.create(status=status_active, role=peeringrole)
+        cls.endpoint = models.PeerEndpoint.objects.create(local_ip=address, session=peersession)
 
         models.AddressFamily.objects.create(
             afi_safi=choices.AFISAFIChoices.AFI_IPV4,
