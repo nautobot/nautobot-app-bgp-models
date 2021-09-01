@@ -314,15 +314,6 @@ class PeerSessionTestCase(TestCase):
             ),
         ]
 
-        endpoints = [
-            models.PeerEndpoint.objects.create(local_ip=addresses[0], autonomous_system=asn1),
-            models.PeerEndpoint.objects.create(local_ip=addresses[1]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[2], autonomous_system=asn2),
-            models.PeerEndpoint.objects.create(local_ip=addresses[3]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[4]),
-            models.PeerEndpoint.objects.create(local_ip=addresses[5], autonomous_system=asn3),
-        ]
-
         peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
         peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
 
@@ -332,12 +323,12 @@ class PeerSessionTestCase(TestCase):
             models.PeerSession.objects.create(status=status_reserved, role=peeringrole_external),
         ]
 
-        models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0])
+        models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0], autonomous_system=asn1)
         models.PeerEndpoint.objects.create(local_ip=addresses[1], session=sessions[0])
-        models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1])
+        models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1], autonomous_system=asn2)
         models.PeerEndpoint.objects.create(local_ip=addresses[3], session=sessions[1])
         models.PeerEndpoint.objects.create(local_ip=addresses[4], session=sessions[2])
-        models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2])
+        models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2], autonomous_system=asn3)
 
     def test_id(self):
         """Test filtering by id."""
