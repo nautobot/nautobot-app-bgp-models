@@ -20,7 +20,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-nautobot = "^1.1"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
