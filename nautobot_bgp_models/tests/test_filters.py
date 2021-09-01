@@ -260,7 +260,7 @@ class PeerSessionTestCase(TestCase):
     filterset = filters.PeerSessionFilterSet
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
         """One-time class setup to prepopulate required data for tests."""
         status_active = Status.objects.get(slug="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.PeerSession))

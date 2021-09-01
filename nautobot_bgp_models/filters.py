@@ -152,7 +152,7 @@ class PeerSessionFilterSet(
         model = models.PeerSession
         fields = ["id"]
 
-    def filter_asn(self, queryset, name, value):
+    def filter_asn(self, queryset, name, value):  # pylint: disable=unused-argument,no-self-use
         """Filter PeerSession per ASN."""
         if not value:
             return queryset
@@ -170,8 +170,8 @@ class PeerSessionFilterSet(
 
         return (from_endpoints | from_devices).distinct()
 
-    def filter_address(self, queryset, name, value):
-        """Filter PeerSession per IP Address"""
+    def filter_address(self, queryset, name, value):  # pylint: disable=unused-argument,no-self-use
+        """Filter PeerSession per IP Address."""
         if not value:
             return queryset
 
