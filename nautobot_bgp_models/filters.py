@@ -4,9 +4,13 @@ import django_filters
 
 from django.db.models import Q
 
+from django.core.exceptions import ValidationError
+
+from nautobot.dcim.models import Device
+from nautobot.extras.models import Relationship, RelationshipAssociation
 from nautobot.extras.filters import StatusModelFilterSetMixin, CreatedUpdatedFilterSet, CustomFieldModelFilterSet
-from nautobot.ipam.models import VRF
-from nautobot.utilities.filters import BaseFilterSet, NameSlugSearchFilterSet, TagFilter
+from nautobot.ipam.models import VRF, IPAddress
+from nautobot.utilities.filters import BaseFilterSet, MultiValueCharFilter, NameSlugSearchFilterSet, TagFilter
 
 from . import choices, models
 
@@ -125,9 +129,58 @@ class PeerSessionFilterSet(
         label="Peering role (slug)",
     )
 
+    address = MultiValueCharFilter(
+        method="filter_address",
+        label="Address",
+    )
+
+    device = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__local_ip__interface__device__name",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name)",
+    )
+
+    asn = django_filters.ModelMultipleChoiceFilter(
+        method="filter_asn",
+        queryset=models.AutonomousSystem.objects.all(),
+        to_field_name="asn",
+        label="Autonomous System (asn)",
+    )
+
     class Meta:
         model = models.PeerSession
         fields = ["id"]
+
+    def filter_asn(self, queryset, name, value):
+        """Filter PeerSession per ASN."""
+        if not value:
+            return queryset
+
+        from_endpoints = queryset.filter(
+            Q(endpoints__autonomous_system__in=value) | Q(endpoints__peer_group__autonomous_system__in=value)
+        )
+
+        asn_ids = [asn.pk for asn in value]
+        rel = Relationship.objects.get(slug="bgp_asn")
+        devices_id = RelationshipAssociation.objects.filter(relationship=rel, source_id__in=asn_ids).values_list(
+            "destination_id", flat=True
+        )
+        from_devices = queryset.filter(endpoints__local_ip__interface__device__pk__in=devices_id)
+
+        return (from_endpoints | from_devices).distinct()
+
+    def filter_address(self, queryset, name, value):
+        """Filter PeerSession per IP Address"""
+        if not value:
+            return queryset
+
+        try:
+            ips = IPAddress.objects.net_in(value)
+        except ValidationError:
+            return queryset.none()
+
+        return queryset.filter(endpoints__local_ip__in=ips).distinct()
 
 
 class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
