@@ -318,9 +318,22 @@ class PeerSessionFilterForm(
         "q",
         "role",
         "status",
+        "address",
+        "device",
+        "asn",
     ]
     role = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
+    )
+
+    address = forms.CharField(required=False, label="Address")
+
+    device = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=Device.objects.all(), to_field_name="name", required=False
+    )
+
+    asn = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
     )
 
 
