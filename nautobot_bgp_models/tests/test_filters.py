@@ -309,7 +309,9 @@ class PeerSessionTestCase(TestCase):
             ),
             IPAddress.objects.create(address="10.1.1.4/24", status=status_reserved),
             IPAddress.objects.create(address="10.1.1.5/24", status=status_active),
-            IPAddress.objects.create(address="10.1.1.6/24", status=status_reserved),
+            IPAddress.objects.create(
+                address="10.1.1.6/24", status=status_reserved, assigned_object=interfaces_device2[0]
+            ),
         ]
 
         endpoints = [
@@ -357,13 +359,16 @@ class PeerSessionTestCase(TestCase):
         params = {"device": ["device1"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
+        params = {"device": ["device1", "device2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+
     def test_asn(self):
         """Test filtering by asn name."""
         params = {"asn": [65000]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
         params = {"asn": [66000]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
 
         params = {"asn": [66000, 12345]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
