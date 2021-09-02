@@ -1,5 +1,6 @@
 """Nautobot signal handler functions for nautobot_bgp_models."""
 
+from nautobot_bgp_models.models import AddressFamily
 from django.conf import settings
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -33,6 +34,8 @@ def post_migrate_create_relationships(sender, apps, **kwargs):
     """Callback function for post_migrate() -- create Relationship records."""
     # pylint: disable=invalid-name
     AutonomousSystem = sender.get_model("AutonomousSystem")
+    PeerGroup = sender.get_model("PeerGroup")
+    AddressFamily = sender.get_model("AddressFamily")
     ContentType = apps.get_model("contenttypes", "ContentType")
     Device = apps.get_model("dcim", "Device")
     IPAddress = apps.get_model("ipam", "IPAddress")
@@ -58,6 +61,22 @@ def post_migrate_create_relationships(sender, apps, **kwargs):
             "destination_type": ContentType.objects.get_for_model(IPAddress),
             "destination_label": "BGP Router-ID for Device",
             "destination_filter": {"role": "loopback"},
+        },
+        {
+            "name": "BGP Device <> Peer Group",
+            "slug": "bgp_device_peergroup",
+            "type": RelationshipTypeChoices.TYPE_MANY_TO_MANY,
+            "source_type": ContentType.objects.get_for_model(Device),
+            "source_label": "BGP Peer Groups",
+            "destination_type": ContentType.objects.get_for_model(PeerGroup),
+        },
+        {
+            "name": "BGP Device <> AddressFamily",
+            "slug": "bgp_device_af",
+            "type": RelationshipTypeChoices.TYPE_MANY_TO_MANY,
+            "source_type": ContentType.objects.get_for_model(Device),
+            "source_label": "BGP Address Families",
+            "destination_type": ContentType.objects.get_for_model(AddressFamily),
         },
     ]:
         Relationship.objects.get_or_create(name=relationship_dict["name"], defaults=relationship_dict)
