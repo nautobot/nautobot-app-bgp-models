@@ -124,13 +124,12 @@ class PeerGroupTestCase(
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
 
-        models.PeerGroup.objects.create(name="Group A", device=device, role=peeringrole)
-        models.PeerGroup.objects.create(name="Group B", device=device, role=peeringrole)
-        models.PeerGroup.objects.create(name="Group C", device=device, role=peeringrole)
+        models.PeerGroup.objects.create(name="Group A", role=peeringrole)
+        models.PeerGroup.objects.create(name="Group B", role=peeringrole)
+        models.PeerGroup.objects.create(name="Group C", role=peeringrole)
 
         cls.form_data = {
             "name": "Group D",
-            "device_device": device.pk,
             "role": peeringrole.pk,
             # TODO: other attributes
         }
@@ -184,7 +183,7 @@ class PeerEndpointTestCase(
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
 
-        peergroup = models.PeerGroup.objects.create(name="Group A", device=device, role=peeringrole, vrf=vrf)
+        peergroup = models.PeerGroup.objects.create(name="Group A", role=peeringrole, vrf=vrf)
 
         session1 = models.PeerSession.objects.create(
             role=peeringrole,
@@ -305,7 +304,7 @@ class AddressFamilyTestCase(
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
 
-        peergroup = models.PeerGroup.objects.create(name="Group A", device=device, role=peeringrole)
+        peergroup = models.PeerGroup.objects.create(name="Group A", role=peeringrole)
         peersession = models.PeerSession.objects.create(status=status_active, role=peeringrole)
 
         peerendpoint = models.PeerEndpoint.objects.create(
@@ -316,12 +315,11 @@ class AddressFamilyTestCase(
             session=peersession,
         )
 
-        models.AddressFamily.objects.create(device=device, afi_safi=AFISAFIChoices.AFI_IPV4)
-        models.AddressFamily.objects.create(device=device, peer_group=peergroup, afi_safi=AFISAFIChoices.AFI_IPV4)
-        models.AddressFamily.objects.create(device=device, peer_endpoint=peerendpoint, afi_safi=AFISAFIChoices.AFI_IPV4)
+        models.AddressFamily.objects.create(afi_safi=AFISAFIChoices.AFI_IPV4)
+        models.AddressFamily.objects.create(peer_group=peergroup, afi_safi=AFISAFIChoices.AFI_IPV4)
+        models.AddressFamily.objects.create(peer_endpoint=peerendpoint, afi_safi=AFISAFIChoices.AFI_IPV4)
 
         cls.form_data = {
-            "device_device": device.pk,
             "afi_safi": AFISAFIChoices.AFI_VPNV4,
             "peer_group": None,
             "peer_endpoint": peerendpoint.pk,

@@ -78,7 +78,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerGroup
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["device_content_type", "device_object_id", "display", "enabled", "id", "name", "role", "url"]
+    brief_fields = ["display", "enabled", "id", "name", "role", "url"]
     bulk_update_data = {
         "description": "Glenn was here",
         "enabled": True,
@@ -113,8 +113,6 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
         cls.create_data = [
             {
                 "name": "Group B",
-                "device_content_type": "dcim.device",
-                "device_object_id": device.pk,
                 "role": peeringrole.pk,
                 "description": "Telephone sanitizers",
                 "enabled": True,
@@ -135,14 +133,10 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             },
             {
                 "name": "Group A",
-                "device_content_type": "dcim.device",
-                "device_object_id": device.pk,
                 "role": peeringrole.pk,
             },
             {
                 "name": "Group C",
-                "device_content_type": "dcim.device",
-                "device_object_id": device.pk,
                 "role": peeringrole.pk,
                 "enabled": False,
             },
@@ -183,20 +177,21 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
         self.assertIsNone(response.data["autonomous_system"])
         self.assertIsNone(response.data["router_id"])
 
-        # Retrieve with inheritance
-        url = self._get_detail_url(instance)
-        response = self.client.get(f"{url}?include_inherited", **self.header)
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        # Properties not set on the instance but inheritable from the parent device
-        self.assertEqual(self.asn.pk, response.data["autonomous_system"])
-        self.assertEqual(self.address.pk, response.data["router_id"])
+        # TODO define what kind of inheritance is still relevant to test
+        # # Retrieve with inheritance
+        # url = self._get_detail_url(instance)
+        # response = self.client.get(f"{url}?include_inherited", **self.header)
+        # self.assertHttpStatus(response, status.HTTP_200_OK)
+        # # Properties not set on the instance but inheritable from the parent device
+        # self.assertEqual(self.asn.pk, response.data["autonomous_system"])
+        # self.assertEqual(self.address.pk, response.data["router_id"])
 
-        # Retrieve with explictly excluded inheritance
-        url = self._get_detail_url(instance)
-        response = self.client.get(f"{url}?include_inherited=false", **self.header)
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        self.assertIsNone(response.data["autonomous_system"])
-        self.assertIsNone(response.data["router_id"])
+        # # Retrieve with explictly excluded inheritance
+        # url = self._get_detail_url(instance)
+        # response = self.client.get(f"{url}?include_inherited=false", **self.header)
+        # self.assertHttpStatus(response, status.HTTP_200_OK)
+        # self.assertIsNone(response.data["autonomous_system"])
+        # self.assertIsNone(response.data["router_id"])
 
 
 class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
@@ -384,12 +379,6 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
                 "__all__",
                 "VRF other_vrf was specified, but one or more attributes refer instead to Ark B",
             ),
-            (
-                # Mismatch between assigned device and assigned peer-group's device
-                {"local_ip": self.addresses[0].pk, "peer_group": other_peergroup.pk, "session": self.session[2].pk},
-                "__all__",
-                "Various attributes refer to different devices and/or virtual machines",
-            ),
         ):
             response = self.client.post(self._get_list_url(), data, format="json", **self.header)
             self.assertHttpStatus(response, status.HTTP_400_BAD_REQUEST)
@@ -488,8 +477,6 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
     view_namespace = "plugins-api:nautobot_bgp_models"
     brief_fields = [
         "afi_safi",
-        "device_content_type",
-        "device_object_id",
         "display",
         "id",
         "peer_endpoint",
@@ -523,22 +510,19 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         peerendpoint_2 = models.PeerEndpoint.objects.create(local_ip=addresses[1], session=peersession)
 
         models.AddressFamily.objects.create(
-            device=device,
             afi_safi=choices.AFISAFIChoices.AFI_IPV4,
             export_policy="EXPORT_POLICY",
             import_policy="IMPORT_POLICY",
         )
         models.AddressFamily.objects.create(
-            device=device, afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_group=peergroup
+            afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_group=peergroup
         )
         models.AddressFamily.objects.create(
-            device=device, afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_endpoint=peerendpoint_1
+            afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_endpoint=peerendpoint_1
         )
 
         cls.create_data = [
             {
-                "device_content_type": "dcim.device",
-                "device_object_id": device.pk,
                 "afi_safi": choices.AFISAFIChoices.AFI_IPV4_FLOWSPEC,
                 "peer_group": None,
                 "peer_endpoint": None,
@@ -549,15 +533,11 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
                 "multipath": True,
             },
             {
-                "device_content_type": "dcim.device",
-                "device_object_id": device.pk,
                 "afi_safi": choices.AFISAFIChoices.AFI_VPNV4,
                 "peer_group": peergroup.pk,
                 "peer_endpoint": None,
             },
             {
-                "device_content_type": "dcim.device",
-                "device_object_id": device.pk,
                 "afi_safi": choices.AFISAFIChoices.AFI_IPV4,
                 "peer_group": None,
                 "peer_endpoint": peerendpoint_2.pk,
@@ -593,17 +573,18 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         self.assertEqual("", response.data["import_policy"])
         self.assertEqual("", response.data["export_policy"])
 
-        # Retrieve with inheritance
-        url = self._get_detail_url(instance)
-        response = self.client.get(f"{url}?include_inherited", **self.header)
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        # Properties not set on the instance but inheritable from the parent address-families
-        self.assertEqual("IMPORT_POLICY", response.data["import_policy"])
-        self.assertEqual("EXPORT_POLICY", response.data["export_policy"])
+        # TODO Determine what kind of inheritance is still required here
+        # # Retrieve with inheritance
+        # url = self._get_detail_url(instance)
+        # response = self.client.get(f"{url}?include_inherited", **self.header)
+        # self.assertHttpStatus(response, status.HTTP_200_OK)
+        # # Properties not set on the instance but inheritable from the parent address-families
+        # self.assertEqual("IMPORT_POLICY", response.data["import_policy"])
+        # self.assertEqual("EXPORT_POLICY", response.data["export_policy"])
 
-        # Retrieve with explictly excluded inheritance
-        url = self._get_detail_url(instance)
-        response = self.client.get(f"{url}?include_inherited=false", **self.header)
-        self.assertHttpStatus(response, status.HTTP_200_OK)
-        self.assertEqual("", response.data["import_policy"])
-        self.assertEqual("", response.data["export_policy"])
+        # # Retrieve with explictly excluded inheritance
+        # url = self._get_detail_url(instance)
+        # response = self.client.get(f"{url}?include_inherited=false", **self.header)
+        # self.assertHttpStatus(response, status.HTTP_200_OK)
+        # self.assertEqual("", response.data["import_policy"])
+        # self.assertEqual("", response.data["export_policy"])
