@@ -375,6 +375,7 @@ class PeerSessionTestCase(TestCase):
         params = {"address": ["10.1.1.1/24"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
+        # Both IP addresses are part of the same PeerSession so only 1 PeerSession is expected
         params = {"address": ["10.1.1.1", "10.1.1.2"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
