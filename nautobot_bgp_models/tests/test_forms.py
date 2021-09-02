@@ -130,7 +130,8 @@ class PeerGroupFormTestCase(TestCase):
         peergroup = models.PeerGroup.objects.get(name="Peer Group A")
         self.assertEqual(peergroup.update_source, self.vminterface_1)
 
-
+# TODO Find a way to model alter_obj within the test case,
+# Currently all tests are failing because the session object is missing
 # class PeerEndpointFormTestCase(TestCase):
 #     """Test the PeerEndpoint create/edit form."""
 
