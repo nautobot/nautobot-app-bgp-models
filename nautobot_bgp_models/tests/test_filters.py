@@ -128,13 +128,13 @@ class PeerGroupTestCase(TestCase):
         peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
 
         models.PeerGroup.objects.create(
-            name="Group A", device=cls.device_1, role=cls.peeringrole_internal, autonomous_system=cls.asn_1
+            name="Group A", role=cls.peeringrole_internal, autonomous_system=cls.asn_1
         )
         models.PeerGroup.objects.create(
-            name="Group B", device=cls.device_1, role=peeringrole_external, autonomous_system=cls.asn_1, enabled=False
+            name="Group B", role=peeringrole_external, autonomous_system=cls.asn_1, enabled=False
         )
         models.PeerGroup.objects.create(
-            name="Group A", device=device_2, role=cls.peeringrole_internal, autonomous_system=asn_2, vrf=cls.vrf
+            name="Group A", role=cls.peeringrole_internal, autonomous_system=asn_2, vrf=cls.vrf
         )
 
     def test_search(self):
@@ -199,7 +199,7 @@ class PeerEndpointTestCase(TestCase):
 
         asn = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
-        cls.peergroup = models.PeerGroup.objects.create(device=device, name="Group B", role=peeringrole)
+        cls.peergroup = models.PeerGroup.objects.create(name="Group B", role=peeringrole)
 
         peersession1 = models.PeerSession.objects.create(role=peeringrole, status=status_active)
         peersession2 = models.PeerSession.objects.create(role=peeringrole, status=status_active)
@@ -404,23 +404,20 @@ class AddressFamilyTestCase(TestCase):
         address = IPAddress.objects.create(address="1.1.1.1/32", status=status_active, assigned_object=interface)
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
-        cls.peergroup = models.PeerGroup.objects.create(device=device, name="Group B", role=peeringrole)
+        cls.peergroup = models.PeerGroup.objects.create(name="Group B", role=peeringrole)
 
         peersession = models.PeerSession.objects.create(status=status_active, role=peeringrole)
         cls.endpoint = models.PeerEndpoint.objects.create(local_ip=address, session=peersession)
 
         models.AddressFamily.objects.create(
             afi_safi=choices.AFISAFIChoices.AFI_IPV4,
-            device=device,
         )
         models.AddressFamily.objects.create(
             afi_safi=choices.AFISAFIChoices.AFI_IPV4_FLOWSPEC,
-            device=device,
             peer_group=cls.peergroup,
         )
         models.AddressFamily.objects.create(
             afi_safi=choices.AFISAFIChoices.AFI_VPNV4,
-            device=device,
             peer_endpoint=cls.endpoint,
         )
 

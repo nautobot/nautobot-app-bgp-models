@@ -245,17 +245,6 @@ class AbstractPeeringInfo(models.Model):
 class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
     """BGP peer group information."""
 
-    # device_content_type = models.ForeignKey(
-    #     to=ContentType,
-    #     limit_choices_to=models.Q(
-    #         models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
-    #     ),
-    #     on_delete=models.CASCADE,
-    #     related_name="+",
-    # )
-    # device_object_id = models.UUIDField()
-    # device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
-
     name = models.CharField(max_length=100)
 
     role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups")
@@ -267,20 +256,20 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
 
     def __str__(self):
         """String representation of a single PeerGroup."""
-        return f"{self.name} on {self.device}"
+        return f"{self.name}"
 
     def get_absolute_url(self):
         """Get the URL for a detailed view of a single PeerGroup."""
         return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
 
-    def clean(self):
-        """Django callback method to validate model sanity."""
-        super().clean()
-        device_candidates = self.get_candidate_devices()
-        if device_candidates and self.device not in device_candidates:
-            raise ValidationError(
-                f"Device {self.device} was specified, but one or more attributes refer instead to {device_candidates.pop()}"
-            )
+    # def clean(self):
+    #     """Django callback method to validate model sanity."""
+    #     super().clean()
+    #     device_candidates = self.get_candidate_devices()
+    #     if device_candidates and self.device not in device_candidates:
+    #         raise ValidationError(
+    #             f"Device {self.device} was specified, but one or more attributes refer instead to {device_candidates.pop()}"
+    #         )
 
     def get_fields(self, include_inherited=False):
         """Get a listing of model fields, optionally including values inherited via the BGP config hierarchy."""
@@ -289,47 +278,46 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
         # Add additional fields
         result.update(
             {
-                # "device": {"value": self.device, "inherited": False},
                 "name": {"value": self.name, "inherited": False},
                 "role": {"value": self.role, "inherited": False},
             }
         )
 
-        if include_inherited:
-            # Add inherited fields
-            if not result["router_id"]["value"]:
-                try:
-                    device_router_id_assoc = RelationshipAssociation.objects.get(
-                        relationship__slug="bgp_device_router_id",
-                        source_type=ContentType.objects.get_for_model(Device),
-                        source_id=self.device.pk,
-                    )
-                    result["router_id"].update(
-                        {
-                            "value": device_router_id_assoc.destination,
-                            "source": self.device,
-                            "inherited": True,
-                        }
-                    )
-                except RelationshipAssociation.DoesNotExist:
-                    pass
+        # if include_inherited:
+        #     # Add inherited fields
+        #     if not result["router_id"]["value"]:
+        #         try:
+        #             device_router_id_assoc = RelationshipAssociation.objects.get(
+        #                 relationship__slug="bgp_device_router_id",
+        #                 source_type=ContentType.objects.get_for_model(Device),
+        #                 source_id=self.device.pk,
+        #             )
+        #             result["router_id"].update(
+        #                 {
+        #                     "value": device_router_id_assoc.destination,
+        #                     "source": self.device,
+        #                     "inherited": True,
+        #                 }
+        #             )
+        #         except RelationshipAssociation.DoesNotExist:
+        #             pass
 
-            if not result["autonomous_system"]["value"]:
-                try:
-                    asn_device_assoc = RelationshipAssociation.objects.get(
-                        relationship__slug="bgp_asn",
-                        destination_type=ContentType.objects.get_for_model(Device),
-                        destination_id=self.device.pk,
-                    )
-                    result["autonomous_system"].update(
-                        {
-                            "value": asn_device_assoc.source,
-                            "source": self.device,
-                            "inherited": True,
-                        }
-                    )
-                except RelationshipAssociation.DoesNotExist:
-                    pass
+        #     if not result["autonomous_system"]["value"]:
+        #         try:
+        #             asn_device_assoc = RelationshipAssociation.objects.get(
+        #                 relationship__slug="bgp_asn",
+        #                 destination_type=ContentType.objects.get_for_model(Device),
+        #                 destination_id=self.device.pk,
+        #             )
+        #             result["autonomous_system"].update(
+        #                 {
+        #                     "value": asn_device_assoc.source,
+        #                     "source": self.device,
+        #                     "inherited": True,
+        #                 }
+        #             )
+        #         except RelationshipAssociation.DoesNotExist:
+        #             pass
 
         return result
 
@@ -428,9 +416,6 @@ class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
                 device_candidates.add(self.local_ip.assigned_object.virtual_machine)
         else:
             device_candidates.add(None)
-
-        if self.peer_group:
-            device_candidates.add(self.peer_group.device)
 
         return device_candidates
 
@@ -573,6 +558,7 @@ class PeerSession(OrganizationalModel, StatusModel):
     "custom_links",
     "custom_validators",
     "export_templates",
+    "graphql",
     "relationships",
     "webhooks",
 )
@@ -580,17 +566,6 @@ class AddressFamily(OrganizationalModel):
     """Address-family (AFI-SAFI) configuration for BGP."""
 
     afi_safi = models.CharField(max_length=64, choices=choices.AFISAFIChoices, verbose_name="AFI-SAFI")
-
-    # device_content_type = models.ForeignKey(
-    #     to=ContentType,
-    #     limit_choices_to=models.Q(
-    #         models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
-    #     ),
-    #     on_delete=models.CASCADE,
-    #     related_name="+",
-    # )
-    # device_object_id = models.UUIDField()
-    # device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
 
     peer_group = models.ForeignKey(to=PeerGroup, on_delete=models.CASCADE, blank=True, null=True)
     peer_endpoint = models.ForeignKey(to=PeerEndpoint, on_delete=models.CASCADE, blank=True, null=True)
@@ -629,14 +604,6 @@ class AddressFamily(OrganizationalModel):
 
         if self.peer_group and self.peer_endpoint:
             raise ValidationError("An AddressFamily cannot reference both a peer-group and a peer endpoint")
-
-        # if self.device and (
-        #     (self.peer_group and self.peer_group.device != self.device)
-        #     or (self.peer_endpoint and self.peer_endpoint.get_device() != self.device)
-        # ):
-        #     raise ValidationError(
-        #         "Mismatch between the selected device and the selected peer-group/peer-endpoint's parent device"
-        #     )
 
         # Since NULL != NULL in database terms, unique_together as defined on the Meta class above doesn't exactly
         # work as might be expected, given that either peer_group or peer_endpoint (or both!) will be NULL.w
@@ -685,33 +652,6 @@ class AddressFamily(OrganizationalModel):
                                 {
                                     "value": pg_af_fields[key]["value"],
                                     "source": pg_af_fields[key].get("source", pg_af),
-                                    "inherited": True,
-                                }
-                            )
-                except ObjectDoesNotExist:
-                    pass
-
-            # inherit from base device address-family, if any
-            if self.peer_endpoint or self.peer_group:
-                try:
-                    device_af = self.__class__.objects.get(
-                        afi_safi=self.afi_safi,
-                        device_content_type=ContentType.objects.get_for_model(Device),
-                        device_object_id=self.device.pk,
-                        peer_endpoint__isnull=True,
-                        peer_group__isnull=True,
-                    )
-                    device_af_fields = device_af.get_fields(include_inherited=include_inherited)
-                    for key in result:
-                        if (
-                            key in device_af_fields
-                            and device_af_fields[key]["value"] is not None
-                            and (result[key]["value"] is None or result[key]["value"] == "")
-                        ):
-                            result[key].update(
-                                {
-                                    "value": device_af_fields[key]["value"],
-                                    "source": device_af,
                                     "inherited": True,
                                 }
                             )

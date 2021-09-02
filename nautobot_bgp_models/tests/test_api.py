@@ -154,9 +154,9 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
         asn_relation = Relationship.objects.get(slug="bgp_asn")
         RelationshipAssociation.objects.create(relationship=asn_relation, source=cls.asn, destination=device)
 
-        models.PeerGroup.objects.create(name="Group 1", device=device, role=peeringrole)
-        models.PeerGroup.objects.create(name="Group 2", device=device, role=peeringrole)
-        models.PeerGroup.objects.create(name="Group 3", device=device, role=peeringrole)
+        models.PeerGroup.objects.create(name="Group 1", role=peeringrole)
+        models.PeerGroup.objects.create(name="Group 2", role=peeringrole)
+        models.PeerGroup.objects.create(name="Group 3", role=peeringrole)
 
         cls.maxDiff = None
 
@@ -282,7 +282,6 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
 
         peergroup = models.PeerGroup.objects.create(
             name="Group 1",
-            device=device,
             role=cls.peeringrole,
             vrf=cls.vrf,
             router_id=cls.addresses[3],
@@ -372,7 +371,7 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             site=self.site,
             status=self.status_active,
         )
-        other_peergroup = models.PeerGroup.objects.create(name="Group 2", device=other_device, role=self.peeringrole)
+        other_peergroup = models.PeerGroup.objects.create(name="Group 2", role=self.peeringrole)
 
         for data, error_key, error_str in (
             (
@@ -517,7 +516,7 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         )
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
-        peergroup = models.PeerGroup.objects.create(name="Group 1", device=device, role=peeringrole)
+        peergroup = models.PeerGroup.objects.create(name="Group 1", role=peeringrole)
 
         peersession = models.PeerSession.objects.create(role=peeringrole, status=status_active)
         peerendpoint_1 = models.PeerEndpoint.objects.create(local_ip=addresses[0], session=peersession)

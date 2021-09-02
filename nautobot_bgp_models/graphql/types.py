@@ -44,7 +44,6 @@ class InterfaceOrVMInterfaceType(graphene.Union):
 class PeerGroupType(DjangoObjectType):
     """GraphQL type object for PeerGroup model."""
 
-    device = DeviceOrVirtualMachineType()
     update_source = InterfaceOrVMInterfaceType()
 
     class Meta:
@@ -63,14 +62,5 @@ class PeerEndpointType(DjangoObjectType):
         filterset_class = filters.PeerEndpointFilterSet
 
 
-class AddressFamilyType(DjangoObjectType):
-    """GraphQL type object for AddressFamily model."""
 
-    device = DeviceOrVirtualMachineType()
-
-    class Meta:
-        model = models.AddressFamily
-        filterset_class = filters.AddressFamilyFilterSet
-
-
-graphql_types = [PeerGroupType, PeerEndpointType, AddressFamilyType]
+graphql_types = [PeerGroupType, PeerEndpointType]

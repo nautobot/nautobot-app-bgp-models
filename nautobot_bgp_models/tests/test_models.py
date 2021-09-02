@@ -78,12 +78,12 @@ class PeerGroupTestCase(TestCase):
             status=self.status_active,
         )
         self.peergroup = models.PeerGroup.objects.create(
-            name="Peer Group A", device=self.device_1, role=self.peeringrole_internal
+            name="Peer Group A", role=self.peeringrole_internal
         )
 
     def test_str(self):
         """Test string representation of a PeerGroup."""
-        self.assertEqual(str(self.peergroup), f"{self.peergroup.name} on {self.device_1.name}")
+        self.assertEqual(str(self.peergroup), f"{self.peergroup.name}")
 
     def test_vrf_fixup_from_router_id(self):
         """If VRF is None, but the router-id references a VRF, use that."""
@@ -96,13 +96,6 @@ class PeerGroupTestCase(TestCase):
         )
         self.peergroup.validated_save()
         self.assertEqual(self.peergroup.vrf, vrf)
-
-    def test_deleting_device_deletes_peergroup(self):
-        """Deleting a Device should delete its associated PeerGroup(s)."""
-        self.device_1.delete()
-        with self.assertRaises(models.PeerGroup.DoesNotExist):
-            self.peergroup.refresh_from_db()
-
 
 class PeerEndpointTestCase(TestCase):
     """Test the PeerEndpoint model."""
@@ -129,13 +122,11 @@ class PeerEndpointTestCase(TestCase):
 
         cls.peergroup_1 = models.PeerGroup.objects.create(
             name="Peer Group A",
-            device=cls.device_1,
             role=cls.peeringrole_internal,
             vrf=cls.vrf,
         )
         cls.peergroup_2 = models.PeerGroup.objects.create(
             name="Peer Group A",
-            device=cls.device_2,
             role=cls.peeringrole_internal,
         )
         cls.ipaddress_2 = IPAddress.objects.create(
@@ -185,20 +176,9 @@ class PeerEndpointTestCase(TestCase):
             "VRF Some other VRF was specified, but one or more attributes refer instead to Ark B",
         )
 
-    def test_peer_group_device_mismatch(self):
-        """The specified peer-group must belong to the specified device if any."""
-        self.peerendpoint_1.peer_group = self.peergroup_2
-        with self.assertRaises(ValidationError) as context:
-            self.peerendpoint_1.validated_save()
-        self.assertIn(
-            "Various attributes refer to different devices and/or virtual machines",
-            context.exception.messages[0],
-        )
-
     def test_peer_group_vrf_mismatch(self):
         """The specified peer-group must belong to the specified VRF if any."""
         self.peerendpoint_1.peer_group = models.PeerGroup.objects.create(
-            device=self.device_1,
             name="Group B",
             role=self.peeringrole_internal,
             vrf=None,
@@ -218,7 +198,6 @@ class PeerEndpointTestCase(TestCase):
 
     def test_deleting_session_deletes_endpoints(self):
         """Deleting a PeerSession should delete its associated PeerEndpoints."""
-
         self.peerendpoint_1.peer = self.peerendpoint_2
         self.peerendpoint_2.peer = self.peerendpoint_1
         self.peerendpoint_1.validated_save()
@@ -304,7 +283,6 @@ class AddressFamilyTestCase(TestCase):
 
         self.peergroup = models.PeerGroup.objects.create(
             name="Peer Group A",
-            device=self.device,
             role=self.peeringrole_internal,
         )
 
@@ -314,29 +292,25 @@ class AddressFamilyTestCase(TestCase):
 
         self.addressfamily_1 = models.AddressFamily.objects.create(
             afi_safi=AFISAFIChoices.AFI_IPV4,
-            device=self.device,
         )
         self.addressfamily_2 = models.AddressFamily.objects.create(
             afi_safi=AFISAFIChoices.AFI_IPV4,
-            device=self.device,
             peer_group=self.peergroup,
         )
         self.addressfamily_3 = models.AddressFamily.objects.create(
             afi_safi=AFISAFIChoices.AFI_IPV4,
-            device=self.device,
             peer_endpoint=self.peerendpoint,
         )
 
     def test_str(self):
         """Test the string representation of an AddressFamily."""
-        self.assertEqual("AFI-SAFI ipv4 on Device 1", str(self.addressfamily_1))
-        self.assertEqual("AFI-SAFI ipv4 for Peer Group A on Device 1", str(self.addressfamily_2))
+        self.assertEqual("AFI-SAFI ipv4", str(self.addressfamily_1))
+        self.assertEqual("AFI-SAFI ipv4 for Peer Group A", str(self.addressfamily_2))
         self.assertEqual("AFI-SAFI ipv4 for 1.1.1.1/32 (unknown AS)", str(self.addressfamily_3))
 
     def test_peer_group_peer_endpoint_mutual_exclusion(self):
         addressfamily = models.AddressFamily(
             afi_safi=AFISAFIChoices.AFI_VPNV4,
-            device=self.device,
             peer_group=self.peergroup,
             peer_endpoint=self.peerendpoint,
         )
@@ -346,13 +320,3 @@ class AddressFamilyTestCase(TestCase):
             "An AddressFamily cannot reference both a peer-group and a peer endpoint",
             context.exception.messages[0],
         )
-
-    def test_deleting_device_deletes_addressfamily(self):
-        """Deleting a Device should delete its associated AddressFamily(s)."""
-        self.device.delete()
-        with self.assertRaises(models.AddressFamily.DoesNotExist):
-            self.addressfamily_1.refresh_from_db()
-        with self.assertRaises(models.AddressFamily.DoesNotExist):
-            self.addressfamily_2.refresh_from_db()
-        with self.assertRaises(models.AddressFamily.DoesNotExist):
-            self.addressfamily_3.refresh_from_db()

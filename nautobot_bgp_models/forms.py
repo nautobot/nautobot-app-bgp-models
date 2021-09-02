@@ -200,8 +200,6 @@ class PeerGroupForm(AbstractPeeringInfoForm):
     class Meta:
         model = models.PeerGroup
         fields = (
-            "device_device",
-            "device_virtualmachine",
             "name",
             "role",
             *AbstractPeeringInfoForm.Meta.fields,
@@ -221,20 +219,6 @@ class PeerGroupForm(AbstractPeeringInfoForm):
         kwargs["initial"] = initial
 
         super().__init__(*args, **kwargs)
-
-    # def clean(self):
-    #     """Form validation logic."""
-    #     super().clean()
-
-    #     if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
-    #         raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
-
-    #     if self.cleaned_data.get("device_device"):
-    #         self.instance.device = self.cleaned_data.get("device_device")
-    #     elif self.cleaned_data.get("device_virtualmachine"):
-    #         self.instance.device = self.cleaned_data.get("device_virtualmachine")
-    #     else:
-    #         raise forms.ValidationError("A device or virtual machine must be selected.")
 
 
 class AbstractPeeringInfoFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
@@ -286,7 +270,6 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
     class Meta:
         model = models.PeerEndpoint
         fields = (
-            "session",
             "peer_group",
             "local_ip",
             *AbstractPeeringInfoForm.Meta.fields,
@@ -360,16 +343,6 @@ class AddressFamilyForm(
 ):
     """Form for creating/updating AddressFamily records."""
 
-    # device_device = utilities_forms.DynamicModelChoiceField(
-    #     queryset=Device.objects.all(),
-    #     required=False,
-    #     label="Device",
-    # )
-    # device_virtualmachine = utilities_forms.DynamicModelChoiceField(
-    #     queryset=VirtualMachine.objects.all(),
-    #     required=False,
-    #     label="Virtual Machine",
-    # )
     multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
 
     peer_group = utilities_forms.DynamicModelChoiceField(
@@ -387,8 +360,6 @@ class AddressFamilyForm(
     class Meta:
         model = models.AddressFamily
         fields = (
-            # "device_device",
-            # "device_virtualmachine",
             "afi_safi",
             "peer_group",
             "peer_endpoint",
@@ -414,21 +385,6 @@ class AddressFamilyForm(
 
         super().__init__(*args, **kwargs)
 
-    # def clean(self):
-    #     """Form validation logic."""
-    #     super().clean()
-
-    #     if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
-    #         raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
-
-    #     if self.cleaned_data.get("device_device"):
-    #         self.instance.device = self.cleaned_data.get("device_device")
-    #     elif self.cleaned_data.get("device_virtualmachine"):
-    #         self.instance.device = self.cleaned_data.get("device_virtualmachine")
-    #     else:
-    #         raise forms.ValidationError("A device or virtual machine must be selected.")
-
-
 class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
     """Form for filtering AddressFamily records in combination with AddressFamilyFilterSet."""
 
@@ -439,7 +395,7 @@ class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.Custo
         required=False,
         widget=utilities_forms.StaticSelect2Multiple(),
     )
-    # TODO: filtering by device/virtual machine
+
     peer_group = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=models.PeerGroup.objects.all(), required=False
     )

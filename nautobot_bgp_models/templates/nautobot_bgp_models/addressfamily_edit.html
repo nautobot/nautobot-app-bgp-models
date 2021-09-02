@@ -8,7 +8,7 @@
         <div class="panel-heading"><strong>Address-Family</strong></div>
         <div class="panel-body">
             {% render_field form.afi_safi %}
-            {% with vm_tab_active=form.initial.device_virtualmachine %}
+            <!-- {% with vm_tab_active=form.initial.device_virtualmachine %}
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation"{% if not vm_tab_active %} class="active"{% endif %}>
                         <a href="#device_device" role="tab" data-toggle="tab">Device</a>
@@ -25,7 +25,7 @@
                         {% render_field form.device_virtualmachine %}
                     </div>
                 </div>
-            {% endwith %}
+            {% endwith %} -->
             {% with peer_group_tab_active=form.initial.peer_group %}
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation"{% if peer_group_tab_active %} class="active"{% endif %}>
