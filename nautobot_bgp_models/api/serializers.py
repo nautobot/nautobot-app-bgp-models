@@ -193,6 +193,7 @@ class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModel
     """REST API serializer for AddressFamily records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:addressfamily-detail")
+
     class Meta:
         model = models.AddressFamily
         fields = [

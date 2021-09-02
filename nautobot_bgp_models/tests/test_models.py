@@ -77,9 +77,7 @@ class PeerGroupTestCase(TestCase):
             site=self.site,
             status=self.status_active,
         )
-        self.peergroup = models.PeerGroup.objects.create(
-            name="Peer Group A", role=self.peeringrole_internal
-        )
+        self.peergroup = models.PeerGroup.objects.create(name="Peer Group A", role=self.peeringrole_internal)
 
     def test_str(self):
         """Test string representation of a PeerGroup."""
@@ -96,6 +94,7 @@ class PeerGroupTestCase(TestCase):
         )
         self.peergroup.validated_save()
         self.assertEqual(self.peergroup.vrf, vrf)
+
 
 class PeerEndpointTestCase(TestCase):
     """Test the PeerEndpoint model."""

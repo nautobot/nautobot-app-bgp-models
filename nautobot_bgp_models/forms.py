@@ -2,12 +2,12 @@
 
 from django import forms
 
-from nautobot.dcim.models import Device, Interface
+from nautobot.dcim.models import Interface
 from nautobot.extras.models import Tag
 import nautobot.extras.forms as extras_forms
 from nautobot.ipam.models import VRF, IPAddress
 import nautobot.utilities.forms as utilities_forms
-from nautobot.virtualization.models import VirtualMachine, VMInterface
+from nautobot.virtualization.models import VMInterface
 
 from . import choices, models
 
@@ -205,21 +205,6 @@ class PeerGroupForm(AbstractPeeringInfoForm):
             *AbstractPeeringInfoForm.Meta.fields,
         )
 
-    def __init__(self, *args, **kwargs):
-        """Set up initial data for this form."""
-        instance = kwargs.get("instance")
-        initial = kwargs.get("initial", {}).copy()
-
-        # if instance:
-        #     if isinstance(instance.device, Device):
-        #         initial["device_device"] = instance.device
-        #     elif isinstance(instance.device, VirtualMachine):
-        #         initial["device_virtualmachine"] = instance.device
-
-        kwargs["initial"] = initial
-
-        super().__init__(*args, **kwargs)
-
 
 class AbstractPeeringInfoFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
     """Abstract parent class of PeerGroupFilterForm and PeerEndpointFilterForm."""
@@ -370,20 +355,6 @@ class AddressFamilyForm(
             "multipath",
         )
 
-    def __init__(self, *args, **kwargs):
-        """Set up initial data for this form."""
-        instance = kwargs.get("instance")
-        initial = kwargs.get("initial", {}).copy()
-
-        # if instance:
-        #     if isinstance(instance.device, Device):
-        #         initial["device_device"] = instance.device
-        #     elif isinstance(instance.device, VirtualMachine):
-        #         initial["device_virtualmachine"] = instance.device
-
-        kwargs["initial"] = initial
-
-        super().__init__(*args, **kwargs)
 
 class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
     """Form for filtering AddressFamily records in combination with AddressFamilyFilterSet."""

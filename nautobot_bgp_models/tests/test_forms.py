@@ -9,7 +9,8 @@ from nautobot.ipam.models import IPAddress
 from nautobot.virtualization.models import Cluster, ClusterType, VirtualMachine, VMInterface
 
 from nautobot_bgp_models import models, forms
-from nautobot_bgp_models.choices import AFISAFIChoices
+
+# from nautobot_bgp_models.choices import AFISAFIChoices
 
 
 class AutonomousSystemFormTestCase(TestCase):
@@ -187,7 +188,7 @@ class PeerGroupFormTestCase(TestCase):
 #         data = {
 #             "local_ip": self.address_2.pk,
 #         }
-        
+
 #         obj = models.PeerEndpoint()
 #         obj.session = self.session
 #         form = self.form_class(instance=obj, **data)
@@ -220,4 +221,3 @@ class AddressFamilyFormTestCase(TestCase):
         clustertype = ClusterType.objects.create(name="Cluster Type A", slug="cluster-type-a")
         cluster = Cluster.objects.create(name="Cluster A", type=clustertype)
         cls.virtualmachine_1 = VirtualMachine.objects.create(name="VM 1", cluster=cluster, status=status_active)
-

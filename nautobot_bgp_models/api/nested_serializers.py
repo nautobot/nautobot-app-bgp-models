@@ -43,7 +43,7 @@ class NestedPeerGroupSerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.PeerGroup
-        fields = ["id", "url", "device_content_type", "device_object_id", "name", "role", "enabled"]
+        fields = ["id", "url", "name", "role", "enabled"]
 
 
 class NestedPeerEndpointSerializer(WritableNestedSerializer):
@@ -73,4 +73,4 @@ class NestedAddressFamilySerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.AddressFamily
-        fields = ["id", "url", "device_content_type", "device_object_id", "afi_safi", "peer_group", "peer_endpoint"]
+        fields = ["id", "url", "afi_safi", "peer_group", "peer_endpoint"]

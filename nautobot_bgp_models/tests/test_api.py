@@ -359,15 +359,6 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
         obj_perm.users.add(self.user)
         obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
 
-        other_device = Device.objects.create(
-            device_type=self.devicetype,
-            device_role=self.devicerole,
-            name="Device 2",
-            site=self.site,
-            status=self.status_active,
-        )
-        other_peergroup = models.PeerGroup.objects.create(name="Group 2", role=self.peeringrole)
-
         for data, error_key, error_str in (
             (
                 # Mismatch between local IP's assigned VRF and the explicitly specified VRF
@@ -514,12 +505,8 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             export_policy="EXPORT_POLICY",
             import_policy="IMPORT_POLICY",
         )
-        models.AddressFamily.objects.create(
-            afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_group=peergroup
-        )
-        models.AddressFamily.objects.create(
-            afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_endpoint=peerendpoint_1
-        )
+        models.AddressFamily.objects.create(afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_group=peergroup)
+        models.AddressFamily.objects.create(afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_endpoint=peerendpoint_1)
 
         cls.create_data = [
             {

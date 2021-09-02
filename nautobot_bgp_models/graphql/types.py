@@ -62,5 +62,4 @@ class PeerEndpointType(DjangoObjectType):
         filterset_class = filters.PeerEndpointFilterSet
 
 
-
 graphql_types = [PeerGroupType, PeerEndpointType]

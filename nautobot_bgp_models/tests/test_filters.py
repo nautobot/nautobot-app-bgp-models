@@ -115,9 +115,6 @@ class PeerGroupTestCase(TestCase):
         cls.device_1 = Device.objects.create(
             device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
         )
-        device_2 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 2", site=site, status=status_active
-        )
 
         cls.vrf = VRF.objects.create(name="Ark B")
 
@@ -127,9 +124,7 @@ class PeerGroupTestCase(TestCase):
         cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
         peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
 
-        models.PeerGroup.objects.create(
-            name="Group A", role=cls.peeringrole_internal, autonomous_system=cls.asn_1
-        )
+        models.PeerGroup.objects.create(name="Group A", role=cls.peeringrole_internal, autonomous_system=cls.asn_1)
         models.PeerGroup.objects.create(
             name="Group B", role=peeringrole_external, autonomous_system=cls.asn_1, enabled=False
         )
@@ -188,14 +183,6 @@ class PeerEndpointTestCase(TestCase):
             IPAddress.objects.create(address="1.1.1.1/32", status=status_active, vrf=vrf),
             IPAddress.objects.create(address="1.1.1.2/32", status=status_active, vrf=vrf),
         ]
-
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
-        device = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
-        )
 
         asn = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")

@@ -108,19 +108,6 @@ class PeerGroupTestCase(
     @classmethod
     def setUpTestData(cls):
         """One-time class data setup."""
-        status_active = Status.objects.get(slug="active")
-
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
-        device = Device.objects.create(
-            device_type=devicetype,
-            device_role=devicerole,
-            name="Device 1",
-            site=site,
-            status=status_active,
-        )
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
 
