@@ -88,7 +88,6 @@ class InheritableFieldsSerializerMixin:
 
 class PeerGroupSerializer(
     AbstractPeeringInfoSerializerMixin,
-    InheritableFieldsSerializerMixin,
     CustomFieldModelSerializer,
 ):
     """REST API serializer for PeerGroup records."""

@@ -2,7 +2,7 @@
 
 from django import forms
 
-from nautobot.dcim.models import Interface
+from nautobot.dcim.models import Device, Interface
 from nautobot.extras.models import Tag
 import nautobot.extras.forms as extras_forms
 from nautobot.ipam.models import VRF, IPAddress
@@ -183,19 +183,6 @@ class AbstractPeeringInfoForm(
 
 class PeerGroupForm(AbstractPeeringInfoForm):
     """Form for creating/updating PeerGroup records."""
-
-    # device_device = utilities_forms.DynamicModelChoiceField(
-    #     queryset=Device.objects.all(),
-    #     required=False,
-    #     initial_params={"interfaces": "$update_source_interface"},
-    #     label="Device",
-    # )
-    # device_virtualmachine = utilities_forms.DynamicModelChoiceField(
-    #     queryset=VirtualMachine.objects.all(),
-    #     required=False,
-    #     initial_params={"interfaces": "$update_source_vminterface"},
-    #     label="Virtual Machine",
-    # )
 
     class Meta:
         model = models.PeerGroup

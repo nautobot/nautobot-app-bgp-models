@@ -169,29 +169,12 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
         obj_perm.users.add(self.user)
         obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
 
-        # Retrieve without inheritance
         url = self._get_detail_url(instance)
         response = self.client.get(url, **self.header)
         self.assertHttpStatus(response, status.HTTP_200_OK)
         # Properties not set on the instance
         self.assertIsNone(response.data["autonomous_system"])
         self.assertIsNone(response.data["router_id"])
-
-        # TODO define what kind of inheritance is still relevant to test
-        # # Retrieve with inheritance
-        # url = self._get_detail_url(instance)
-        # response = self.client.get(f"{url}?include_inherited", **self.header)
-        # self.assertHttpStatus(response, status.HTTP_200_OK)
-        # # Properties not set on the instance but inheritable from the parent device
-        # self.assertEqual(self.asn.pk, response.data["autonomous_system"])
-        # self.assertEqual(self.address.pk, response.data["router_id"])
-
-        # # Retrieve with explictly excluded inheritance
-        # url = self._get_detail_url(instance)
-        # response = self.client.get(f"{url}?include_inherited=false", **self.header)
-        # self.assertHttpStatus(response, status.HTTP_200_OK)
-        # self.assertIsNone(response.data["autonomous_system"])
-        # self.assertIsNone(response.data["router_id"])
 
 
 class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
@@ -497,7 +480,9 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         peergroup = models.PeerGroup.objects.create(name="Group 1", role=peeringrole)
 
         peersession = models.PeerSession.objects.create(role=peeringrole, status=status_active)
-        peerendpoint_1 = models.PeerEndpoint.objects.create(local_ip=addresses[0], session=peersession)
+        peerendpoint_1 = models.PeerEndpoint.objects.create(
+            local_ip=addresses[0], peer_group=peergroup, session=peersession
+        )
         peerendpoint_2 = models.PeerEndpoint.objects.create(local_ip=addresses[1], session=peersession)
 
         models.AddressFamily.objects.create(
@@ -561,17 +546,17 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         self.assertEqual("", response.data["export_policy"])
 
         # TODO Determine what kind of inheritance is still required here
-        # # Retrieve with inheritance
-        # url = self._get_detail_url(instance)
-        # response = self.client.get(f"{url}?include_inherited", **self.header)
-        # self.assertHttpStatus(response, status.HTTP_200_OK)
-        # # Properties not set on the instance but inheritable from the parent address-families
-        # self.assertEqual("IMPORT_POLICY", response.data["import_policy"])
-        # self.assertEqual("EXPORT_POLICY", response.data["export_policy"])
+        # Retrieve with inheritance
+        url = self._get_detail_url(instance)
+        response = self.client.get(f"{url}?include_inherited", **self.header)
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        # Properties not set on the instance but inheritable from the parent address-families
+        self.assertEqual("IMPORT_POLICY", response.data["import_policy"])
+        self.assertEqual("EXPORT_POLICY", response.data["export_policy"])
 
-        # # Retrieve with explictly excluded inheritance
-        # url = self._get_detail_url(instance)
-        # response = self.client.get(f"{url}?include_inherited=false", **self.header)
-        # self.assertHttpStatus(response, status.HTTP_200_OK)
-        # self.assertEqual("", response.data["import_policy"])
-        # self.assertEqual("", response.data["export_policy"])
+        # Retrieve with explictly excluded inheritance
+        url = self._get_detail_url(instance)
+        response = self.client.get(f"{url}?include_inherited=false", **self.header)
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        self.assertEqual("", response.data["import_policy"])
+        self.assertEqual("", response.data["export_policy"])

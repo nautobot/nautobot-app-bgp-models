@@ -251,7 +251,6 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
 
     class Meta:
         ordering = ["name"]
-        # unique_together = ["name"]
         verbose_name = "BGP peer group"
 
     def __str__(self):
@@ -261,15 +260,6 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
     def get_absolute_url(self):
         """Get the URL for a detailed view of a single PeerGroup."""
         return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
-
-    # def clean(self):
-    #     """Django callback method to validate model sanity."""
-    #     super().clean()
-    #     device_candidates = self.get_candidate_devices()
-    #     if device_candidates and self.device not in device_candidates:
-    #         raise ValidationError(
-    #             f"Device {self.device} was specified, but one or more attributes refer instead to {device_candidates.pop()}"
-    #         )
 
     def get_fields(self, include_inherited=False):
         """Get a listing of model fields, optionally including values inherited via the BGP config hierarchy."""
@@ -282,42 +272,6 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
                 "role": {"value": self.role, "inherited": False},
             }
         )
-
-        # if include_inherited:
-        #     # Add inherited fields
-        #     if not result["router_id"]["value"]:
-        #         try:
-        #             device_router_id_assoc = RelationshipAssociation.objects.get(
-        #                 relationship__slug="bgp_device_router_id",
-        #                 source_type=ContentType.objects.get_for_model(Device),
-        #                 source_id=self.device.pk,
-        #             )
-        #             result["router_id"].update(
-        #                 {
-        #                     "value": device_router_id_assoc.destination,
-        #                     "source": self.device,
-        #                     "inherited": True,
-        #                 }
-        #             )
-        #         except RelationshipAssociation.DoesNotExist:
-        #             pass
-
-        #     if not result["autonomous_system"]["value"]:
-        #         try:
-        #             asn_device_assoc = RelationshipAssociation.objects.get(
-        #                 relationship__slug="bgp_asn",
-        #                 destination_type=ContentType.objects.get_for_model(Device),
-        #                 destination_id=self.device.pk,
-        #             )
-        #             result["autonomous_system"].update(
-        #                 {
-        #                     "value": asn_device_assoc.source,
-        #                     "source": self.device,
-        #                     "inherited": True,
-        #                 }
-        #             )
-        #         except RelationshipAssociation.DoesNotExist:
-        #             pass
 
         return result
 
@@ -616,8 +570,6 @@ class AddressFamily(OrganizationalModel):
                 # this clean method will still be called, but no device_content_type value will have been selected.
                 # In that case referencing self.device_content_type will throw a RelatedObjectDoesNotExist exception;
                 # we must instead reference self.device_content_type_id, which does not have this behavior.
-                # device_content_type_id=self.device_content_type_id,
-                # device_object_id=self.device_object_id,
                 peer_group=self.peer_group,
                 peer_endpoint=self.peer_endpoint,
             )

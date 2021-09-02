@@ -8,24 +8,6 @@
         <div class="panel-heading"><strong>Address-Family</strong></div>
         <div class="panel-body">
             {% render_field form.afi_safi %}
-            <!-- {% with vm_tab_active=form.initial.device_virtualmachine %}
-                <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation"{% if not vm_tab_active %} class="active"{% endif %}>
-                        <a href="#device_device" role="tab" data-toggle="tab">Device</a>
-                    </li>
-                    <li role="presentation"{% if vm_tab_active %} class="active"{% endif %}>
-                        <a href="#device_virtualmachine" role="tab" data-toggle="tab">Virtual Machine</a>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane{% if not vm_tab_active %} active{% endif %}" id="device_device">
-                        {% render_field form.device_device %}
-                    </div>
-                    <div class="tab-pane{% if vm_tab_active %} active{% endif %}" id="device_virtualmachine">
-                        {% render_field form.device_virtualmachine %}
-                    </div>
-                </div>
-            {% endwith %} -->
             {% with peer_group_tab_active=form.initial.peer_group %}
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation"{% if peer_group_tab_active %} class="active"{% endif %}>
