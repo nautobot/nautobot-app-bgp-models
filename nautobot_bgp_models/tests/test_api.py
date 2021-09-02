@@ -490,7 +490,12 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             export_policy="EXPORT_POLICY",
             import_policy="IMPORT_POLICY",
         )
-        models.AddressFamily.objects.create(afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_group=peergroup)
+        models.AddressFamily.objects.create(
+            afi_safi=choices.AFISAFIChoices.AFI_IPV4,
+            peer_group=peergroup,
+            export_policy="EXPORT_POLICY",
+            import_policy="IMPORT_POLICY",
+        )
         models.AddressFamily.objects.create(afi_safi=choices.AFISAFIChoices.AFI_IPV4, peer_endpoint=peerendpoint_1)
 
         cls.create_data = [
@@ -545,7 +550,6 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         self.assertEqual("", response.data["import_policy"])
         self.assertEqual("", response.data["export_policy"])
 
-        # TODO Determine what kind of inheritance is still required here
         # Retrieve with inheritance
         url = self._get_detail_url(instance)
         response = self.client.get(f"{url}?include_inherited", **self.header)
