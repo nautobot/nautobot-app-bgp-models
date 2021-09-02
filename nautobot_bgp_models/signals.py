@@ -1,6 +1,5 @@
 """Nautobot signal handler functions for nautobot_bgp_models."""
 
-from nautobot_bgp_models.models import AddressFamily
 from django.conf import settings
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
