@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
-from nautobot.extras.models import Status
+from nautobot.extras.models import Status, Relationship, RelationshipAssociation
 from nautobot.ipam.models import IPAddress, VRF
 
 from nautobot_bgp_models import choices, filters, models
@@ -260,20 +260,58 @@ class PeerSessionTestCase(TestCase):
     filterset = filters.PeerSessionFilterSet
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
         """One-time class setup to prepopulate required data for tests."""
         status_active = Status.objects.get(slug="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.PeerSession))
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
         status_reserved = Status.objects.get(slug="reserved")
         status_reserved.content_types.add(ContentType.objects.get_for_model(models.PeerSession))
 
+        asn1 = models.AutonomousSystem.objects.create(asn=65000, status=status_active)
+        asn2 = models.AutonomousSystem.objects.create(asn=66000, status=status_active)
+        asn3 = models.AutonomousSystem.objects.create(asn=12345, status=status_active)
+
+        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
+        site = Site.objects.create(name="Site 1", slug="site-1")
+        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        device1 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="device1", site=site, status=status_active
+        )
+        device2 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="device2", site=site, status=status_active
+        )
+        interfaces_device1 = [
+            Interface.objects.create(device=device1, name="Loopback0"),
+            Interface.objects.create(device=device1, name="Loopback1"),
+            Interface.objects.create(device=device1, name="Loopback2"),
+        ]
+        interfaces_device2 = [
+            Interface.objects.create(device=device2, name="Loopback0"),
+            Interface.objects.create(device=device2, name="Loopback1"),
+            Interface.objects.create(device=device2, name="Loopback2"),
+        ]
+
+        rel = Relationship.objects.get(slug="bgp_asn")
+        RelationshipAssociation.objects.create(relationship=rel, source=asn2, destination=device2)
+
         addresses = [
-            IPAddress.objects.create(address="10.1.1.1/24", status=status_active),
-            IPAddress.objects.create(address="10.1.1.2/24", status=status_active),
-            IPAddress.objects.create(address="10.1.1.3/24", status=status_active),
+            IPAddress.objects.create(
+                address="10.1.1.1/24", status=status_active, assigned_object=interfaces_device1[0]
+            ),
+            IPAddress.objects.create(
+                address="10.1.1.2/24", status=status_active, assigned_object=interfaces_device2[0]
+            ),
+            IPAddress.objects.create(
+                address="10.1.1.3/24", status=status_active, assigned_object=interfaces_device1[1]
+            ),
             IPAddress.objects.create(address="10.1.1.4/24", status=status_reserved),
             IPAddress.objects.create(address="10.1.1.5/24", status=status_active),
-            IPAddress.objects.create(address="10.1.1.6/24", status=status_reserved),
+            IPAddress.objects.create(
+                address="10.1.1.6/24", status=status_reserved, assigned_object=interfaces_device2[0]
+            ),
         ]
 
         peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
@@ -285,12 +323,12 @@ class PeerSessionTestCase(TestCase):
             models.PeerSession.objects.create(status=status_reserved, role=peeringrole_external),
         ]
 
-        models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0])
+        models.PeerEndpoint.objects.create(local_ip=addresses[0], session=sessions[0], autonomous_system=asn1)
         models.PeerEndpoint.objects.create(local_ip=addresses[1], session=sessions[0])
-        models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1])
+        models.PeerEndpoint.objects.create(local_ip=addresses[2], session=sessions[1], autonomous_system=asn2)
         models.PeerEndpoint.objects.create(local_ip=addresses[3], session=sessions[1])
         models.PeerEndpoint.objects.create(local_ip=addresses[4], session=sessions[2])
-        models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2])
+        models.PeerEndpoint.objects.create(local_ip=addresses[5], session=sessions[2], autonomous_system=asn3)
 
     def test_id(self):
         """Test filtering by id."""
@@ -305,6 +343,43 @@ class PeerSessionTestCase(TestCase):
     def test_status(self):
         """Test filtering by status."""
         params = {"status": ["active"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+
+    def test_device(self):
+        """Test filtering by device name."""
+        params = {"device": ["device1"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+
+        params = {"device": ["device1", "device2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+
+    def test_asn(self):
+        """Test filtering by asn name."""
+        params = {"asn": [65000]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+        params = {"asn": [66000]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+
+        params = {"asn": [66000, 12345]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+
+    def test_address(self):
+        """Test filtering by device name."""
+        params = {"address": ["10.1.1.1"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+        params = {"address": ["10.1.1.1/32"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 0)
+
+        params = {"address": ["10.1.1.1/24"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+        # Both IP addresses are part of the same PeerSession so only 1 PeerSession is expected
+        params = {"address": ["10.1.1.1", "10.1.1.2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+        params = {"address": ["10.1.1.3", "10.1.1.5"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
 
