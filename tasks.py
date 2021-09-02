@@ -38,7 +38,7 @@ namespace = Collection("nautobot_bgp_models")
 namespace.configure(
     {
         "nautobot_bgp_models": {
-            "nautobot_ver": "1.0.2",
+            "nautobot_ver": "1.1.2",
             "project_name": "nautobot-bgp-models",
             "python_ver": "3.6",
             "local": False,

@@ -6,8 +6,8 @@ from drf_yasg.utils import swagger_auto_schema
 from nautobot.extras.api.views import CustomFieldModelViewSet, StatusViewSetMixin
 from nautobot.utilities.utils import dynamic_import
 
-import nautobot_bgp_models.filters as filters
-import nautobot_bgp_models.models as models
+from nautobot_bgp_models import filters
+from nautobot_bgp_models import models
 from . import serializers
 
 

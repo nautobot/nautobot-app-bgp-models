@@ -76,6 +76,7 @@ disable = """,
     line-too-long,
     too-few-public-methods,
     too-many-ancestors,
+    consider-using-dict-items,
     """
 
 [tool.pylint.miscellaneous]
