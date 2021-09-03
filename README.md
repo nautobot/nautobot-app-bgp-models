@@ -1,8 +1,9 @@
 # Nautobot BGP Models Plugin
 
-A plugin for [Nautobot](https://github.com/nautobot/nautobot) to extend the core models with BGP specific models.
+A plugin for [Nautobot](https://github.com/nautobot/nautobot) to extend the core models with BGP specific models. 
+All types of BGP sessions can be model and managed, whether or not the endpoint is present in Nautobot.
 
-> Initial development of this plugin was sponsored by Riot Games, Inc.
+> The initial development of this plugin was sponsored by Riot Games, Inc.
  
 ## Data Models
 
@@ -68,13 +69,13 @@ It has an optional FK to a Nautobot `Device` record, an optional foreign-key rel
 - Enforce First ASN (optional, boolean)
 
 ### AddressFamily
-This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-SAFI configuration may be applied at various levels (global, peer-group, peer-session), this model attempts to represent any of those. It has a FK to a Nautobot `Device` record, a locally unique AFI (address-family identifier) field, optional foreign-key relationships to `PeerGroup` or `PeerSession` (mutually exclusive, either or both may be null but both may not be non-null simultaneously) and additional fields including:
+This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-SAFI configuration may be applied at various levels (global, peer-group, peer-session), this model attempts to represent any of those. It has a locally unique AFI (address-family identifier) field, optional foreign-key relationships to `PeerGroup` or `PeerSession` (mutually exclusive, either or both may be null but both may not be non-null simultaneously) and additional fields including:
 - Import Policy (optional, string)
 - Export Policy (optional, string)
 - Static Redistribution Policy (optional, string)
 
 ### PeerGroup
-This model represents common/template configuration for a group of functionally related BGP peers. It has a foreign-key (FK) to a Device, a locally unique Name field, and additional fields including:
+This model represents common/template configuration for a group of functionally related BGP peers. It has a locally unique Name field, and additional fields including:
 - Role (FK to PeeringRole)
 - VRF (optional, FK to a Nautobot VRF)
 - Update-Source `Interface` or `VM Interface` (optional, FK to Nautobot Interface/VM Interface)
@@ -91,6 +92,16 @@ This model represents common/template configuration for a group of functionally 
 ### PeeringRole
 This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the type field on `PeerGroup` and/or `PeerSession`. Similar to those models, this model has fields including a unique name, unique slug, and a HTML color value.
 
+### Inheritance between models
+
+Some models have a built in inheritance similar to what BGP supports with PeerGroup:
+- A `PeerEndpoint` inherit from `PeerGroup`
+- A `PeerEndpoint` inherit AS and Router ID from the device associated with the `Local IP` (if any)
+- An `AddressFamily` associated with `PeerSession` can inherit from another `AddressFamily` attached to a `PeerGroup`
+
+As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically inherit all attributes of the `PeerGroup` that haven't been defined at the `PeerEndpoint` level. If an attribute is defined on both, the value defined on the `PeerEndpoint` will be used.
+
+The inherited values will be automatically displayed in the UI and can be retrieve from the REST API with the additional `?include_inherited=true` parameter.
 
 ## Installation
 
@@ -125,6 +136,20 @@ PLUGINS_CONFIG = {
 }
 ```
 In the `default_statuses` section, you can define a list of default statuses to make available to `AutonomousSystem` and/or `PeerSession`. The lists must be composed of valid slugs of existing Status objects.
+
+## Screenshots
+
+![Menu](docs/images/main-page-menu.png)
+
+![Autonomous System](docs/images/autonomous_system_01.png)
+
+![Peer Session List](docs/images/peer_session_list.png)
+
+![Peer Session](docs/images/peer_session_01.png)
+
+![Peer Endpoint](docs/images/peer_endpoint_01.png)
+
+![Peer Group](docs/images/peer_group_01.png)
 
 ## Contributing
 
