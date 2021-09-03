@@ -139,17 +139,17 @@ In the `default_statuses` section, you can define a list of default statuses to 
 
 ## Screenshots
 
-![Menu](docs/images/main-page-menu.png)
+![Menu](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/main-page-menu.png)
 
-![Autonomous System](docs/images/autonomous_system_01.png)
+![Autonomous System](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/autonomous_system_01.png)
 
-![Peer Session List](docs/images/peer_session_list.png)
+![Peer Session List](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_session_list.png)
 
-![Peer Session](docs/images/peer_session_01.png)
+![Peer Session](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_session_01.png)
 
-![Peer Endpoint](docs/images/peer_endpoint_01.png)
+![Peer Endpoint](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_endpoint_01.png)
 
-![Peer Group](docs/images/peer_group_01.png)
+![Peer Group](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_group_01.png)
 
 ## Contributing
 
