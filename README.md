@@ -75,7 +75,7 @@ This model represents configuration of a BGP address-family (AFI-SAFI). As AFI-S
 - Static Redistribution Policy (optional, string)
 
 ### PeerGroup
-This model represents common/template configuration for a group of functionally related BGP peers. It has a locally unique Name field, and additional fields including:
+This model represents common/template configuration for a group of functionally related BGP peers. It has a Name field and additional fields including:
 - Role (FK to PeeringRole)
 - VRF (optional, FK to a Nautobot VRF)
 - Update-Source `Interface` or `VM Interface` (optional, FK to Nautobot Interface/VM Interface)
