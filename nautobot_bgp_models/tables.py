@@ -88,7 +88,6 @@ class AbstractPeeringInfoTable(BaseTable):
 class PeerGroupTable(AbstractPeeringInfoTable):
     """Table representation of PeerGroup records."""
 
-    device = tables.LinkColumn()
     name = tables.LinkColumn()
     role = ColoredLabelColumn()
     actions = ButtonsColumn(model=models.PeerGroup)
@@ -97,12 +96,11 @@ class PeerGroupTable(AbstractPeeringInfoTable):
         model = models.PeerGroup
         fields = (
             "pk",
-            "device",
             "name",
             "role",
             *AbstractPeeringInfoTable.Meta.fields,
         )
-        default_columns = ("pk", "device", "name", "role", *AbstractPeeringInfoTable.Meta.default_columns)
+        default_columns = ("pk", "name", "role", *AbstractPeeringInfoTable.Meta.default_columns)
 
 
 class PeerEndpointTable(AbstractPeeringInfoTable):
@@ -169,7 +167,6 @@ class AddressFamilyTable(BaseTable):
     """Table representation of AddressFamily records."""
 
     pk = ToggleColumn()
-    device = tables.LinkColumn()
     afi_safi = tables.LinkColumn()
     peer_group = tables.LinkColumn()
     peer_endpoint = tables.LinkColumn()
@@ -180,7 +177,6 @@ class AddressFamilyTable(BaseTable):
         fields = (
             "pk",
             "afi_safi",
-            "device",
             "peer_group",
             "peer_endpoint",
             "maximum_prefix",
@@ -189,7 +185,6 @@ class AddressFamilyTable(BaseTable):
         default_columns = (
             "pk",
             "afi_safi",
-            "device",
             "peer_group",
             "peer_endpoint",
         )
