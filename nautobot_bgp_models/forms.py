@@ -5,7 +5,7 @@ from django import forms
 from nautobot.dcim.models import Device, Interface
 from nautobot.extras.models import Tag
 import nautobot.extras.forms as extras_forms
-from nautobot.ipam.models import VRF
+from nautobot.ipam.models import VRF, IPAddress
 import nautobot.utilities.forms as utilities_forms
 from nautobot.virtualization.models import VirtualMachine, VMInterface
 
@@ -115,6 +115,12 @@ class AbstractPeeringInfoForm(
         required=False,
         query_params={"virtual_machine_id": "$virtual_machine"},
         label="Update source",
+    )
+
+    router_id = utilities_forms.DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
+        required=False,
+        label="Router ID",
     )
 
     bfd_fast_detection = forms.NullBooleanField(
@@ -265,6 +271,18 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
         help_text="Required if the Local IP is not associated with a Device",
     )
 
+    local_ip = utilities_forms.DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
+        required=True,
+        label="Local IP Address",
+    )
+
+    peer_group = utilities_forms.DynamicModelChoiceField(
+        queryset=models.PeerGroup.objects.all(),
+        required=False,
+        label="Peer Group",
+    )
+
     class Meta:
         model = models.PeerEndpoint
         fields = (
@@ -353,6 +371,18 @@ class AddressFamilyForm(
         label="Virtual Machine",
     )
     multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+
+    peer_group = utilities_forms.DynamicModelChoiceField(
+        queryset=models.PeerGroup.objects.all(),
+        required=False,
+        label="Peer Group",
+    )
+
+    peer_endpoint = utilities_forms.DynamicModelChoiceField(
+        queryset=models.PeerEndpoint.objects.all(),
+        required=False,
+        label="Peer Endpoint",
+    )
 
     class Meta:
         model = models.AddressFamily
