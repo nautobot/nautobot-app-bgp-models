@@ -566,10 +566,6 @@ class AddressFamily(OrganizationalModel):
             AddressFamily.objects.exclude(pk=self.pk)
             .filter(
                 afi_safi=self.afi_safi,
-                # If form validation failed due to a user selecting both a device and a vm, or neither,
-                # this clean method will still be called, but no device_content_type value will have been selected.
-                # In that case referencing self.device_content_type will throw a RelatedObjectDoesNotExist exception;
-                # we must instead reference self.device_content_type_id, which does not have this behavior.
                 peer_group=self.peer_group,
                 peer_endpoint=self.peer_endpoint,
             )
