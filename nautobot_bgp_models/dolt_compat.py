@@ -13,10 +13,8 @@ else:
 # Only do this if Dolt is available (aka "version control").
 if DOLT_AVAILABLE:
 
-    from dolt import register_diff_tables, register_versioned_models
-
     # Tables used to display diffs
-    register_diff_tables(
+    dolt.register_diff_tables(
         {
             "nautobot_bgp_models": {
                 "autonomoussystem": tables.AutonomousSystemTable,
@@ -30,4 +28,4 @@ if DOLT_AVAILABLE:
     )
 
     # Register all models w/ Dolt.
-    register_versioned_models({"nautobot_bgp_models": True})
+    dolt.register_versioned_models({"nautobot_bgp_models": True})
