@@ -3,7 +3,7 @@
 from . import tables
 
 try:
-    import dolt
+    import dolt  # noqa
 except ImportError:
     DOLT_AVAILABLE = False
 else:
