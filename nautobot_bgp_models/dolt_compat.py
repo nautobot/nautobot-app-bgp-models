@@ -3,7 +3,7 @@
 from . import tables
 
 try:
-    import dolt  # noqa
+    import dolt  # pylint: disable=unused-import
 except ImportError:
     DOLT_AVAILABLE = False
 else:

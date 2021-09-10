@@ -39,7 +39,7 @@ class NautobotBGPModelsConfig(PluginConfig):
 
         # Attempt to register versioned models & tables with Dolt if it is
         # available.
-        from . import dolt_compat  # noqa
+        from . import dolt_compat  # pylint: disable=import-outside-toplevel, unused-import
 
         from .signals import (  # pylint: disable=import-outside-toplevel
             post_migrate_create_custom_fields,
