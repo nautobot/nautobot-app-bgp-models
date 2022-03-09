@@ -1,20 +1,110 @@
 """Django model definitions for nautobot_bgp_models."""
 
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+import functools
+# from . import choices
+from collections import OrderedDict
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.urls import reverse
-
 from nautobot.core.models.generics import PrimaryModel, OrganizationalModel
 from nautobot.dcim.fields import ASNField
-from nautobot.dcim.models import Device
-from nautobot.extras.models import Relationship, RelationshipAssociation, StatusModel
+from nautobot.extras.models import StatusModel
 from nautobot.extras.utils import extras_features
-from nautobot.utilities.choices import ColorChoices
-from nautobot.utilities.fields import ColorField
+from nautobot.utilities.choices import ChoiceSet
+from nautobot.utilities.utils import deepmerge
 
-from . import choices
+
+def rgetattr(obj, attr, *args):
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+
+class AFISAFIChoices(ChoiceSet):
+    """Choices for the "afi_safi" field on the AddressFamily model."""
+
+    AFI_IPV4 = "ipv4"
+    AFI_IPV4_FLOWSPEC = "ipv4_flowspec"
+    AFI_VPNV4 = "vpnv4"
+    AFI_IPV6_LU = "ipv6_labeled_unicast"
+
+    CHOICES = (
+        (AFI_IPV4, "IPv4"),
+        (AFI_IPV4_FLOWSPEC, "IPv4 FlowSpec"),
+        (AFI_VPNV4, "VPNv4"),
+        (AFI_IPV6_LU, "IPv6 Labeled Unicast"),
+    )
+
+
+class BGPMixin(models.Model):
+    def get_inherited_field(self, field_name, inheritance_path):
+        """returns field_value, inheritance_indicator"""
+
+        field_value = getattr(self, field_name, None)
+        if field_value:
+            return field_value, False
+
+        for path_element in (inheritance_path or []):
+            field_value = rgetattr(self, path_element, None)
+
+            if field_value:
+                return field_value, True
+
+        return None, False
+
+    def get_fields(self, include_inherited=False):
+        """
+        Class Fields Getter.
+
+        Traverse field_name_inheritance list contained in self.field to inherit BGP attributes as declared in inheritance path.
+        """
+        result = {}
+
+        for field_name in self.fields:
+            inheritance_path = getattr(self, f"{field_name}_inheritance", None) if include_inherited else []
+            inheritance_result = self.get_inherited_field(field_name=field_name, inheritance_path=inheritance_path)
+
+            result.update(
+                field_name={"value": inheritance_result[0], "inherited": inheritance_result[1]}
+            )
+
+        return result
+
+    class Meta:
+        abstract = True
+
+
+##  DRAFT of config context inheritance for BGP attributes.
+
+# class BGPConfigContextMixin(models.Model):
+#     local_context_data = models.JSONField(
+#         encoder=DjangoJSONEncoder,
+#         blank=True,
+#         null=True,
+#     )
+#
+#     @property
+#     def get_context_paths(self):
+#         return [rgetattr(self, x, None) for x in self.local_context_path]
+#
+#     def get_config_context(self):
+#         # always manually query for config contexts
+#         config_context_data = [x for x in self.get_context_paths if x]
+#
+#         # Compile all config data, overwriting lower-weight values with higher-weight values where a collision occurs
+#         data = OrderedDict()
+#         for context in config_context_data:
+#             data = deepmerge(data, context)
+#
+#         # If the object has local config context data defined, merge it last
+#         if self.local_context_data:
+#             data = deepmerge(data, self.local_context_data)
+#
+#         return data
+#
+#     class Meta:
+#         abstract = True
 
 
 @extras_features(
@@ -59,60 +149,32 @@ class AutonomousSystem(PrimaryModel, StatusModel):
     "export_templates",
     "graphql",
     "relationships",
+    "statuses",
     "webhooks",
 )
-class PeeringRole(OrganizationalModel):
-    """Role definition for use with a PeerGroup or PeerEndpoint."""
+class BGPRoutingInstance(PrimaryModel, StatusModel):
+    """BGP Routing Instance"""
 
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=100, unique=True)
-    color = ColorField(default=ColorChoices.COLOR_GREY)
-    description = models.CharField(max_length=200, blank=True)
+    # local_context_path = [
+    #     "parent_template.local_context_data",
+    # ]
 
-    csv_headers = ["name", "slug", "color", "description"]
-
-    class Meta:
-        verbose_name = "BGP peering role"
-
-    def __str__(self):
-        """String representation of a PeeringRole."""
-        return self.name
-
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single PeeringRole."""
-        return reverse("plugins:nautobot_bgp_models:peeringrole", args=[self.pk])
-
-    def to_csv(self):
-        """Render a PeeringRole record to CSV fields."""
-        return (self.name, self.slug, self.color, self.description)
-
-
-class AbstractPeeringInfo(models.Model):
-    """Abstract base class shared by PeerGroup and PeeringEndpoint models."""
+    # is_template = models.BooleanField(blank=True, null=True)
+    # parent_template = models.ForeignKey(
+    #     to="self",
+    #     on_delete=models.SET_NULL,
+    #     blank=True,
+    #     null=True,
+    # )
 
     description = models.CharField(max_length=200, blank=True)
-    enabled = models.BooleanField(default=True)
 
-    vrf = models.ForeignKey(
-        to="ipam.VRF",
-        verbose_name="VRF",
-        blank=True,
-        null=True,
+    device = models.ForeignKey(
+        to="dcim.Device",
         on_delete=models.PROTECT,
+        related_name="bgp_routing_instances",
+        verbose_name="Device",
     )
-
-    update_source_content_type = models.ForeignKey(
-        to=ContentType,
-        limit_choices_to=models.Q(
-            models.Q(app_label="dcim", model="interface") | models.Q(app_label="virtualization", model="vminterface")
-        ),
-        on_delete=models.CASCADE,
-        related_name="+",
-        blank=True,
-        null=True,
-    )
-    update_source_object_id = models.UUIDField(blank=True, null=True)
-    update_source = GenericForeignKey(ct_field="update_source_content_type", fk_field="update_source_object_id")
 
     router_id = models.ForeignKey(
         to="ipam.IPAddress",
@@ -121,6 +183,7 @@ class AbstractPeeringInfo(models.Model):
         null=True,
         on_delete=models.PROTECT,
     )
+
     autonomous_system = models.ForeignKey(
         to=AutonomousSystem,
         blank=True,
@@ -128,210 +191,65 @@ class AbstractPeeringInfo(models.Model):
         on_delete=models.PROTECT,
     )
 
-    maximum_paths_ibgp = models.IntegerField(blank=True, null=True, verbose_name="maximum-paths (iBGP)")
-    maximum_paths_ebgp = models.IntegerField(blank=True, null=True, verbose_name="maximum-paths (eBGP)")
-    maximum_paths_eibgp = models.IntegerField(blank=True, null=True, verbose_name="maximum-paths (eiBGP)")
-    maximum_prefix = models.IntegerField(blank=True, null=True)
-
-    bfd_multiplier = models.IntegerField(blank=True, null=True, verbose_name="BFD multiplier")
-    bfd_minimum_interval = models.IntegerField(blank=True, null=True, verbose_name="BFD minimum interval")
-    bfd_fast_detection = models.BooleanField(blank=True, null=True, verbose_name="BFD fast-detection")
-
-    enforce_first_as = models.BooleanField(blank=True, null=True)
-    send_community_ebgp = models.BooleanField(blank=True, null=True, verbose_name="Send-community eBGP")
-
-    class Meta:
-        abstract = True
-
-    def get_candidate_devices(self):
-        """Helper function for clean() - various attributes may refer to various Device and/or VirtualMachine."""
-        device_candidates = set()
-
-        if self.router_id:
-            if self.router_id.assigned_object:
-                if hasattr(self.router_id.assigned_object, "device"):
-                    device_candidates.add(self.router_id.assigned_object.device)
-                else:
-                    device_candidates.add(self.router_id.assigned_object.virtual_machine)
-            else:
-                device_candidates.add(None)
-
-        if self.update_source:
-            if hasattr(self.update_source, "device"):
-                device_candidates.add(self.update_source.device)
-            else:
-                device_candidates.add(self.update_source.virtual_machine)
-
-        return device_candidates
-
-    def get_candidate_vrfs(self):
-        """Helper function for clean() - various attributes may refer to various VRF records."""
-        vrf_candidates = set()
-        if self.router_id:
-            vrf_candidates.add(self.router_id.vrf)
-
-        return vrf_candidates
-
-    def clean(self):
-        """Django callback method to validate model sanity."""
-        super().clean()
-
-        device_candidates = self.get_candidate_devices()
-        if len(device_candidates) > 1:
-            raise ValidationError(
-                f"Various attributes refer to different devices and/or virtual machines: {device_candidates}"
-            )
-
-        vrf_candidates = self.get_candidate_vrfs()
-        if len(vrf_candidates) > 1:
-            raise ValidationError(f"Various attributes refer to different VRFs: {vrf_candidates}")
-        # If no VRF was specified explicitly but it's implied by other attributes, use that
-        if self.vrf is None and len(vrf_candidates) == 1:
-            self.vrf = vrf_candidates.pop()
-        elif vrf_candidates and self.vrf not in vrf_candidates:
-            raise ValidationError(
-                f"VRF {self.vrf} was specified, but one or more attributes refer instead to {vrf_candidates.pop()}"
-            )
-
-    def get_fields(self, include_inherited=False):  # pylint: disable=unused-argument
-        """Get a listing of model fields, optionally including values inherited via the BGP config hierarchy.
-
-        Args:
-            include_inherited (bool): If True, for any fields with a local None/null value, check for any
-                "upstream" related objects that do define a value for this field and include that inherited value.
-
-        Returns:
-            Dict[dict]: one dict per relevant field on this model, with at least the keys
-                "value" (field value - integer, string, object reference, etc.), and "inherited" (boolean).
-                For properties that are inherited (given include_inherited=True), there will also be a "source" key,
-                whose value is the model object that the value is inherited from.
+    def get_absolute_url(self):
+        """Get the URL for detailed view of a single AutonomousSystem."""
+        return reverse("plugins:nautobot_bgp_models:bgproutinginstance", args=[self.pk])
 
 
-                {
-                    "bfd_multiplier": {"value": 10, "inherited": False},
-                    "vrf": {"value": <VRF object>, "inherited": False},
-                    "router_id": {"value": <IPAddress object>, "inherited": True, "source": <Device object>},
-                    ...
-                }
-        """
-        # The base AbstractPeeringInfo model doesn't have anything to inherit properties from
-        return {
-            "description": {"value": self.description, "inherited": False},
-            "enabled": {"value": self.enabled, "inherited": False},
-            "vrf": {"value": self.vrf, "inherited": False},
-            "update_source": {"value": self.update_source, "inherited": False},
-            "router_id": {"value": self.router_id, "inherited": False},
-            "autonomous_system": {"value": self.autonomous_system, "inherited": False},
-            "maximum_paths_ibgp": {"value": self.maximum_paths_ibgp, "inherited": False},
-            "maximum_paths_ebgp": {"value": self.maximum_paths_ebgp, "inherited": False},
-            "maximum_paths_eibgp": {"value": self.maximum_paths_eibgp, "inherited": False},
-            "maximum_prefix": {"value": self.maximum_prefix, "inherited": False},
-            "bfd_multiplier": {"value": self.bfd_multiplier, "inherited": False},
-            "bfd_minimum_interval": {"value": self.bfd_minimum_interval, "inherited": False},
-            "bfd_fast_detection": {"value": self.bfd_fast_detection, "inherited": False},
-            "enforce_first_as": {"value": self.enforce_first_as, "inherited": False},
-            "send_community_ebgp": {"value": self.send_community_ebgp, "inherited": False},
-        }
-
-
-@extras_features(
-    "custom_fields",
-    "custom_links",
-    "custom_validators",
-    "export_templates",
-    "relationships",
-    "webhooks",
-)
-class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
+class PeerGroup(PrimaryModel, StatusModel):
     """BGP peer group information."""
-
-    device_content_type = models.ForeignKey(
-        to=ContentType,
-        limit_choices_to=models.Q(
-            models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
-        ),
-        on_delete=models.CASCADE,
-        related_name="+",
-    )
-    device_object_id = models.UUIDField()
-    device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
 
     name = models.CharField(max_length=100)
 
-    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups")
+    # is_template = models.BooleanField(blank=True, null=True)
+    # parent_template = models.ForeignKey(
+    #     to="self",
+    #     on_delete=models.SET_NULL,
+    #     blank=True,
+    #     null=True,
+    # )
 
-    class Meta:
-        ordering = ["device_content_type", "device_object_id", "name"]
-        unique_together = ["device_content_type", "device_object_id", "name"]
-        verbose_name = "BGP peer group"
+    routing_instance = models.ForeignKey(
+        to=BGPRoutingInstance,
+        on_delete=models.CASCADE,
+        related_name="bgp_peer_groups",
+        verbose_name="Peer group",
+    )
 
-    def __str__(self):
-        """String representation of a single PeerGroup."""
-        return f"{self.name} on {self.device}"
+    autonomous_system = models.ForeignKey(
+        to=AutonomousSystem,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
 
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single PeerGroup."""
-        return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
+    remote_autonomous_system = models.ForeignKey(  # optional
+        to=AutonomousSystem,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
 
-    def clean(self):
-        """Django callback method to validate model sanity."""
-        super().clean()
-        device_candidates = self.get_candidate_devices()
-        if device_candidates and self.device not in device_candidates:
-            raise ValidationError(
-                f"Device {self.device} was specified, but one or more attributes refer instead to {device_candidates.pop()}"
-            )
+    ip = models.ForeignKey(  # local-address
+        to="ipam.IPAddress",
+        on_delete=models.PROTECT,
+        related_name="bgp_peer_group_ips",
+        verbose_name="BGP Peer Group IP",
+    )
 
-    def get_fields(self, include_inherited=False):
-        """Get a listing of model fields, optionally including values inherited via the BGP config hierarchy."""
-        result = super().get_fields(include_inherited=include_inherited)
+    auth_password = models.CharField(max_length=200, blank=True, default="")
 
-        # Add additional fields
-        result.update(
-            {
-                "device": {"value": self.device, "inherited": False},
-                "name": {"value": self.name, "inherited": False},
-                "role": {"value": self.role, "inherited": False},
-            }
-        )
+    fields = [
+        "name",
+        "routing_instance",
+        "autonomous_system",
+        "remote_autonomous_system",
+        "ip",
+        "auth_password",
+    ]
 
-        if include_inherited:
-            # Add inherited fields
-            if not result["router_id"]["value"]:
-                try:
-                    device_router_id_assoc = RelationshipAssociation.objects.get(
-                        relationship__slug="bgp_device_router_id",
-                        source_type=ContentType.objects.get_for_model(Device),
-                        source_id=self.device.pk,
-                    )
-                    result["router_id"].update(
-                        {
-                            "value": device_router_id_assoc.destination,
-                            "source": self.device,
-                            "inherited": True,
-                        }
-                    )
-                except RelationshipAssociation.DoesNotExist:
-                    pass
-
-            if not result["autonomous_system"]["value"]:
-                try:
-                    asn_device_assoc = RelationshipAssociation.objects.get(
-                        relationship__slug="bgp_asn",
-                        destination_type=ContentType.objects.get_for_model(Device),
-                        destination_id=self.device.pk,
-                    )
-                    result["autonomous_system"].update(
-                        {
-                            "value": asn_device_assoc.source,
-                            "source": self.device,
-                            "inherited": True,
-                        }
-                    )
-                except RelationshipAssociation.DoesNotExist:
-                    pass
-
-        return result
+#    def clean(self):
+#     - local-address on routing_instance
 
 
 @extras_features(
@@ -342,22 +260,51 @@ class PeerGroup(AbstractPeeringInfo, OrganizationalModel):
     "relationships",
     "webhooks",
 )
-class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
+class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
     """BGP information about one endpoint of a peering session."""
+    description = models.CharField(max_length=200, blank=True)
+    enabled = models.BooleanField(default=True)
 
-    peer_group = models.ForeignKey(
-        to=PeerGroup,
+    routing_instance = models.ForeignKey(
+        to=BGPRoutingInstance,
         on_delete=models.CASCADE,
+        related_name="bgp_peer_endpoint_routing_instances",
+        verbose_name="Device",
+    )
+
+    ip = models.ForeignKey(  # local-address
+        to="ipam.IPAddress",
+        on_delete=models.PROTECT,
+        related_name="bgp_peer_endpoint_ips",
+        verbose_name="BGP Peer IP",
+    )
+    ip_inheritance = [
+        "peer_group.ip",
+    ]
+
+    autonomous_system = models.ForeignKey(
+        to=AutonomousSystem,
         blank=True,
         null=True,
-        related_name="peer_endpoints",
+        on_delete=models.PROTECT,
     )
-    local_ip = models.ForeignKey(
-        to="ipam.IPAddress",
-        on_delete=models.CASCADE,
-        related_name="bgp_peer_endpoints",
-        verbose_name="Local IP",
+    autonomous_system_inheritance = [
+        "routing_instance.autonomous_system",
+        "peer_group.autonomous_system",
+    ]
+
+    remote_autonomous_system = models.ForeignKey(  # optional override.
+        to=AutonomousSystem,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
+    remote_autonomous_system_inheritance = [
+        "peer.routing_instance.autonomous_system",
+        "peer.peer_group.autonomous_system",
+        "peer.autonomous_system",
+        "peer_group.remote_autonomous_system",
+    ]
 
     peer = models.ForeignKey(
         to="self",
@@ -365,156 +312,46 @@ class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
         blank=True,
         null=True,
     )
+
     session = models.ForeignKey(
         to="PeerSession",
         on_delete=models.CASCADE,
         related_name="endpoints",
     )
 
-    class Meta:
-        ordering = ["local_ip"]
-        # TODO unique_together?
-        verbose_name = "BGP peer endpoint"
+    peer_group = models.ForeignKey(
+        to=PeerGroup,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
-    def __str__(self):
-        """String representation of a single PeerEndpoint."""
-        return f"{self.local_ip} ({self.get_autonomous_system() or 'unknown AS'})"
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+    import_policy_inheritance = [
+        "routing_instance.import_policy",
+        "peer_group.import_policy",
+    ]
 
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single PeerEndpoint."""
-        return reverse("plugins:nautobot_bgp_models:peerendpoint", args=[self.pk])
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+    export_policy_inheritance = [
+        "routing_instance.export_policy",
+        "peer_group.export_policy",
+    ]
 
-    def clean(self):
-        """Model validation logic for PeerEndpoint."""
-        if not self.present_in_database and self.session.endpoints.count() >= 2:
-            raise ValidationError("The maximum number of PeerEndpoint for this session has been reached already (2).")
+    auth_password = models.CharField(max_length=200, blank=True, default="")
+    auth_password_inheritance = [
+        "peer_group.auth_password",
+    ]
 
-        super().clean()
-
-    def get_autonomous_system(self):
-        """Get the (possibly inherited) AutonomousSystem for this PeerEndpoint."""
-        if self.autonomous_system:
-            return self.autonomous_system
-        if self.peer_group and self.peer_group.autonomous_system:
-            return self.peer_group.autonomous_system
-        bgp_asn_relation = Relationship.objects.get(slug="bgp_asn")
-        if self.local_ip.assigned_object and hasattr(self.local_ip.assigned_object, "device"):
-            try:
-                return RelationshipAssociation.objects.get(
-                    relationship=bgp_asn_relation,
-                    destination_type=ContentType.objects.get_for_model(Device),
-                    destination_id=self.local_ip.assigned_object.device.pk,
-                ).source
-            except ObjectDoesNotExist:
-                pass
-        return None
-
-    def get_device(self):
-        """Get the (derived) Device or VirtualMachine for this PeerEndpoint, if any."""
-        if self.local_ip.assigned_object and hasattr(self.local_ip.assigned_object, "device"):
-            return self.local_ip.assigned_object.device
-        if self.local_ip.assigned_object and hasattr(self.local_ip.assigned_object, "virtualmachine"):
-            return self.local_ip.assigned_object.virtualmachine
-        return None
-
-    def get_candidate_devices(self):
-        """Helper function for clean() - various attributes may refer to various Device and/or VirtualMachine."""
-        device_candidates = super().get_candidate_devices()
-
-        if self.local_ip.assigned_object:
-            if hasattr(self.local_ip.assigned_object, "device"):
-                device_candidates.add(self.local_ip.assigned_object.device)
-            else:
-                device_candidates.add(self.local_ip.assigned_object.virtual_machine)
-        else:
-            device_candidates.add(None)
-
-        if self.peer_group:
-            device_candidates.add(self.peer_group.device)
-
-        return device_candidates
-
-    def get_candidate_vrfs(self):
-        """Helper function for clean() - various attributes may refer to various VRF records."""
-        vrf_candidates = super().get_candidate_vrfs()
-
-        vrf_candidates.add(self.local_ip.vrf)
-        if self.peer_group:
-            vrf_candidates.add(self.peer_group.vrf)
-
-        return vrf_candidates
-
-    def get_fields(self, include_inherited=False):
-        """Get a listing of model fields, optionally including values inherited via the BGP config hierarchy."""
-        result = super().get_fields(include_inherited=include_inherited)
-
-        # Add additional fields
-        result.update(
-            {
-                "peer_group": {"value": self.peer_group, "inherited": False},
-                "local_ip": {"value": self.local_ip, "inherited": False},
-                "peer": {"value": self.peer, "inherited": False},
-                "session": {"value": self.session, "inherited": False},
-            }
-        )
-
-        if include_inherited:
-            # Add inherited field values
-            if self.peer_group:
-                peer_group_result = self.peer_group.get_fields(include_inherited=include_inherited)
-                for key in result:
-                    if (
-                        key in peer_group_result
-                        and peer_group_result[key]["value"] is not None
-                        and result[key]["value"] is None
-                    ):
-                        result[key].update(
-                            {
-                                "value": peer_group_result[key]["value"],
-                                # Source is the peer group's source, if any, otherwise the peer group itself
-                                "source": peer_group_result[key].get("source", self.peer_group),
-                                "inherited": True,
-                            }
-                        )
-
-            if self.local_ip.assigned_object and hasattr(self.local_ip.assigned_object, "device"):
-                device = self.local_ip.assigned_object.device
-                # TODO helper function to reduce duplicate code
-                if not result["router_id"]["value"]:
-                    try:
-                        device_router_id_assoc = RelationshipAssociation.objects.get(
-                            relationship__slug="bgp_device_router_id",
-                            source_type=ContentType.objects.get_for_model(Device),
-                            source_id=device.pk,
-                        )
-                        result["router_id"].update(
-                            {
-                                "value": device_router_id_assoc.destination,
-                                "source": device,
-                                "inherited": True,
-                            }
-                        )
-                    except RelationshipAssociation.DoesNotExist:
-                        pass
-
-                if not result["autonomous_system"]["value"]:
-                    try:
-                        asn_device_assoc = RelationshipAssociation.objects.get(
-                            relationship__slug="bgp_asn",
-                            destination_type=ContentType.objects.get_for_model(Device),
-                            destination_id=device.pk,
-                        )
-                        result["autonomous_system"].update(
-                            {
-                                "value": asn_device_assoc.source,
-                                "source": device,
-                                "inherited": True,
-                            }
-                        )
-                    except RelationshipAssociation.DoesNotExist:
-                        pass
-
-        return result
+    fields = [
+        "enabled",
+        "description",
+        "autonomous_system",
+        "remote_autonomous_system",
+        "import_policy",
+        "export_policy",
+        "auth_password"
+    ]
 
 
 @extras_features(
@@ -530,7 +367,7 @@ class PeerEndpoint(AbstractPeeringInfo, PrimaryModel):
 class PeerSession(OrganizationalModel, StatusModel):
     """Linkage between two PeerEndpoint records."""
 
-    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT)
+    # role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT)
 
     authentication_key = models.CharField(max_length=200, blank=True, default="")
 
@@ -573,149 +410,113 @@ class PeerSession(OrganizationalModel, StatusModel):
     "custom_links",
     "custom_validators",
     "export_templates",
+    "graphql",
     "relationships",
     "webhooks",
 )
-class AddressFamily(OrganizationalModel):
-    """Address-family (AFI-SAFI) configuration for BGP."""
+class AddressFamily(OrganizationalModel, StatusModel, BGPMixin):
+    """Address-family (AFI-SAFI) model."""
 
-    afi_safi = models.CharField(max_length=64, choices=choices.AFISAFIChoices, verbose_name="AFI-SAFI")
+    afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
-    device_content_type = models.ForeignKey(
-        to=ContentType,
-        limit_choices_to=models.Q(
-            models.Q(app_label="dcim", model="device") | models.Q(app_label="virtualization", model="virtualmachine")
-        ),
-        on_delete=models.CASCADE,
-        related_name="+",
+    # is_template = models.BooleanField(blank=True, null=True)
+    # parent_template = models.ForeignKey(
+    #     to="self",
+    #     on_delete=models.PROTECT,
+    #     blank=True,
+    #     null=True,
+    # )
+
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
-    device_object_id = models.UUIDField()
-    device = GenericForeignKey(ct_field="device_content_type", fk_field="device_object_id")
 
-    peer_group = models.ForeignKey(to=PeerGroup, on_delete=models.CASCADE, blank=True, null=True)
-    peer_endpoint = models.ForeignKey(to=PeerEndpoint, on_delete=models.CASCADE, blank=True, null=True)
+    routing_instance = models.ForeignKey(
+        to=BGPRoutingInstance,
+        on_delete=models.CASCADE,
+        related_name="bgp_address_families",
+        verbose_name="BGP Routing Instance",
+    )
 
     import_policy = models.CharField(max_length=100, default="", blank=True)
     export_policy = models.CharField(max_length=100, default="", blank=True)
-    redistribute_static_policy = models.CharField(max_length=100, default="", blank=True)
-
-    maximum_prefix = models.IntegerField(blank=True, null=True)
     multipath = models.BooleanField(blank=True, null=True)
 
     class Meta:
-        # We'd like to order by device name but since it's a GenericForeignKey that's not easily possible.
-        # The below ordering puts all device-level AFs at the beginning of the list, then all peer-group-specific AFs,
-        # and finally all peer-endpoint-specific AFs.
-        ordering = ["-peer_endpoint", "-peer_group"]
-        unique_together = [("afi_safi", "device_content_type", "device_object_id", "peer_group", "peer_endpoint")]
+        ordering = ["-routing_instance", "-vrf"]
+        unique_together = [("afi_safi", "routing_instance", "vrf")]
         verbose_name = "BGP address-family"
         verbose_name_plural = "BGP address-families"
 
     def __str__(self):
         """String representation of a single AddressFamily."""
-        if self.peer_group:
-            return f"AFI-SAFI {self.afi_safi} for {self.peer_group}"
-        if self.peer_endpoint:
-            return f"AFI-SAFI {self.afi_safi} for {self.peer_endpoint}"
-        return f"AFI-SAFI {self.afi_safi} on {self.device}"
 
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single AddressFamily."""
-        return reverse("plugins:nautobot_bgp_models:addressfamily", args=[self.pk])
+        return f"AFI-SAFI {self.afi_safi} on BGP {self.routing_instance.device}"
 
-    def clean(self):
-        """Django callback method to validate model sanity."""
-        super().clean()
 
-        if self.peer_group and self.peer_endpoint:
-            raise ValidationError("An AddressFamily cannot reference both a peer-group and a peer endpoint")
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class PeerEndpointContext(PrimaryModel, StatusModel, BGPMixin):
+    """Peer Endpoint's Address Family Context."""
 
-        if self.device and (
-            (self.peer_group and self.peer_group.device != self.device)
-            or (self.peer_endpoint and self.peer_endpoint.get_device() != self.device)
-        ):
-            raise ValidationError(
-                "Mismatch between the selected device and the selected peer-group/peer-endpoint's parent device"
-            )
+    peer_endpoint = models.ForeignKey(
+        to=PeerEndpoint,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
 
-        # Since NULL != NULL in database terms, unique_together as defined on the Meta class above doesn't exactly
-        # work as might be expected, given that either peer_group or peer_endpoint (or both!) will be NULL.w
-        # We need to enforce the intention of the rule explicitly here:
-        if (
-            AddressFamily.objects.exclude(pk=self.pk)
-            .filter(
-                afi_safi=self.afi_safi,
-                # If form validation failed due to a user selecting both a device and a vm, or neither,
-                # this clean method will still be called, but no device_content_type value will have been selected.
-                # In that case referencing self.device_content_type will throw a RelatedObjectDoesNotExist exception;
-                # we must instead reference self.device_content_type_id, which does not have this behavior.
-                device_content_type_id=self.device_content_type_id,
-                device_object_id=self.device_object_id,
-                peer_group=self.peer_group,
-                peer_endpoint=self.peer_endpoint,
-            )
-            .exists()
-        ):
-            raise ValidationError(
-                "AddressFamily is already defined for the given device, AFI/SAFI, and peer-group/peer-endpoint (if any)"
-            )
+    address_family = models.ForeignKey(
+        to=AddressFamily,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
 
-    def get_fields(self, include_inherited=False):
-        """Get a listing of model fields, optionally including values inherited via the BGP config hierarchy."""
-        result = {
-            "import_policy": {"value": self.import_policy, "inherited": False},
-            "export_policy": {"value": self.export_policy, "inherited": False},
-            "redistribute_static_policy": {"value": self.redistribute_static_policy, "inherited": False},
-            "maximum_prefix": {"value": self.maximum_prefix, "inherited": False},
-            "multipath": {"value": self.multipath, "inherited": False},
-        }
-        if include_inherited:
-            if self.peer_endpoint and self.peer_endpoint.peer_group:
-                # inherit from peer-group address-family, if any
-                try:
-                    pg_af = self.__class__.objects.get(afi_safi=self.afi_safi, peer_group=self.peer_endpoint.peer_group)
-                    pg_af_fields = pg_af.get_fields(include_inherited=include_inherited)
-                    for key in result:
-                        if (
-                            key in pg_af_fields
-                            and pg_af_fields[key]["value"] is not None
-                            and (result[key]["value"] is None or result[key]["value"] == "")
-                        ):
-                            result[key].update(
-                                {
-                                    "value": pg_af_fields[key]["value"],
-                                    "source": pg_af_fields[key].get("source", pg_af),
-                                    "inherited": True,
-                                }
-                            )
-                except ObjectDoesNotExist:
-                    pass
+    maximum_prefix = models.IntegerField(blank=True, null=True)
+    maximum_prefix_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.import_policy",
+        "peer_endpoint.peer_group.maximum_prefix",
+        "peer_endpoint.maximum_prefix",
+        "address_family.maximum_prefix",
+    ]
 
-            # inherit from base device address-family, if any
-            if self.peer_endpoint or self.peer_group:
-                try:
-                    device_af = self.__class__.objects.get(
-                        afi_safi=self.afi_safi,
-                        device_content_type=ContentType.objects.get_for_model(Device),
-                        device_object_id=self.device.pk,
-                        peer_endpoint__isnull=True,
-                        peer_group__isnull=True,
-                    )
-                    device_af_fields = device_af.get_fields(include_inherited=include_inherited)
-                    for key in result:
-                        if (
-                            key in device_af_fields
-                            and device_af_fields[key]["value"] is not None
-                            and (result[key]["value"] is None or result[key]["value"] == "")
-                        ):
-                            result[key].update(
-                                {
-                                    "value": device_af_fields[key]["value"],
-                                    "source": device_af,
-                                    "inherited": True,
-                                }
-                            )
-                except ObjectDoesNotExist:
-                    pass
+    multipath = models.BooleanField(blank=True, null=True)
+    multipath_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.import_policy",
+        "peer_endpoint.peer_group.multipath",
+        "peer_endpoint.multipath",
+        "address_family.multipath",
+    ]
 
-        return result
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+    import_policy_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.import_policy",
+        "peer_endpoint.peer_group.import_policy",
+        "peer_endpoint.import_policy",
+        "address_family.import_policy",
+    ]
+
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+    export_policy_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.export_policy",
+        "peer_endpoint.peer_group.export_policy",
+        "peer_endpoint.export_policy",
+        "address_family.export_policy",
+    ]
+
+    class Meta:
+        unique_together = [("peer_endpoint", "address_family")]
+        verbose_name = "BGP Peer-Endpoint Context"
+        verbose_name_plural = "BGP Peer-Endpoint Contexts"
