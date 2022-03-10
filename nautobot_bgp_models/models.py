@@ -467,6 +467,40 @@ class AddressFamily(OrganizationalModel, StatusModel, BGPMixin):
     "relationships",
     "webhooks",
 )
+class PeerGroupContext(PrimaryModel, StatusModel, BGPMixin):
+    """Peer Endpoint's Address Family Context."""
+
+    peer_group = models.ForeignKey(
+        to=PeerGroup,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+
+    address_family = models.ForeignKey(
+        to=AddressFamily,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+
+    multipath = models.BooleanField(blank=True, null=True)
+    multipath_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.import_policy",
+        "address_family.multipath",
+        "peer_group.multipath"
+    ]
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
 class PeerEndpointContext(PrimaryModel, StatusModel, BGPMixin):
     """Peer Endpoint's Address Family Context."""
 
@@ -492,13 +526,6 @@ class PeerEndpointContext(PrimaryModel, StatusModel, BGPMixin):
         "address_family.maximum_prefix",
     ]
 
-    multipath = models.BooleanField(blank=True, null=True)
-    multipath_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.import_policy",
-        "peer_endpoint.peer_group.multipath",
-        "peer_endpoint.multipath",
-        "address_family.multipath",
-    ]
 
     import_policy = models.CharField(max_length=100, default="", blank=True)
     import_policy_inheritance = [
