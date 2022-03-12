@@ -220,6 +220,7 @@ class PeerGroup(PrimaryModel, StatusModel):
         to=AutonomousSystem,
         blank=True,
         null=True,
+        related_name="peer_group_local_as",
         on_delete=models.PROTECT,
     )
 
@@ -227,14 +228,25 @@ class PeerGroup(PrimaryModel, StatusModel):
         to=AutonomousSystem,
         blank=True,
         null=True,
+        related_name="peer_group_remote_as",
         on_delete=models.PROTECT,
     )
 
     ip = models.ForeignKey(  # local-address
         to="ipam.IPAddress",
+        blank=True,
+        null=True,
         on_delete=models.PROTECT,
         related_name="bgp_peer_group_ips",
         verbose_name="BGP Peer Group IP",
+    )
+
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
 
     auth_password = models.CharField(max_length=200, blank=True, default="")
@@ -286,6 +298,7 @@ class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
         to=AutonomousSystem,
         blank=True,
         null=True,
+        related_name="peer_endpoint_local_as",
         on_delete=models.PROTECT,
     )
     autonomous_system_inheritance = [
@@ -298,6 +311,7 @@ class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
         on_delete=models.PROTECT,
         blank=True,
         null=True,
+        related_name="peer_endpoint_remote_as",
     )
     remote_autonomous_system_inheritance = [
         "peer.routing_instance.autonomous_system",
@@ -317,6 +331,14 @@ class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
         to="PeerSession",
         on_delete=models.CASCADE,
         related_name="endpoints",
+    )
+
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
 
     peer_group = models.ForeignKey(
@@ -491,6 +513,23 @@ class PeerGroupContext(PrimaryModel, StatusModel, BGPMixin):
         "peer_group.multipath"
     ]
 
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+    import_policy_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.import_policy",
+        "peer_endpoint.peer_group.import_policy",
+        "peer_endpoint.import_policy",
+        "address_family.import_policy",
+    ]
+
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+    export_policy_inheritance = [
+        # "peer_endpoint.peer_group.parent_template.export_policy",
+        "peer_endpoint.peer_group.export_policy",
+        "peer_endpoint.export_policy",
+        "address_family.export_policy",
+    ]
+
+    # TODO(mzb): address_family.vrf == peer_group.vrf
 
 @extras_features(
     "custom_fields",
@@ -547,3 +586,5 @@ class PeerEndpointContext(PrimaryModel, StatusModel, BGPMixin):
         unique_together = [("peer_endpoint", "address_family")]
         verbose_name = "BGP Peer-Endpoint Context"
         verbose_name_plural = "BGP Peer-Endpoint Contexts"
+
+    # TODO(mzb): address_family.vrf == peer_group.vrf
