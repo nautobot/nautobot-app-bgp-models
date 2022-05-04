@@ -1,18 +1,19 @@
 """Django model definitions for nautobot_bgp_models."""
 
 import functools
-# from . import choices
-from collections import OrderedDict
+from django.core.exceptions import ValidationError
 
-from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.urls import reverse
+from nautobot.circuits.models import Provider
 from nautobot.core.models.generics import PrimaryModel, OrganizationalModel
 from nautobot.dcim.fields import ASNField
 from nautobot.extras.models import StatusModel
 from nautobot.extras.utils import extras_features
 from nautobot.utilities.choices import ChoiceSet
-from nautobot.utilities.utils import deepmerge
+from nautobot.utilities.choices import ColorChoices
+from nautobot.utilities.fields import ColorField
+from nautobot.ipam.models import IPAddress
 
 
 def rgetattr(obj, attr, *args):
@@ -38,20 +39,23 @@ class AFISAFIChoices(ChoiceSet):
 
 
 class BGPMixin(models.Model):
-    def get_inherited_field(self, field_name, inheritance_path):
-        """returns field_value, inheritance_indicator"""
+    def get_inherited_field(self, field_name, inheritance_path=None):
+        """returns value, inheritance_indicator, inheritance_source"""
 
         field_value = getattr(self, field_name, None)
         if field_value:
-            return field_value, False
+            return field_value, False, None
+        else:
+            if inheritance_path is None and field_name in getattr(self, inheritance_path, {}):
+                inheritance_path = self.inheritance_path[field_name]
+            for path_element in (inheritance_path or []):
+                field_value = rgetattr(self, path_element, None)
 
-        for path_element in (inheritance_path or []):
-            field_value = rgetattr(self, path_element, None)
-
-            if field_value:
-                return field_value, True
-
-        return None, False
+                if field_value:
+                    obj = rgetattr(self, ".".join(path_element.split('.')[:-1]), None)
+                    return field_value, True, obj
+            else:
+                return None, False, None
 
     def get_fields(self, include_inherited=False):
         """
@@ -61,50 +65,19 @@ class BGPMixin(models.Model):
         """
         result = {}
 
-        for field_name in self.fields:
-            inheritance_path = getattr(self, f"{field_name}_inheritance", None) if include_inherited else []
+        for field_name, field_inheritance in self.property_inheritance.items():
+            inheritance_path = field_inheritance if include_inherited else []
             inheritance_result = self.get_inherited_field(field_name=field_name, inheritance_path=inheritance_path)
-
-            result.update(
-                field_name={"value": inheritance_result[0], "inherited": inheritance_result[1]}
-            )
+            result[field_name] = {
+                    "value": inheritance_result[0],
+                    "inherited": inheritance_result[1],
+                    "source": inheritance_result[2]
+                }
 
         return result
 
     class Meta:
         abstract = True
-
-
-##  DRAFT of config context inheritance for BGP attributes.
-
-# class BGPConfigContextMixin(models.Model):
-#     local_context_data = models.JSONField(
-#         encoder=DjangoJSONEncoder,
-#         blank=True,
-#         null=True,
-#     )
-#
-#     @property
-#     def get_context_paths(self):
-#         return [rgetattr(self, x, None) for x in self.local_context_path]
-#
-#     def get_config_context(self):
-#         # always manually query for config contexts
-#         config_context_data = [x for x in self.get_context_paths if x]
-#
-#         # Compile all config data, overwriting lower-weight values with higher-weight values where a collision occurs
-#         data = OrderedDict()
-#         for context in config_context_data:
-#             data = deepmerge(data, context)
-#
-#         # If the object has local config context data defined, merge it last
-#         if self.local_context_data:
-#             data = deepmerge(data, self.local_context_data)
-#
-#         return data
-#
-#     class Meta:
-#         abstract = True
 
 
 @extras_features(
@@ -118,16 +91,17 @@ class BGPMixin(models.Model):
     "webhooks",
 )
 class AutonomousSystem(PrimaryModel, StatusModel):
-    """BGP Autonomous System information."""
+    """Autonomous System information."""
 
     asn = ASNField(unique=True, verbose_name="ASN", help_text="32-bit autonomous system number")
     description = models.CharField(max_length=200, blank=True)
+    provider = models.ForeignKey(to=Provider, on_delete=models.PROTECT, blank=True, null=True)
 
     csv_headers = ["asn", "description", "status"]
 
     class Meta:
         ordering = ["asn"]
-        verbose_name = "BGP autonomous system"
+        verbose_name = "Autonomous system"
 
     def __str__(self):
         """String representation of an AutonomousSystem."""
@@ -139,7 +113,42 @@ class AutonomousSystem(PrimaryModel, StatusModel):
 
     def to_csv(self):
         """Render an AutonomousSystem record to CSV fields."""
-        return (self.asn, self.description, self.get_status_display())
+        return self.asn, self.description, self.get_status_display()
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class PeeringRole(OrganizationalModel):  # TODO(mzb): consider renaming to `BGPRole`
+    """Role definition for use with a PeerGroup or PeerEndpoint."""
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    color = ColorField(default=ColorChoices.COLOR_GREY)
+    description = models.CharField(max_length=200, blank=True)
+
+    csv_headers = ["name", "slug", "color", "description"]
+
+    class Meta:
+        verbose_name = "BGP Role"
+
+    def __str__(self):
+        """String representation of a PeeringRole."""
+        return self.name
+
+    def get_absolute_url(self):
+        """Get the URL for a detailed view of a single PeeringRole."""
+        return reverse("plugins:nautobot_bgp_models:peeringrole", args=[self.pk])
+
+    def to_csv(self):
+        """Render a PeeringRole record to CSV fields."""
+        return (self.name, self.slug, self.color, self.description)
 
 
 @extras_features(
@@ -155,17 +164,8 @@ class AutonomousSystem(PrimaryModel, StatusModel):
 class BGPRoutingInstance(PrimaryModel, StatusModel):
     """BGP Routing Instance"""
 
-    # local_context_path = [
-    #     "parent_template.local_context_data",
-    # ]
-
-    # is_template = models.BooleanField(blank=True, null=True)
-    # parent_template = models.ForeignKey(
-    #     to="self",
-    #     on_delete=models.SET_NULL,
-    #     blank=True,
-    #     null=True,
-    # )
+    # TODO(mzb): add *name* attr, unique on device.
+    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="routing_instances", blank=True, null=True)
 
     description = models.CharField(max_length=200, blank=True)
 
@@ -184,7 +184,7 @@ class BGPRoutingInstance(PrimaryModel, StatusModel):
         on_delete=models.PROTECT,
     )
 
-    autonomous_system = models.ForeignKey(
+    autonomous_system = models.ForeignKey(  # TODO(mzb): should this be mandatory ?
         to=AutonomousSystem,
         blank=True,
         null=True,
@@ -195,25 +195,111 @@ class BGPRoutingInstance(PrimaryModel, StatusModel):
         """Get the URL for detailed view of a single AutonomousSystem."""
         return reverse("plugins:nautobot_bgp_models:bgproutinginstance", args=[self.pk])
 
+    def __str__(self):
+        """String representation of a Routing Instance."""
+        return f"{self.device} - {self.autonomous_system}"
 
-class PeerGroup(PrimaryModel, StatusModel):
+    class Meta:
+        verbose_name = "BGP Routing Instance"
+
+
+class PeerGroupTemplate(PrimaryModel, StatusModel, BGPMixin):
     """BGP peer group information."""
+    #    def clean(self):
+    #     - local-address on routing_instance
+    #
+    property_inheritance = {  # TODO(mzb): Document, if null still used by `.get_fields()`
+        "auth_password": [],
+        "autonomous_system": [],
+        "description": [],
+        "enabled": [],
+        "export_policy": [],
+        "import_policy": [],
+        "ip": [],
+    }
 
     name = models.CharField(max_length=100)
 
-    # is_template = models.BooleanField(blank=True, null=True)
-    # parent_template = models.ForeignKey(
-    #     to="self",
-    #     on_delete=models.SET_NULL,
-    #     blank=True,
-    #     null=True,
-    # )
+    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="peer_group_templates", blank=True,
+                             null=True)
+
+    description = models.CharField(max_length=200, blank=True)
+
+    enabled = models.BooleanField(default=True)
+
+    autonomous_system = models.ForeignKey(
+        to=AutonomousSystem,
+        blank=True,
+        null=True,
+        related_name="peer_group_template_local_as",
+        on_delete=models.PROTECT,
+    )
+
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+
+    auth_password = models.CharField(max_length=200, blank=True, default="")
+
+    def __str__(self):
+        return f"Peer Group Template {self.name}"
+
+    def get_absolute_url(self):
+        """Get the URL for detailed view of a single AutonomousSystem."""
+        return reverse("plugins:nautobot_bgp_models:peergrouptemplate", args=[self.pk])
+
+    class Meta:
+        unique_together = [("name")]
+        verbose_name = "BGP Peer Group Template"
+
+
+class PeerGroup(PrimaryModel, StatusModel, BGPMixin):
+    """BGP peer group information."""
+
+    # TODO(mzb): add local-ip / update-source support.
+
+    #    def clean(self):
+    #     - local-address on routing_instance
+
+    property_inheritance = {
+        "auth_password": [
+            "template.auth_password",
+        ],
+        "autonomous_system": [
+            "template.autonomous_system",
+            "routing_instance.autonomous_system",
+        ],
+        "description": [
+            "template.description",
+        ],
+        "enabled": [
+            "template.enabled",
+        ],
+        "export_policy": [
+            "template.export_policy"
+        ],
+        "import_policy": [
+            "template.import_policy",
+        ],
+        "ip": [],
+        # "remote_autonomous_system": [],
+    }
+
+    template = models.ForeignKey(to=PeerGroupTemplate, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True)
+
+    name = models.CharField(max_length=100)
+
+    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True)
+
+    description = models.CharField(max_length=200, blank=True)
+
+    enabled = models.BooleanField(default=True)
 
     routing_instance = models.ForeignKey(
         to=BGPRoutingInstance,
         on_delete=models.CASCADE,
-        related_name="bgp_peer_groups",
-        verbose_name="Peer group",
+        related_name="bgp_peer_groups",  # TODO(mzb)
+        verbose_name="Routing Instance",
     )
 
     autonomous_system = models.ForeignKey(
@@ -224,44 +310,22 @@ class PeerGroup(PrimaryModel, StatusModel):
         on_delete=models.PROTECT,
     )
 
-    remote_autonomous_system = models.ForeignKey(  # optional
-        to=AutonomousSystem,
-        blank=True,
-        null=True,
-        related_name="peer_group_remote_as",
-        on_delete=models.PROTECT,
-    )
+    import_policy = models.CharField(max_length=100, default="", blank=True)
 
-    ip = models.ForeignKey(  # local-address
-        to="ipam.IPAddress",
-        blank=True,
-        null=True,
-        on_delete=models.PROTECT,
-        related_name="bgp_peer_group_ips",
-        verbose_name="BGP Peer Group IP",
-    )
-
-    vrf = models.ForeignKey(
-        to="ipam.VRF",
-        verbose_name="VRF",
-        blank=True,
-        null=True,
-        on_delete=models.PROTECT,
-    )
+    export_policy = models.CharField(max_length=100, default="", blank=True)
 
     auth_password = models.CharField(max_length=200, blank=True, default="")
 
-    fields = [
-        "name",
-        "routing_instance",
-        "autonomous_system",
-        "remote_autonomous_system",
-        "ip",
-        "auth_password",
-    ]
+    def __str__(self):
+        return f"Peer Group {self.name}"
 
-#    def clean(self):
-#     - local-address on routing_instance
+    def get_absolute_url(self):
+        """Get the URL for detailed view of a single AutonomousSystem."""
+        return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
+
+    class Meta:
+        unique_together = [("name", "routing_instance")]
+        verbose_name = "BGP Peer Group"
 
 
 @extras_features(
@@ -274,25 +338,59 @@ class PeerGroup(PrimaryModel, StatusModel):
 )
 class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
     """BGP information about one endpoint of a peering session."""
+
+    property_inheritance = {
+        "auth_password": [
+            "peer_group.auth_password",
+        ],
+        "autonomous_system": [
+            "peer_group.autonomous_system",
+            "routing_instance.autonomous_system",
+        ],
+        "description": [],
+        "enabled": [],
+        "export_policy": [
+            "peer_group.export_policy",
+        ],
+        "import_policy": [
+            "peer_group.import_policy",
+        ],
+        "ip": [
+            "peer_group.ip",
+        ],
+    }
+
     description = models.CharField(max_length=200, blank=True)
+
+    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="peer_endpoints", blank=True, null=True)
+
     enabled = models.BooleanField(default=True)
 
     routing_instance = models.ForeignKey(
         to=BGPRoutingInstance,
         on_delete=models.CASCADE,
+        blank=True,
+        null=True,
         related_name="bgp_peer_endpoint_routing_instances",
-        verbose_name="Device",
+        verbose_name="BGP Routing Instance",
     )
+
+    # TODO(mzb)
+    # @property
+    # def _ip(self):
+    #     # if self.update_source:
+    #     #     pass
+    #     if self.ip:
+    #         return self.ip
 
     ip = models.ForeignKey(  # local-address
         to="ipam.IPAddress",
         on_delete=models.PROTECT,
+        blank=True,
+        null=True,
         related_name="bgp_peer_endpoint_ips",
         verbose_name="BGP Peer IP",
     )
-    ip_inheritance = [
-        "peer_group.ip",
-    ]
 
     autonomous_system = models.ForeignKey(
         to=AutonomousSystem,
@@ -301,24 +399,6 @@ class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
         related_name="peer_endpoint_local_as",
         on_delete=models.PROTECT,
     )
-    autonomous_system_inheritance = [
-        "routing_instance.autonomous_system",
-        "peer_group.autonomous_system",
-    ]
-
-    remote_autonomous_system = models.ForeignKey(  # optional override.
-        to=AutonomousSystem,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="peer_endpoint_remote_as",
-    )
-    remote_autonomous_system_inheritance = [
-        "peer.routing_instance.autonomous_system",
-        "peer.peer_group.autonomous_system",
-        "peer.autonomous_system",
-        "peer_group.remote_autonomous_system",
-    ]
 
     peer = models.ForeignKey(
         to="self",
@@ -333,47 +413,45 @@ class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
         related_name="endpoints",
     )
 
-    vrf = models.ForeignKey(
-        to="ipam.VRF",
-        verbose_name="VRF",
-        blank=True,
-        null=True,
-        on_delete=models.PROTECT,
-    )
-
     peer_group = models.ForeignKey(
         to=PeerGroup,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         blank=True,
         null=True,
     )
 
     import_policy = models.CharField(max_length=100, default="", blank=True)
-    import_policy_inheritance = [
-        "routing_instance.import_policy",
-        "peer_group.import_policy",
-    ]
 
     export_policy = models.CharField(max_length=100, default="", blank=True)
-    export_policy_inheritance = [
-        "routing_instance.export_policy",
-        "peer_group.export_policy",
-    ]
 
     auth_password = models.CharField(max_length=200, blank=True, default="")
-    auth_password_inheritance = [
-        "peer_group.auth_password",
-    ]
 
-    fields = [
-        "enabled",
-        "description",
-        "autonomous_system",
-        "remote_autonomous_system",
-        "import_policy",
-        "export_policy",
-        "auth_password"
-    ]
+    def __str__(self):
+        if self.routing_instance and self.routing_instance.device:
+            return f"{self.routing_instance.device}"
+        else:
+            return f"{self.ip} ({self.autonomous_system})"
+
+    def get_absolute_url(self):
+        """Get the URL for detailed view of a single AutonomousSystem."""
+        return reverse("plugins:nautobot_bgp_models:peerendpoint", args=[self.pk])
+
+    def clean(self):
+        if not self.routing_instance:
+            if (not self.ip) or (not self.autonomous_system):
+                raise ValidationError("Must specify both IP & ASN for non-local peers.")
+
+        if self.routing_instance:
+            if self.ip not in IPAddress.objects.filter(interface__device_id=self.routing_instance.device.id):
+                raise ValidationError("Peer IP not associated with Routing Instance")
+
+        # ensure IP object is related to the routing instance. (if routing instance declared.)
+        # ensure local IP is set either on self. either on self.peer_group.
+        #  - add validation on PeerGroup while removing self.ipaddress -> check related Endpoints.
+        # ensure if no ASN is set, routing instance is set.
+        # ensure self.session has no more than > endpoints !.
+        # ensure one of : [ self.ip , self.update_source_interface ]
+        # ensure selected Peer Group is associated to the Routing Instance
 
 
 @extras_features(
@@ -389,24 +467,26 @@ class PeerEndpoint(PrimaryModel, StatusModel, BGPMixin):
 class PeerSession(OrganizationalModel, StatusModel):
     """Linkage between two PeerEndpoint records."""
 
-    # role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT)
+    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, blank=True, null=True)
 
     authentication_key = models.CharField(max_length=200, blank=True, default="")
 
     class Meta:
         verbose_name = "BGP peer session"
 
+    @property
     def endpoint_a(self):
         """Get the "first" endpoint associated with this PeerSession."""
         return self.endpoints.all()[0] if self.endpoints.exists() else None
 
+    @property
     def endpoint_z(self):
         """Get the "second" endpoint associated with this PeerSession."""
         return self.endpoints.all()[1] if self.endpoints.count() > 1 else None
 
     def __str__(self):
         """String representation of a single PeerSession."""
-        return f"{self.endpoint_a()} ↔︎ {self.endpoint_z()}"
+        return f"{self.endpoint_a} ↔︎ {self.endpoint_z}"
 
     def get_absolute_url(self):
         """Get the URL for a detailed view of a single PeerSession."""
@@ -441,14 +521,6 @@ class AddressFamily(OrganizationalModel, StatusModel, BGPMixin):
 
     afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
-    # is_template = models.BooleanField(blank=True, null=True)
-    # parent_template = models.ForeignKey(
-    #     to="self",
-    #     on_delete=models.PROTECT,
-    #     blank=True,
-    #     null=True,
-    # )
-
     vrf = models.ForeignKey(
         to="ipam.VRF",
         verbose_name="VRF",
@@ -465,19 +537,29 @@ class AddressFamily(OrganizationalModel, StatusModel, BGPMixin):
     )
 
     import_policy = models.CharField(max_length=100, default="", blank=True)
+
     export_policy = models.CharField(max_length=100, default="", blank=True)
+
     multipath = models.BooleanField(blank=True, null=True)
 
     class Meta:
         ordering = ["-routing_instance", "-vrf"]
         unique_together = [("afi_safi", "routing_instance", "vrf")]
-        verbose_name = "BGP address-family"
-        verbose_name_plural = "BGP address-families"
+        verbose_name = "BGP address family"
+        verbose_name_plural = "BGP Address Families"
 
     def __str__(self):
         """String representation of a single AddressFamily."""
+        if self.vrf:
+            return f"AFI-SAFI {self.afi_safi} in vrf '{self.vrf}' -> {self.routing_instance.device}"
+        else:
+            return f"AFI-SAFI {self.afi_safi} -> {self.routing_instance.device}"
 
-        return f"AFI-SAFI {self.afi_safi} on BGP {self.routing_instance.device}"
+    def get_absolute_url(self):
+        """Get the URL for a detailed view of a single PeerSession."""
+        return reverse("plugins:nautobot_bgp_models:addressfamily", args=[self.pk])
+
+    # TODO(mzb): Enforce Peer IPs to be in VRFs ?
 
 
 @extras_features(
@@ -491,45 +573,37 @@ class AddressFamily(OrganizationalModel, StatusModel, BGPMixin):
 )
 class PeerGroupContext(PrimaryModel, StatusModel, BGPMixin):
     """Peer Endpoint's Address Family Context."""
+    property_inheritance = {
+        "export_policy": [
+            "address_family.export_policy",
+            "peer_group.export_policy",
+        ],
+        "import_policy": [
+            "address_family.import_policy",
+            "peer_group.import_policy",
+        ],
+        "multipath": [
+            "address_family.multipath",
+            "peer_group.multipath"
+        ],
+    }
 
     peer_group = models.ForeignKey(
         to=PeerGroup,
         on_delete=models.CASCADE,
-        blank=True,
-        null=True,
     )
 
     address_family = models.ForeignKey(
         to=AddressFamily,
         on_delete=models.PROTECT,
-        blank=True,
-        null=True,
     )
 
     multipath = models.BooleanField(blank=True, null=True)
-    multipath_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.import_policy",
-        "address_family.multipath",
-        "peer_group.multipath"
-    ]
 
     import_policy = models.CharField(max_length=100, default="", blank=True)
-    import_policy_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.import_policy",
-        "peer_endpoint.peer_group.import_policy",
-        "peer_endpoint.import_policy",
-        "address_family.import_policy",
-    ]
 
     export_policy = models.CharField(max_length=100, default="", blank=True)
-    export_policy_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.export_policy",
-        "peer_endpoint.peer_group.export_policy",
-        "peer_endpoint.export_policy",
-        "address_family.export_policy",
-    ]
 
-    # TODO(mzb): address_family.vrf == peer_group.vrf
 
 @extras_features(
     "custom_fields",
@@ -542,49 +616,45 @@ class PeerGroupContext(PrimaryModel, StatusModel, BGPMixin):
 )
 class PeerEndpointContext(PrimaryModel, StatusModel, BGPMixin):
     """Peer Endpoint's Address Family Context."""
+    property_inheritance = {
+        "export_policy": [
+            "address_family.export_policy",
+            "peer_endpoint.export_policy",
+            "peer_endpoint.peer_group.export_policy",
+        ],
+        "import_policy": [
+            "address_family.import_policy",
+            "peer_endpoint.import_policy",
+            "peer_endpoint.peer_group.import_policy",
+        ],
+        "maximum_prefix": [
+            "address_family.maximum_prefix",
+            "peer_endpoint.maximum_prefix",
+            "peer_endpoint.peer_group.maximum_prefix",
+        ],
+    }
 
     peer_endpoint = models.ForeignKey(
         to=PeerEndpoint,
         on_delete=models.CASCADE,
-        blank=True,
-        null=True,
     )
 
     address_family = models.ForeignKey(
         to=AddressFamily,
         on_delete=models.PROTECT,
-        blank=True,
-        null=True,
     )
 
     maximum_prefix = models.IntegerField(blank=True, null=True)
-    maximum_prefix_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.import_policy",
-        "peer_endpoint.peer_group.maximum_prefix",
-        "peer_endpoint.maximum_prefix",
-        "address_family.maximum_prefix",
-    ]
-
 
     import_policy = models.CharField(max_length=100, default="", blank=True)
-    import_policy_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.import_policy",
-        "peer_endpoint.peer_group.import_policy",
-        "peer_endpoint.import_policy",
-        "address_family.import_policy",
-    ]
 
     export_policy = models.CharField(max_length=100, default="", blank=True)
-    export_policy_inheritance = [
-        # "peer_endpoint.peer_group.parent_template.export_policy",
-        "peer_endpoint.peer_group.export_policy",
-        "peer_endpoint.export_policy",
-        "address_family.export_policy",
-    ]
 
     class Meta:
         unique_together = [("peer_endpoint", "address_family")]
         verbose_name = "BGP Peer-Endpoint Context"
         verbose_name_plural = "BGP Peer-Endpoint Contexts"
 
-    # TODO(mzb): address_family.vrf == peer_group.vrf
+    def get_absolute_url(self):
+        """Get the URL for detailed view of a single AutonomousSystem."""
+        return reverse("plugins:nautobot_bgp_models:peerendpointcontext", args=[self.pk])
