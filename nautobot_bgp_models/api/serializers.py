@@ -79,7 +79,8 @@ class InheritableFieldsSerializerMixin:
 
         If `include_inherited` is specified as a request parameter, include inherited field values as appropriate.
         """
-        if self.context["request"].query_params.get("include_inherited", "false") != "false":
+        req = self.context["request"]
+        if hasattr(req, "query_params") and req.query_params.get("include_inherited", "false") != "false":
             inherited_fields = instance.get_fields(include_inherited=True)
             for field, data in inherited_fields.items():
                 setattr(instance, field, data["value"])
