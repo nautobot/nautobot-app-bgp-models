@@ -1,13 +1,12 @@
 """Forms and FilterForms for nautobot_bgp_models."""
 
-from django import forms
-
-from nautobot.dcim.models import Device, Interface
-from nautobot.extras.models import Tag
 import nautobot.extras.forms as extras_forms
-from nautobot.ipam.models import VRF, IPAddress
 import nautobot.utilities.forms as utilities_forms
-from nautobot.virtualization.models import VirtualMachine, VMInterface
+from django import forms
+from nautobot.circuits.models import Provider
+from nautobot.dcim.models import Device, Interface
+from nautobot.extras.models import Tag, Secret
+from nautobot.ipam.models import VRF, IPAddress
 
 from . import choices, models
 
@@ -18,10 +17,11 @@ class AutonomousSystemForm(
     """Form for creating/updating AutonomousSystem records."""
 
     tags = utilities_forms.DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+    provider = utilities_forms.DynamicModelChoiceField(queryset=Provider.objects.all(), required=False)
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ("asn", "description", "status", "tags")
+        fields = ("asn", "description", "provider", "status", "tags")
 
 
 class AutonomousSystemFilterForm(
@@ -34,12 +34,12 @@ class AutonomousSystemFilterForm(
     tag = utilities_forms.TagFilterField(model)
 
 
-class AutonomousSystemCSVForm(extras_forms.StatusModelCSVFormMixin, extras_forms.CustomFieldModelCSVForm):
-    """Form for importing AutonomousSystems from CSV data."""
-
-    class Meta:
-        model = models.AutonomousSystem
-        fields = models.AutonomousSystem.csv_headers
+# class AutonomousSystemCSVForm(extras_forms.StatusModelCSVFormMixin, extras_forms.CustomFieldModelCSVForm):
+#     """Form for importing AutonomousSystems from CSV data."""
+#
+#     class Meta:
+#         model = models.AutonomousSystem
+#         fields = models.AutonomousSystem.csv_headers
 
 
 class AutonomousSystemBulkEditForm(
@@ -49,6 +49,111 @@ class AutonomousSystemBulkEditForm(
 
     pk = forms.ModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    class Meta:
+        nullable_fields = [
+            "description",
+        ]
+
+
+class BGPRoutingInstanceForm(
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+):
+    """Form for creating/updating BGPRoutingInstance records."""
+
+    def __init__(self, *args, **kwargs):
+        """Init."""
+        super().__init__(*args, **kwargs)
+
+        if self.initial.get("device"):
+            self.fields["device"].disabled = True
+            self.fields.pop("template")
+
+    device = utilities_forms.DynamicModelChoiceField(
+        queryset=Device.objects.all(),
+    )
+
+    autonomous_system = utilities_forms.DynamicModelChoiceField(
+        queryset=models.AutonomousSystem.objects.all(),
+    )
+
+    router_id = utilities_forms.DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
+        label="Router ID",
+        required=False,
+        query_params={"device_id": "$device"},
+    )
+
+    tags = utilities_forms.DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+
+    template = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=models.PeerGroupTemplate.objects.all(),
+        required=False,
+        label="Peer Group Templates",
+        help_text="Automatically create references to the global peer group templates",
+        display_field="name",
+    )
+
+    def save(self, commit=True):
+        """Save."""
+        obj = super().save(commit)
+
+        if commit:
+            # Initiate local templates as indicated in the creation form.
+            # Templates are only created during object creation.
+            for t in self.cleaned_data.get("template", []):  # pylint: disable=invalid-name
+                models.PeerGroup.objects.create(
+                    name=t.name,
+                    template=t,
+                    routing_instance=obj,
+                )
+
+        return obj
+
+    class Meta:
+        model = models.BGPRoutingInstance
+        fields = ("device", "autonomous_system", "description", "router_id", "template", "tags", "extra_attributes")
+
+
+class BGPRoutingInstanceFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+    """Form for filtering BGPRoutingInstance records in combination with BGPRoutingInstanceFilterSet."""
+
+    q = forms.CharField(required=False, label="Search")
+
+    model = models.BGPRoutingInstance
+
+    device = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=Device.objects.all(),
+        required=False,
+        to_field_name="name",
+    )
+
+    autonomous_system = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=models.AutonomousSystem.objects.all(),
+        required=False,
+        to_field_name="asn",
+    )
+
+    tag = utilities_forms.TagFilterField(model)
+
+    field_order = [
+        "q",
+        "device",
+        "router_id",
+        "autonomous_system",
+        "tag",
+    ]
+
+
+class BGPRoutingInstanceBulkEditForm(
+    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
+):
+    """Form for bulk-editing multiple BGPRoutingInstance records."""
+
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.BGPRoutingInstance.objects.all(), widget=forms.MultipleHiddenInput()
     )
     description = forms.CharField(max_length=200, required=False)
 
@@ -99,182 +204,215 @@ class PeeringRoleBulkEditForm(utilities_forms.BootstrapMixin, extras_forms.Custo
         ]
 
 
-class AbstractPeeringInfoForm(
+class PeerGroupForm(
     utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
 ):
-    """Abstract parent of PeerGroupForm and PeeringEndpointForm."""
-
-    update_source_interface = utilities_forms.DynamicModelChoiceField(
-        queryset=Interface.objects.all(),
-        required=False,
-        query_params={"device_id": "$device"},
-        label="Update source",
-    )
-    update_source_vminterface = utilities_forms.DynamicModelChoiceField(
-        queryset=VMInterface.objects.all(),
-        required=False,
-        query_params={"virtual_machine_id": "$virtual_machine"},
-        label="Update source",
-    )
-
-    router_id = utilities_forms.DynamicModelChoiceField(
-        queryset=IPAddress.objects.all(),
-        required=False,
-        label="Router ID",
-    )
-
-    bfd_fast_detection = forms.NullBooleanField(
-        required=False, widget=utilities_forms.BulkEditNullBooleanSelect(), label="BFD fast-detection"
-    )
-    enforce_first_as = forms.NullBooleanField(
-        required=False, widget=utilities_forms.BulkEditNullBooleanSelect(), label="Enforce first AS"
-    )
-    send_community_ebgp = forms.NullBooleanField(
-        required=False, widget=utilities_forms.BulkEditNullBooleanSelect(), label="Send-community eBGP"
-    )
-
-    class Meta:
-        fields = (
-            "description",
-            "enabled",
-            "vrf",
-            "update_source_interface",
-            "update_source_vminterface",
-            "router_id",
-            "autonomous_system",
-            "maximum_paths_ibgp",
-            "maximum_paths_ebgp",
-            "maximum_paths_eibgp",
-            "maximum_prefix",
-            "bfd_multiplier",
-            "bfd_minimum_interval",
-            "bfd_fast_detection",
-            "enforce_first_as",
-            "send_community_ebgp",
-        )
-
-    def __init__(self, *args, **kwargs):
-        """Set up initial data for this form."""
-        instance = kwargs.get("instance")
-        initial = kwargs.get("initial", {}).copy()
-
-        if instance:
-            if isinstance(instance.update_source, Interface):
-                initial["update_source_interface"] = instance.update_source
-            elif isinstance(instance.update_source, VMInterface):
-                initial["update_source_vminterface"] = instance.update_source
-
-        kwargs["initial"] = initial
-
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        """Form validation logic."""
-        super().clean()
-
-        if self.cleaned_data.get("update_source_interface") and self.cleaned_data.get("update_source_vminterface"):
-            raise forms.ValidationError(
-                "Cannot select both a device interface and a virtual machine interface as update-source"
-            )
-        self.instance.update_source = self.cleaned_data.get("update_source_interface") or self.cleaned_data.get(
-            "update_source_vminterface"
-        )
-
-
-class PeerGroupForm(AbstractPeeringInfoForm):
     """Form for creating/updating PeerGroup records."""
 
-    device_device = utilities_forms.DynamicModelChoiceField(
-        queryset=Device.objects.all(),
-        required=False,
-        initial_params={"interfaces": "$update_source_interface"},
-        label="Device",
+    def __init__(self, *args, **kwargs):
+        """Init."""
+        super().__init__(*args, **kwargs)
+
+        if self.initial.get("routing_instance"):
+            self.fields["routing_instance"].disabled = True
+
+    routing_instance = utilities_forms.DynamicModelChoiceField(
+        queryset=models.BGPRoutingInstance.objects.all(),
+        required=True,
+        label="BGP Routing Instance",
+        help_text="Specify related Routing Instance (Device)",
     )
-    device_virtualmachine = utilities_forms.DynamicModelChoiceField(
-        queryset=VirtualMachine.objects.all(),
+
+    source_ip = utilities_forms.DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
         required=False,
-        initial_params={"interfaces": "$update_source_vminterface"},
-        label="Virtual Machine",
+        label="Source IP Address",
+        query_params={"nautobot_bgp_models_ips_bgp_routing_instance": "$routing_instance"},
     )
+
+    source_interface = utilities_forms.DynamicModelChoiceField(
+        queryset=Interface.objects.all(),
+        required=False,
+        label="Source Interface",
+        query_params={"nautobot_bgp_models_interfaces_bgp_routing_instance": "$routing_instance"},
+    )
+
+    autonomous_system = utilities_forms.DynamicModelChoiceField(
+        queryset=models.AutonomousSystem.objects.all(),
+        required=False,
+        label="Autonomous System",
+    )
+
+    role = utilities_forms.DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
+
+    template = utilities_forms.DynamicModelChoiceField(queryset=models.PeerGroupTemplate.objects.all(), required=False)
+
+    secret = utilities_forms.DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
 
     class Meta:
         model = models.PeerGroup
         fields = (
-            "device_device",
-            "device_virtualmachine",
+            "routing_instance",
             "name",
+            "template",
+            "description",
+            "enabled",
             "role",
-            *AbstractPeeringInfoForm.Meta.fields,
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "secret",
+            "extra_attributes",
         )
 
-    def __init__(self, *args, **kwargs):
-        """Set up initial data for this form."""
-        instance = kwargs.get("instance")
-        initial = kwargs.get("initial", {}).copy()
 
-        if instance:
-            if isinstance(instance.device, Device):
-                initial["device_device"] = instance.device
-            elif isinstance(instance.device, VirtualMachine):
-                initial["device_virtualmachine"] = instance.device
+class PeerGroupBulkEditForm(
+    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
+):
+    """Form for bulk-editing multiple PeerGroup records."""
 
-        kwargs["initial"] = initial
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.PeerGroupTemplate.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+    description = forms.CharField(max_length=200, required=False)
 
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        """Form validation logic."""
-        super().clean()
-
-        if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
-            raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
-
-        if self.cleaned_data.get("device_device"):
-            self.instance.device = self.cleaned_data.get("device_device")
-        elif self.cleaned_data.get("device_virtualmachine"):
-            self.instance.device = self.cleaned_data.get("device_virtualmachine")
-        else:
-            raise forms.ValidationError("A device or virtual machine must be selected.")
+    class Meta:
+        nullable_fields = [
+            "description",
+        ]
 
 
-class AbstractPeeringInfoFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
-    """Abstract parent class of PeerGroupFilterForm and PeerEndpointFilterForm."""
+class PeerGroupTemplateForm(
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+):
+    """Form for creating/updating PeerGroup records."""
+
+    autonomous_system = utilities_forms.DynamicModelChoiceField(
+        queryset=models.AutonomousSystem.objects.all(),
+        required=False,
+        label="Autonomous System",
+    )
+
+    role = utilities_forms.DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
+
+    secret = utilities_forms.DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
+
+    class Meta:
+        model = models.PeerGroupTemplate
+        fields = (
+            "name",
+            "description",
+            "enabled",
+            "role",
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "extra_attributes",
+        )
+
+
+class PeerGroupTemplateBulkEditForm(
+    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
+):
+    """Form for bulk-editing multiple PeerGroupTemplate records."""
+
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.PeerGroupTemplate.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    class Meta:
+        nullable_fields = [
+            "description",
+        ]
+
+
+class PeerGroupFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+    """Form for filtering PeerGroup records in combination with PeerGroupFilterSet."""
+
+    model = models.PeerGroup
 
     q = forms.CharField(required=False, label="Search")
+
+    role = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
+    )
+
     enabled = forms.NullBooleanField(
         required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
     )
-    vrf = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=VRF.objects.all(), to_field_name="name", required=False, label="VRF"
-    )
+
     autonomous_system = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
     )
 
 
-class PeerGroupFilterForm(AbstractPeeringInfoFilterForm):
-    """Form for filtering PeerGroup records in combination with PeerGroupFilterSet."""
+class PeerGroupTemplateFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+    """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
 
     model = models.PeerGroup
-    # TODO filter by device/virtual machine
+
+    q = forms.CharField(required=False, label="Search")
+
     role = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
     )
 
+    enabled = forms.NullBooleanField(
+        required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
+    )
 
-class PeerEndpointForm(AbstractPeeringInfoForm):
+    autonomous_system = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
+    )
+
+
+class PeerEndpointForm(
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+):
     """Form for creating/updating PeerEndpoint records."""
+
+    def __init__(self, *args, **kwargs):
+        """Init."""
+        super().__init__(*args, **kwargs)
+
+        if self.initial.get("routing_instance"):
+            self.fields["routing_instance"].disabled = True
+
+        _prefix = f"{self.prefix}-" if self.prefix else ""
+        self.fields["source_ip"].widget.add_query_param(
+            "nautobot_bgp_models_ips_bgp_routing_instance", f"${_prefix}routing_instance"
+        )
+        self.fields["source_interface"].widget.add_query_param(
+            "nautobot_bgp_models_interfaces_bgp_routing_instance", f"${_prefix}routing_instance"
+        )
+        self.fields["peer_group"].widget.add_query_param("routing_instance", f"${_prefix}routing_instance")
+
+    routing_instance = utilities_forms.DynamicModelChoiceField(
+        queryset=models.BGPRoutingInstance.objects.all(),
+        required=False,
+        label="BGP Routing Instance",
+        help_text="Specify related Routing Instance (Device)",
+    )
 
     autonomous_system = utilities_forms.DynamicModelChoiceField(
         queryset=models.AutonomousSystem.objects.all(),
         required=False,
-        help_text="Required if the Local IP is not associated with a Device",
+        label="Autonomous System",
     )
 
-    local_ip = utilities_forms.DynamicModelChoiceField(
+    source_ip = utilities_forms.DynamicModelChoiceField(
         queryset=IPAddress.objects.all(),
-        required=True,
-        label="Local IP Address",
+        required=False,
+        label="Source IP Address",
+    )
+
+    source_interface = utilities_forms.DynamicModelChoiceField(
+        queryset=Interface.objects.all(),
+        required=False,
+        label="Source Interface",
     )
 
     peer_group = utilities_forms.DynamicModelChoiceField(
@@ -283,13 +421,32 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
         label="Peer Group",
     )
 
+    role = utilities_forms.DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
+
+    secret = utilities_forms.DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
+
+    peering = utilities_forms.DynamicModelChoiceField(  # Hidden & optional - update peers manually for new peerings.
+        queryset=models.Peering.objects.all(),
+        widget=forms.HiddenInput(),
+        required=False,
+    )
+
     class Meta:
         model = models.PeerEndpoint
         fields = (
-            "session",
+            "peering",
+            "routing_instance",
+            "description",
+            "enabled",
+            "role",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
             "peer_group",
-            "local_ip",
-            *AbstractPeeringInfoForm.Meta.fields,
+            "import_policy",
+            "export_policy",
+            "secret",
+            "extra_attributes",
         )
 
     def save(self, commit=True):
@@ -297,61 +454,39 @@ class PeerEndpointForm(AbstractPeeringInfoForm):
         endpoint = super().save(commit=commit)
 
         if commit:
-            endpoint.session.update_peers()
+            endpoint.peering.update_peers()
 
         return endpoint
 
 
-class PeerEndpointFilterForm(AbstractPeeringInfoFilterForm):
-    """Form for filtering PeerEndpoint records in combination with PeerEndpointFilterSet."""
-
-    model = models.PeerEndpoint
-    # TODO: filtering by device/virtual machine
-    peer_group = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.PeerGroup.objects.all(), required=False
-    )
-
-
-class PeerSessionForm(
+class PeeringForm(
     utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
 ):
-    """Form for creating/updating PeerSession records."""
+    """Form for creating/updating Peering records."""
 
     class Meta:
-        model = models.PeerSession
-        fields = (
-            "role",
-            "status",
-            "authentication_key",
-        )
+        model = models.Peering
+        fields = ("status",)
 
 
-class PeerSessionFilterForm(
+class PeeringFilterForm(
     utilities_forms.BootstrapMixin, extras_forms.StatusFilterFormMixin, extras_forms.CustomFieldFilterForm
 ):
-    """Form for filtering PeerSession records in combination with PeerSessionFilterSet."""
+    """Form for filtering Peering records in combination with PeeringFilterSet."""
 
-    model = models.PeerSession
+    model = models.Peering
     field_order = [
         "q",
         "role",
         "status",
-        "address",
         "device",
-        "asn",
     ]
     role = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
     )
 
-    address = forms.CharField(required=False, label="Address")
-
     device = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=Device.objects.all(), to_field_name="name", required=False
-    )
-
-    asn = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
     )
 
 
@@ -360,89 +495,67 @@ class AddressFamilyForm(
 ):
     """Form for creating/updating AddressFamily records."""
 
-    device_device = utilities_forms.DynamicModelChoiceField(
-        queryset=Device.objects.all(),
-        required=False,
-        label="Device",
+    routing_instance = utilities_forms.DynamicModelChoiceField(
+        queryset=models.BGPRoutingInstance.objects.all(),
+        required=True,
+        label="BGP Routing Instance",
+        help_text="Specify related Routing Instance (Device)",
     )
-    device_virtualmachine = utilities_forms.DynamicModelChoiceField(
-        queryset=VirtualMachine.objects.all(),
+
+    afi_safi = forms.ChoiceField(
+        label="AFI-SAFI",
+        choices=choices.AFISAFIChoices,
         required=False,
-        label="Virtual Machine",
+        widget=utilities_forms.StaticSelect2(),
     )
+
+    vrf = utilities_forms.DynamicModelChoiceField(
+        queryset=VRF.objects.all(),
+        required=False,
+        label="VRF",
+    )
+
     multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
-
-    peer_group = utilities_forms.DynamicModelChoiceField(
-        queryset=models.PeerGroup.objects.all(),
-        required=False,
-        label="Peer Group",
-    )
-
-    peer_endpoint = utilities_forms.DynamicModelChoiceField(
-        queryset=models.PeerEndpoint.objects.all(),
-        required=False,
-        label="Peer Endpoint",
-    )
 
     class Meta:
         model = models.AddressFamily
         fields = (
-            "device_device",
-            "device_virtualmachine",
+            "routing_instance",
             "afi_safi",
-            "peer_group",
-            "peer_endpoint",
+            "vrf",
             "import_policy",
             "export_policy",
-            "redistribute_static_policy",
-            "maximum_prefix",
             "multipath",
         )
 
-    def __init__(self, *args, **kwargs):
-        """Set up initial data for this form."""
-        instance = kwargs.get("instance")
-        initial = kwargs.get("initial", {}).copy()
 
-        if instance:
-            if isinstance(instance.device, Device):
-                initial["device_device"] = instance.device
-            elif isinstance(instance.device, VirtualMachine):
-                initial["device_virtualmachine"] = instance.device
+class AddressFamilyBulkEditForm(
+    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
+):
+    """Form for bulk-editing multiple AddressFamily records."""
 
-        kwargs["initial"] = initial
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput()
+    )
 
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        """Form validation logic."""
-        super().clean()
-
-        if self.cleaned_data.get("device_device") and self.cleaned_data.get("device_virtualmachine"):
-            raise forms.ValidationError("Cannot select both a device and a virtual machine as the parent device")
-
-        if self.cleaned_data.get("device_device"):
-            self.instance.device = self.cleaned_data.get("device_device")
-        elif self.cleaned_data.get("device_virtualmachine"):
-            self.instance.device = self.cleaned_data.get("device_virtualmachine")
-        else:
-            raise forms.ValidationError("A device or virtual machine must be selected.")
+    class Meta:
+        nullable_fields = []
 
 
 class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
     """Form for filtering AddressFamily records in combination with AddressFamilyFilterSet."""
 
     model = models.AddressFamily
+
+    routing_instance = utilities_forms.DynamicModelMultipleChoiceField(
+        queryset=models.BGPRoutingInstance.objects.all(), required=False
+    )
+
     afi_safi = forms.MultipleChoiceField(
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
         widget=utilities_forms.StaticSelect2Multiple(),
     )
-    # TODO: filtering by device/virtual machine
-    peer_group = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.PeerGroup.objects.all(), required=False
-    )
-    peer_endpoint = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.PeerEndpoint.objects.all(), required=False
-    )
+
+    vrf = utilities_forms.DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)

@@ -4,7 +4,7 @@
     <div class="panel-heading">
         <div class="pull-right">
             {% if not endpoint and perms.nautobot_bgp_models.add_peerendpoint %}
-                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_add' session=object.pk %}" class="btn btn-xs btn-success">
+                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_add' peering=object.pk %}" class="btn btn-xs btn-success">
                     <span class="mdi mdi-plus-thick" aria-hidden="true"></span> Add
                 </a>
             {% endif %}
@@ -13,14 +13,9 @@
                     <span class="mdi mdi-dots-vertical-circle" aria-hidden="true"></span> Detail
                 </a>
             {% endif %}
-            {% if endpoint and perms.nautobot_bgp_models.change_peerendpoint  %}
+            {% if endpoint and perms.nautobot_bgp_models.change_peerendpoint %}
                 <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_edit' pk=endpoint.pk %}" class="btn btn-xs btn-warning">
                     <span class="mdi mdi-pencil" aria-hidden="true"></span> Edit
-                </a>
-            {% endif %}
-            {% if endpoint and perms.nautobot_bgp_models.delete_peerendpoint %}
-                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_delete' pk=endpoint.pk %}?return_url={{ object.get_absolute_url }}" class="btn btn-xs btn-danger">
-                    <span class="mdi mdi-trash-can-outline" aria-hidden="true"></span> Delete
                 </a>
             {% endif %}
         </div>
@@ -29,35 +24,35 @@
     {% if endpoint %}
         <table class="table table-hover panel-body attr-table">
             <tr>
-                <td>IP Address</td>
-                <td><a href="{% url 'ipam:ipaddress' pk=endpoint.local_ip.pk %}">{{ endpoint.local_ip }}</a></td>
+                {% if endpoint.routing_instance and endpoint.routing_instance.device %}
+                    <td>Device</td>
+                    <td><a href="{% url 'dcim:device' pk=endpoint.routing_instance.device.pk %}">{{ endpoint.routing_instance.device }}</a></td>
+                {% elif not endpoint.routing_instance %}
+                    <td>Provider</td>
+                    <td>
+                        {% include "nautobot_bgp_models/inc/native_property.html" with property=endpoint.autonomous_system.provider %}
+                    </td>
+                {% endif %}
+            </tr>
+            <tr>
+                <td>Local IP Address</td>
+                <td>
+                {% if endpoint.fields_inherited.source_ip.value %}
+                    {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=endpoint.fields_inherited.source_ip %}
+                {% elif endpoint.fields_inherited.source_interface.value %}
+                    <a href="{% url 'ipam:ipaddress' pk=endpoint.local_ip.pk %}">{{ endpoint.local_ip }}</a> via {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=endpoint.fields_inherited.source_interface %}
+                {% endif %}
+                </td>
             </tr>
             <tr>
                 <td>Autonomous System</td>
-                {% if endpoint.get_autonomous_system %}
-                    <td><a href="{% url 'plugins:nautobot_bgp_models:autonomoussystem' pk=endpoint.get_autonomous_system.pk %}">{{ endpoint.get_autonomous_system.asn }}</a></td>
-                {% else %}
-                    <td><span class="text-muted">None</span></td>
-                {% endif %}
+                <td>
+                    {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=endpoint.fields_inherited.autonomous_system %}
                 </td>
             </tr>
             <tr>
                 <td>Peer Group</td>
-                {% if endpoint.peer_group %}
-                    <td><a href="{% url 'plugins:nautobot_bgp_models:peergroup' pk=endpoint.peer_group.pk %}"></a>{{ endpoint.peer_group }}</a></td>
-                {% else %}
-                    <td><span class="text-muted">None</span></td>
-                {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td>Device</td>
-                {% if endpoint.get_device %}
-                    <td><a href="{% url 'dcim:device' pk=endpoint.get_device.pk %}"></a>{{ endpoint.get_device }}</a></td>
-                {% else %}
-                    <td><span class="text-muted">None</span></td>
-                {% endif %}
-                </td>
+                <td>{% include "nautobot_bgp_models/inc/native_property.html" with property=endpoint.peer_group %}</td>
             </tr>
         </table>
     {% else %}

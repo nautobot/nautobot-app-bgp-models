@@ -1,0 +1,42 @@
+{% extends 'generic/object_detail.html' %}
+{% load helpers %}
+
+{% block content_left_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>BGP Routing Instance</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Device</td>
+                        <td><a href="{{ object.peer_group.get_absolute_url }}">{{ object.device }}</a></td>
+                    </tr>
+                    <tr>
+                        <td>Router ID</td>
+                        <td>
+                            {% if object.router_id %}
+                                <a href="{{ object.router_id.get_absolute_url }}">{{ object.router_id }}</a>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Autonomous System</td>
+                        <td>
+                            {% if object.autonomous_system %}
+                                <a href="{{ object.autonomous_system.get_absolute_url }}">{{ object.autonomous_system }}</a>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+{% endblock content_left_page %}
+
+{% block extra_nav_tabs %}
+        <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>
+            <a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance_extraattributes' pk=object.pk %}">Extra Attributes</a>
+        </li>
+{% endblock extra_nav_tabs %}

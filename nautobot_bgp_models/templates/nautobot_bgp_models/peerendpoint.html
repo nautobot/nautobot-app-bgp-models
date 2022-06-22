@@ -1,93 +1,135 @@
-{% extends 'nautobot_bgp_models/abstractpeeringinfo.html' %}
-{% load buttons %}
-{% load custom_links %}
+{% extends 'generic/object_detail.html' %}
 {% load helpers %}
-{% load plugins %}
 
-{% block header %}
-    <div class="row">
-        <div class="col">
-            <ol class="breadcrumb">
-                <li><a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_list' %}">BGP Peer Endpoints</a></li>
-                <li>{{ object }}</li>
-            </ol>
-        </div>
-    </div>
-    <div class="pull-right noprint">
-        {% plugin_buttons object %}
-        {% if perms.nautobot_bgp_models.change_peerendpoint %}
-            {% edit_button object %}
-        {% endif %}
-        {% if perms.nautobot_bgp_models.delete_peerendpoint %}
-            {% delete_button object %}
-        {% endif %}
-    </div>
-    <h1>{{ object }}</h1>
-    {% include 'inc/created_updated.html' %}
-    <div class="pull-right noprint">
-        {% custom_links object %}
-    </div>
-    <ul class="nav nav-tabs">
-        <li role="presentation"{% if not active_tab %} class="active"{% endif %}>
-            <a href="{{ object.get_absolute_url }}">Peer Endpoint</a>
+{% block content_left_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>BGP Peer Endpoint</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    {% if object.routing_instance and object.routing_instance.device %}
+                    <tr>
+                        <td>Device</td>
+                            <td><a href="{% url 'dcim:device' pk=object.routing_instance.device.pk %}">{{ object.routing_instance.device }}</a></td>
+                    </tr>
+                    <tr>
+                        <td>Routing Instance</td>
+                        <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.routing_instance.pk %}">{{ object.routing_instance }}</a></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Peer Group</td>
+                        <td>
+                            {% if object.peer_group %}
+                                <a href="{{ object.peer_group.get_absolute_url }}">{{ object.peer_group }}</a>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Peering Session</td>
+                        <td>
+                            {% if object.peering %}
+                                <a href="{{ object.peering.get_absolute_url }}">{{ object.peering }}</a>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Authentication</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Secrets</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.secret %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Attributes</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Source IP Address</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.source_ip %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Source Interface</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.source_interface %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.description %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Enabled</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.enabled %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Autonomous System</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.autonomous_system %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+{% endblock content_left_page %}
+{% block content_right_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Remote Peer Information</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Remote Peer Endpoint</td>
+                        <td>
+                            {% if object.peer %}
+                                <a href="{{ object.peer.get_absolute_url }}">{{ object.peer }}</a>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Policy</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Import Policy</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.import_policy %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Export Policy</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.export_policy %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+{% endblock content_right_page %}
+
+{% block extra_nav_tabs %}
+        <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>
+            <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_extraattributes' pk=object.pk %}">Extra Attributes</a>
         </li>
-        {% if perms.extras.view_objectchange %}
-            <li role="presentation"{% if active_tab == 'changelog' %} class="active"{% endif %}>
-                <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_changelog' pk=object.pk %}">Change Log</a>
-            </li>
-        {% endif %}
-    </ul>
-{% endblock %}
-
-{% block pre_left_panel %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <strong>BGP Peer Endpoint</strong>
-        </div>
-        <table class="table table-hover panel-body attr-table">
-            <tr>
-                <td>Local IP</td>
-                <td><a href="{{ object.local_ip.get_absolute_url }}">{{ object.local_ip }}</a></td>
-            </tr>
-            <tr>
-                <td>Device</td>
-                <td>
-                    {% if object.get_device %}
-                        <a href="{{ object.get_device.get_absolute_url }}">{{ object.get_device }}</a>
-                    {% else %}
-                        <span class="text-muted">None</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td>Peer Group</td>
-                <td>
-                    {% if object.peer_group %}
-                        <a href="{{ object.peer_group.get_absolute_url }}">{{ object.peer_group }}</a>
-                    {% else %}
-                        <span class="text-muted">None</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td>Peer Endpoint</td>
-                <td>
-                    {% if object.peer %}
-                        <a href="{{ object.peer.get_absolute_url }}">{{ object.peer }}</a>
-                    {% else %}
-                        <span class="text-muted">None</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td>Peering Session</td>
-                <td>
-                    {% if object.session %}
-                        <a href="{{ object.session.get_absolute_url }}">{{ object.session }}</a>
-                    {% else %}
-                        <span class="text-muted">None</span>
-                    {% endif %}
-                </td>
-        </table>
-    </div>
-{% endblock %}
+{% endblock extra_nav_tabs %}

@@ -10,9 +10,11 @@ __all__ = (
     "NestedAutonomousSystemSerializer",
     "NestedPeeringRoleSerializer",
     "NestedPeerGroupSerializer",
+    "NestedPeerGroupTemplateSerializer",
     "NestedPeerEndpointSerializer",
-    "NestedPeerSessionSerializer",
+    "NestedPeeringSerializer",
     "NestedAddressFamilySerializer",
+    "NestedRoutingInstanceSerializer",
 )
 
 
@@ -43,7 +45,17 @@ class NestedPeerGroupSerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.PeerGroup
-        fields = ["id", "url", "device_content_type", "device_object_id", "name", "role", "enabled"]
+        fields = ["id", "url", "name", "role", "enabled"]
+
+
+class NestedPeerGroupTemplateSerializer(WritableNestedSerializer):
+    """Nested/brief serializer for PeerGroup."""
+
+    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peergrouptemplate-detail")
+
+    class Meta:
+        model = models.PeerGroupTemplate
+        fields = ["id", "url", "name", "role", "enabled"]
 
 
 class NestedPeerEndpointSerializer(WritableNestedSerializer):
@@ -53,17 +65,29 @@ class NestedPeerEndpointSerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.PeerEndpoint
-        fields = ["id", "url", "local_ip", "peer_group", "enabled"]
+        fields = ["id", "url"]
 
 
-class NestedPeerSessionSerializer(WritableNestedSerializer):
-    """Nested/brief serializer for PeerSession."""
+class NestedRoutingInstanceSerializer(WritableNestedSerializer):
+    """Nested/brief serializer for PeerEndpoint."""
 
-    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peersession-detail")
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:bgproutinginstance-detail"
+    )
 
     class Meta:
-        model = models.PeerSession
-        fields = ["id", "url", "role", "status"]
+        model = models.BGPRoutingInstance
+        fields = ["id", "url"]
+
+
+class NestedPeeringSerializer(WritableNestedSerializer):
+    """Nested/brief serializer for Peering."""
+
+    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peering-detail")
+
+    class Meta:
+        model = models.Peering
+        fields = ["id", "url", "status"]
 
 
 class NestedAddressFamilySerializer(WritableNestedSerializer):
@@ -73,4 +97,4 @@ class NestedAddressFamilySerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.AddressFamily
-        fields = ["id", "url", "device_content_type", "device_object_id", "afi_safi", "peer_group", "peer_endpoint"]
+        fields = ["id", "url", "afi_safi"]

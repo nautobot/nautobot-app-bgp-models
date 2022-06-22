@@ -1,0 +1,25 @@
+{% if bgp_routing_instances %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>BGP Routing Instances</strong></div>
+        <table class="table table-hover panel-body">
+        {% for bgp_routing_instance in bgp_routing_instances %}
+            <tr>
+                <td>
+                    <a href="{{ bgp_routing_instance.get_absolute_url }}">{{ bgp_routing_instance }}</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+{% else %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>BGP Routing Instances</strong></div>
+        <table class="table table-hover panel-body">
+            <tr>
+                <td>
+                    No routing instances
+                </td>
+            </tr>
+        </table>
+    </div>
+{% endif %}

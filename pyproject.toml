@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "0.5.0"
+version = "0.6.0"
 description = "Nautobot BGP Models Plugin"
 authors = ["Network to Code, LLC <info@networktocode.com>"]
 
@@ -19,7 +19,11 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
+Django = "~3.2.13"
+celery = "~5.2.3"
+Markdown = "~3.3.6"
+
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
@@ -27,7 +31,7 @@ black = "*"
 django-debug-toolbar = "*"
 yamllint = "*"
 bandit = "*"
-pylint = "*"
+pylint = "^2"
 pylint-django = "*"
 pydocstyle = "*"
 flake8 = "*"

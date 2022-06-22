@@ -1,6 +1,6 @@
 """Nautobot UI navigation elements for nautobot_bgp_models."""
 
-from nautobot.core.apps import NavMenuAddButton, NavMenuImportButton, NavMenuGroup, NavMenuItem, NavMenuTab
+from nautobot.core.apps import NavMenuAddButton, NavMenuGroup, NavMenuItem, NavMenuTab
 
 menu_items = (
     NavMenuTab(
@@ -8,7 +8,7 @@ menu_items = (
         weight=350,
         groups=(
             NavMenuGroup(
-                name="BGP",
+                name="BGP - Global",
                 weight=100,
                 items=(
                     NavMenuItem(
@@ -18,10 +18,6 @@ menu_items = (
                         buttons=(
                             NavMenuAddButton(
                                 link="plugins:nautobot_bgp_models:autonomoussystem_add",
-                                permissions=["nautobot_bgp_models.add_autonomoussystem"],
-                            ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:autonomoussystem_import",
                                 permissions=["nautobot_bgp_models.add_autonomoussystem"],
                             ),
                         ),
@@ -35,8 +31,32 @@ menu_items = (
                                 link="plugins:nautobot_bgp_models:peeringrole_add",
                                 permissions=["nautobot_bgp_models.add_peeringrole"],
                             ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:peeringrole_import",
+                        ),
+                    ),
+                    NavMenuItem(
+                        link="plugins:nautobot_bgp_models:peergrouptemplate_list",
+                        name="Peer Group Templates",
+                        permissions=["nautobot_bgp_models.view_peergrouptemplate"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:peergrouptemplate_add",
+                                permissions=["nautobot_bgp_models.add_peergrouptemplate"],
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            NavMenuGroup(
+                name="BGP - Instances",
+                weight=100,
+                items=(
+                    NavMenuItem(
+                        link="plugins:nautobot_bgp_models:bgproutinginstance_list",
+                        name="Routing Instances",
+                        permissions=["nautobot_bgp_models.view_bgproutinginstance"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:bgproutinginstance_add",
                                 permissions=["nautobot_bgp_models.add_peeringrole"],
                             ),
                         ),
@@ -53,17 +73,6 @@ menu_items = (
                         ),
                     ),
                     NavMenuItem(
-                        link="plugins:nautobot_bgp_models:peersession_list",
-                        name="Peer Sessions",
-                        permissions=["nautobot_bgp_models.view_peersession"],
-                        buttons=(
-                            NavMenuAddButton(
-                                link="plugins:nautobot_bgp_models:peersession_add",
-                                permissions=["nautobot_bgp_models.add_peersession"],
-                            ),
-                        ),
-                    ),
-                    NavMenuItem(
                         link="plugins:nautobot_bgp_models:addressfamily_list",
                         name="Address-families (AFI-SAFI)",
                         permissions=["nautobot_bgp_models.view_addressfamily"],
@@ -71,6 +80,23 @@ menu_items = (
                             NavMenuAddButton(
                                 link="plugins:nautobot_bgp_models:addressfamily_add",
                                 permissions=["nautobot_bgp_models.add_addressfamily"],
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            NavMenuGroup(
+                name="BGP - Peerings",
+                weight=100,
+                items=(
+                    NavMenuItem(
+                        link="plugins:nautobot_bgp_models:peering_list",
+                        name="Peerings",
+                        permissions=["nautobot_bgp_models.view_peering"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:peering_add",
+                                permissions=["nautobot_bgp_models.add_peering"],
                             ),
                         ),
                     ),

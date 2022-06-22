@@ -1,9 +1,8 @@
 """Extensions of baseline Nautobot views."""
-from django.contrib.contenttypes.models import ContentType
 
 from nautobot.extras.plugins import PluginTemplateExtension
 
-from .models import AddressFamily, PeerEndpoint
+from .models import AddressFamily, BGPRoutingInstance, PeerEndpoint
 
 
 class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -13,10 +12,9 @@ class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-
 
     def right_page(self):
         """Add content to the right side of the Devices detail view."""
-        # TODO: would be more efficient if we could do PeerEndpoint.objects.filter(device=...)
-        endpoints = [
-            endpoint for endpoint in PeerEndpoint.objects.all() if endpoint.get_device() == self.context["object"]
-        ]
+        endpoints = PeerEndpoint.objects.filter(
+            routing_instance__device=self.context["object"],
+        )
         return self.render(
             "nautobot_bgp_models/inc/device_peer_endpoints.html",
             extra_context={"endpoints": endpoints},
@@ -31,8 +29,7 @@ class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstrac
     def right_page(self):
         """Add content to the right side of the Device detail view."""
         address_families = AddressFamily.objects.filter(
-            device_content_type=ContentType.objects.get_for_model(self.context["object"]),
-            device_object_id=self.context["object"].pk,
+            routing_instance__device=self.context["object"],
         )
         return self.render(
             "nautobot_bgp_models/inc/device_address_families.html",
@@ -40,7 +37,24 @@ class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstrac
         )
 
 
+class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abstract-method
+    """Add BGPRoutingInstance to the right side of the Device page."""
+
+    model = "dcim.device"
+
+    def right_page(self):
+        """Add content to the right side of the Device detail view."""
+        bgp_routing_instances = BGPRoutingInstance.objects.filter(
+            device=self.context["object"],
+        )
+        return self.render(
+            "nautobot_bgp_models/inc/device_bgp_routing_instances.html",
+            extra_context={"bgp_routing_instances": bgp_routing_instances},
+        )
+
+
 template_extensions = [
-    # DeviceAddressFamilies,  # Disabled for now due to potential performance concerns
-    # DevicePeerEndpoints,  # Disabled for now; performs very poorly when there are many PeerEndpoint records.
+    DeviceBgpRoutingInstances,
+    DeviceAddressFamilies,
+    DevicePeerEndpoints,
 ]

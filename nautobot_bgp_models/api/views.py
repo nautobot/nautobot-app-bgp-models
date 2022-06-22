@@ -26,6 +26,14 @@ class PluginModelViewSet(CustomFieldModelViewSet):
         return self.serializer_class
 
 
+class BGPRoutingInstanceViewSet(PluginModelViewSet, StatusViewSetMixin):
+    """REST API viewset for BGPRoutingInstance records."""
+
+    queryset = models.BGPRoutingInstance.objects.all()
+    serializer_class = serializers.BGPRoutingInstanceSerializer
+    filterset_class = filters.BGPRoutingInstanceFilterSet
+
+
 class AutonomousSystemViewSet(PluginModelViewSet, StatusViewSetMixin):
     """REST API viewset for AutonomousSystem records."""
 
@@ -72,6 +80,14 @@ class PeerGroupViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
     filterset_class = filters.PeerGroupFilterSet
 
 
+class PeerGroupTemplateViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
+    """REST API viewset for PeerGroupTemplate records."""
+
+    queryset = models.PeerGroupTemplate.objects.all()
+    serializer_class = serializers.PeerGroupTemplateSerializer
+    filterset_class = filters.PeerGroupTemplateFilterSet
+
+
 class PeerEndpointViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
     """REST API viewset for PeerEndpoint records."""
 
@@ -80,12 +96,12 @@ class PeerEndpointViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
     filterset_class = filters.PeerEndpointFilterSet
 
 
-class PeerSessionViewSet(PluginModelViewSet, StatusViewSetMixin):
-    """REST API viewset for PeerSession records."""
+class PeeringViewSet(PluginModelViewSet, StatusViewSetMixin):
+    """REST API viewset for Peering records."""
 
-    queryset = models.PeerSession.objects.all()
-    serializer_class = serializers.PeerSessionSerializer
-    filterset_class = filters.PeerSessionFilterSet
+    queryset = models.Peering.objects.all()
+    serializer_class = serializers.PeeringSerializer
+    filterset_class = filters.PeeringFilterSet
 
 
 class AddressFamilyViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):

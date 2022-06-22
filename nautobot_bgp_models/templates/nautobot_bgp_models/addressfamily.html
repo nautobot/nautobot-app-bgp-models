@@ -1,47 +1,7 @@
-{% extends 'base.html' %}
-{% load buttons %}
-{% load custom_links %}
+{% extends 'generic/object_detail.html' %}
 {% load helpers %}
-{% load plugins %}
 
-{% block header %}
-    <div class="row">
-        <div class="col">
-            <ol class="breadcrumb">
-                <li><a href="{% url 'plugins:nautobot_bgp_models:addressfamily_list' %}">BGP Address-Families</a></li>
-                <li>{{ object }}</li>
-            </ol>
-        </div>
-    </div>
-    <div class="pull-right noprint">
-        {% plugin_buttons object %}
-        {% if perms.nautobot_bgp_models.change_addressfamily %}
-            {% edit_button object %}
-        {% endif %}
-        {% if perms.nautobot_bgp_models.delete_addressfamily %}
-            {% delete_button object %}
-        {% endif %}
-    </div>
-    <h1>{{ object }}</h1>
-    {% include 'inc/created_updated.html' %}
-    <div class="pull-right noprint">
-        {% custom_links object %}
-    </div>
-    <ul class="nav nav-tabs">
-        <li role="presentation"{% if not active_tab %} class="active"{% endif %}>
-            <a href="{{ object.get_absolute_url }}">Address-Family</a>
-        </li>
-        {% if perms.extras.view_objectchange %}
-            <li role="presentation"{% if active_tab == 'changelog' %} class="active"{% endif %}>
-                <a href="{% url 'plugins:nautobot_bgp_models:addressfamily_changelog' pk=object.pk %}">Change Log</a>
-            </li>
-        {% endif %}
-    </ul>
-{% endblock %}
-
-{% block content %}
-    <div class="row">
-        <div class="col-md-6">
+{% block content_left_page %}
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <strong>BGP Address-Family</strong>
@@ -49,35 +9,45 @@
                 <table class="table table-hover panel-body attr-table">
                     <tr>
                         <td>Device</td>
-                        <td><a href="{{ object.device.get_absolute_url }}">{{ object.device }}</a></td>
+                        {% if object.routing_instance and object.routing_instance.device %}
+                            <td><a href="{% url 'dcim:device' pk=object.routing_instance.device.pk %}">{{ object.routing_instance.device }}</a></td>
+                        {% else %}
+                            <td><span class="text-muted">None</span></td>
+                        {% endif %}
                     </tr>
+                    <tr>
+                        <td>Routing Instance</td>
+                        <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.routing_instance.pk %}">{{ object.routing_instance }}</a></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Attributes</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
                     <tr>
                         <td>AFI-SAFI</td>
                         <td>{{ object.afi_safi }}</td>
                     </tr>
                     <tr>
-                        <td>Peer Group</td>
-                        <td>
-                            {% if object.peer_group %}
-                                <a href="{{ object.peer_group.get_absolute_url }}">{{ object.peer_group }}</a>
-                            {% else %}
-                                <span class="text-muted">None</span>
-                            {% endif %}
-                        </td>
+                        <td>VRF</td>
+                        {% if object.vrf %}
+                            <td><a href="{% url 'ipam:vrf' pk=object.vrf.pk %}">{{ object.vrf }}</a></td>
+                        {% else %}
+                            <td><span class="text-muted">None</span></td>
+                        {% endif %}
                     </tr>
                     <tr>
-                        <td>Peer Endpoint</td>
+                        <td>Multipath</td>
                         <td>
-                            {% if object.peer_endpoint %}
-                                <a href="{{ object.peer_endpoint.get_absolute_url }}">{{ object.peer_endpoint }}</a>
-                            {% else %}
-                                <span class="text-muted">None</span>
-                            {% endif %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.multipath %}
                         </td>
                     </tr>
-                    <!-- TODO fill in other fields here -->
                 </table>
             </div>
+{% endblock content_left_page %}
+{% block content_right_page %}
             <div class="panel panel-default">
                 <div class="panel-heading"><strong>Policy</strong></div>
                 <table class="table table-hover panel-body attr-table">
@@ -93,42 +63,6 @@
                             {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.export_policy %}
                         </td>
                     </tr>
-                    <tr>
-                        <td>Redistribute Static Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.redistribute_static_policy %}
-                        </td>
-                    </tr>
                 </table>
             </div>
-            {% include 'inc/custom_fields_panel.html' %}
-            {% include 'inc/relationships_panel.html' %}
-            {% plugin_left_page object %}
-        </div>
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading"><strong>Limits</strong></div>
-                <table class="table table-hover panel-body attr-table">
-                    <tr>
-                        <td>Maximum Prefixes</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.maximum_prefix %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Multipath</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.multipath %}
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            {% plugin_right_page object %}
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            {% plugin_full_width_page object %}
-        </div>
-    </div>
-{% endblock %}
+{% endblock content_right_page %}
