@@ -315,7 +315,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "enabled": ["template"],
         "export_policy": ["template"],
         "import_policy": ["template"],
-        "role": ["template.role"],
+        "role": ["template"],
     }
 
     name = models.CharField(max_length=100)
