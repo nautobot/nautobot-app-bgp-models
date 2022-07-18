@@ -101,7 +101,7 @@ Additional BGP object's attributes can be modelled by "Extra Attributes". Extra_
 Extra attributes follow the inheritance pattern, thus allowing for merging the inherited extra attributes.
 
 Examples of the extra attributes might include:
-```angular2html
+```json
 {"ttl-security": 1, "timers": [6, 20] }
 ```
 
@@ -154,31 +154,33 @@ The inherited values will be automatically displayed in the UI and can be retrie
 
 (*) **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** GraphQL issue is tracked under https://github.com/nautobot/nautobot-plugin-bgp-models/issues/43 
 
-Following is the complete documentation of the field inheritance pattern:
+Following is the complete documentation of the field inheritance pattern. Models are listed from top priority to the least priority, the first model with an assigned attribute value will be used as an inheritance source.
 
 **PeerEndpoint**:
-```angular2html
-autonomous_system: PeerGroup, PeerGroupTemplate, BGPRoutingInstance
-description: PeerGroup, PeerGroupTemplate
-enabled: PeerGroup, PeerGroupTemplate
-export_policy: PeerGroup, PeerGroupTemplate
-import_policy: PeerGroup, PeerGroupTemplate
-source_ip: PeerGroup
-source_interface: PeerGroup
-role: PeerGroup, PeerGroupTemplate,
-extra_attributes: PeerGroup, PeerGroupTemplate, BGPRoutingInstance
-```
+
+| **Attribute** | **Inheritance from model**                             |
+|---|--------------------------------------------------------|
+| autonomous_system | PeerGroup &rarr; PeerGroupTemplate &rarr; BGPRoutingInstance |
+| extra_attributes | PeerGroup &rarr; PeerGroupTemplate &rarr; BGPRoutingInstance |
+| description | PeerGroup &rarr; PeerGroupTemplate |
+| enabled | PeerGroup &rarr; PeerGroupTemplate |
+| export_policy | PeerGroup &rarr; PeerGroupTemplate |
+| import_policy | PeerGroup &rarr; PeerGroupTemplate |
+| role | PeerGroup &rarr; PeerGroupTemplate |
+| source_ip | PeerGroup |
+| source_interface | PeerGroup |
 
 **PeerGroup**:
-```angular2html
-autonomous_system: PeerGroupTemplate
-description: PeerGroupTemplate
-enabled: PeerGroupTemplate
-export_policy: PeerGroupTemplate
-import_policy: PeerGroupTemplate
-role: PeerGroupTemplate
-extra_attributes: PeerGroupTemplate, BGPRoutingInstance
-```
+
+| **Attribute** | **Inheritance from model** |
+|------|-------------------|
+| extra_attributes | PeerGroupTemplate &rarr; BGPRoutingInstance |
+| autonomous_system | PeerGroupTemplate |
+| description | PeerGroupTemplate |
+| enabled | PeerGroupTemplate |
+| export_policy | PeerGroupTemplate |
+| import_policy | PeerGroupTemplate |
+| role | PeerGroupTemplate |
 
 ## Installation
 

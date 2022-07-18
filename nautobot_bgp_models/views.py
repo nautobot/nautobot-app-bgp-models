@@ -19,7 +19,7 @@ class AutonomousSystemListView(generic.ObjectListView):
     table = tables.AutonomousSystemTable
     filterset = filters.AutonomousSystemFilterSet
     filterset_form = forms.AutonomousSystemFilterForm
-    action_buttons = ("add")  # fmt: skip
+    action_buttons = ("add",)
 
 
 class AutonomousSystemView(generic.ObjectView):
@@ -73,7 +73,7 @@ class BGPRoutingInstanceListView(generic.ObjectListView):
     table = tables.BGPRoutingInstanceTable
     filterset = filters.BGPRoutingInstanceFilterSet
     filterset_form = forms.BGPRoutingInstanceFilterForm
-    action_buttons = ("add")  # fmt: skip
+    action_buttons = ("add",)
 
 
 class BGPRoutingInstanceView(generic.ObjectView):
@@ -119,7 +119,7 @@ class PeeringRoleListView(generic.ObjectListView):
     table = tables.PeeringRoleTable
     filterset = filters.PeeringRoleFilterSet
     filterset_form = forms.PeeringRoleFilterForm
-    action_buttons = ("add")  # fmt: skip
+    action_buttons = ("add",)
 
 
 class PeeringRoleView(generic.ObjectView):
@@ -272,7 +272,7 @@ class PeerEndpointListView(generic.ObjectListView):
     queryset = models.PeerEndpoint.objects.all()
     table = tables.PeerEndpointTable
     filterset = filters.PeerEndpointFilterSet
-    action_buttons = ("add")  # fmt: skip
+    action_buttons = ("add",)
 
 
 class PeerEndpointView(generic.ObjectView):
@@ -315,7 +315,7 @@ class PeeringListView(generic.ObjectListView):
     table = tables.PeeringTable
     filterset = filters.PeeringFilterSet
     filterset_form = forms.PeeringFilterForm
-    action_buttons = ("add",)  # fmt: skip
+    action_buttons = ("add",)
 
 
 class PeeringView(generic.ObjectView):
@@ -451,11 +451,7 @@ class AddressFamilyBulkDeleteView(generic.BulkDeleteView):
 
 
 class BgpExtraAttributesView(View):
-    """
-    Present a history of changes made to a particular object.
-
-    base_template: The name of the template to extend. If not provided, "<app>/<model>.html" will be used.
-    """
+    """BGP Extra Attributes View."""
 
     base_template = None
 

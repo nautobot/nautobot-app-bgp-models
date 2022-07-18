@@ -247,7 +247,6 @@ class BGPRoutingInstance(PrimaryModel, BGPExtraAttributesMixin):
     "export_templates",
     "graphql",
     "relationships",
-    "statuses",
     "webhooks",
 )
 class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
@@ -302,7 +301,6 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
     "export_templates",
     "graphql",
     "relationships",
-    "statuses",
     "webhooks",
 )
 class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
@@ -412,7 +410,6 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
     "export_templates",
     "graphql",
     "relationships",
-    "statuses",
     "webhooks",
 )
 class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
