@@ -10,8 +10,10 @@ router = OrderedDefaultRouter()
 router.register("autonomous-systems", views.AutonomousSystemViewSet)
 router.register("peering-roles", views.PeeringRoleViewSet)
 router.register("peer-groups", views.PeerGroupViewSet)
+router.register("peer-grouptemplates", views.PeerGroupTemplateViewSet)
 router.register("peer-endpoints", views.PeerEndpointViewSet)
-router.register("sessions", views.PeerSessionViewSet)
+router.register("peerings", views.PeeringViewSet)
 router.register("address-families", views.AddressFamilyViewSet)
+router.register("routing-instances", views.BGPRoutingInstanceViewSet)
 
 urlpatterns = router.urls

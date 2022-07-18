@@ -1,15 +1,14 @@
 """REST API serializers for nautobot_bgp_models models."""
 
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
-
-from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
-from nautobot.core.api import ContentTypeField
+from nautobot.dcim.api.serializers import NestedDeviceSerializer, NestedInterfaceSerializer
+from nautobot.ipam.api.serializers import NestedVRFSerializer, NestedIPAddressSerializer
 from nautobot.extras.api.customfields import CustomFieldModelSerializer
-from nautobot.extras.api.serializers import TaggedObjectSerializer, StatusModelSerializerMixin
-from nautobot.utilities.api import get_serializer_for_model
+from nautobot.extras.api.serializers import TaggedObjectSerializer, StatusModelSerializerMixin, NestedSecretSerializer
+from nautobot.core.settings_funcs import is_truthy
+
+from nautobot.circuits.api.serializers import NestedProviderSerializer
 
 from nautobot_bgp_models import models
 
@@ -21,10 +20,11 @@ class AutonomousSystemSerializer(TaggedObjectSerializer, StatusModelSerializerMi
     """REST API serializer for AutonomousSystem records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:autonomoussystem-detail")
+    provider = NestedProviderSerializer(required=False, allow_null=True)
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ["id", "url", "asn", "description", "status", "tags"]
+        fields = ["id", "url", "asn", "description", "status", "provider", "tags"]
 
 
 class PeeringRoleSerializer(CustomFieldModelSerializer):
@@ -37,40 +37,6 @@ class PeeringRoleSerializer(CustomFieldModelSerializer):
         fields = ["id", "url", "name", "slug", "color", "description"]
 
 
-class AbstractPeeringInfoSerializerMixin:
-    """Common mixin for PeerGroupSerializer and PeerEndpointSerializer."""
-
-    class Meta:
-        fields = [
-            "description",
-            "enabled",
-            "vrf",
-            "update_source_content_type",
-            "update_source_object_id",
-            "update_source",
-            "router_id",
-            "autonomous_system",
-            "maximum_paths_ibgp",
-            "maximum_paths_ebgp",
-            "maximum_paths_eibgp",
-            "maximum_prefix",
-            "bfd_multiplier",
-            "bfd_minimum_interval",
-            "bfd_fast_detection",
-            "enforce_first_as",
-            "send_community_ebgp",
-        ]
-
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
-    def get_update_source(self, obj):
-        """Serializer method for 'update_source' GenericForeignKey field."""
-        if obj.update_source is None:
-            return None
-        serializer = get_serializer_for_model(obj.update_source, prefix="Nested")
-        context = {"request": self.context["request"]}
-        return serializer(obj.update_source, context=context).data
-
-
 class InheritableFieldsSerializerMixin:
     """Common mixin for Serializers that support an additional `include_inherited` query parameter."""
 
@@ -79,146 +45,197 @@ class InheritableFieldsSerializerMixin:
 
         If `include_inherited` is specified as a request parameter, include inherited field values as appropriate.
         """
-        if self.context["request"].query_params.get("include_inherited", "false") != "false":
+        req = self.context["request"]
+        if hasattr(req, "query_params") and is_truthy(req.query_params.get("include_inherited", False)):
             inherited_fields = instance.get_fields(include_inherited=True)
             for field, data in inherited_fields.items():
                 setattr(instance, field, data["value"])
         return super().to_representation(instance)
 
 
-class PeerGroupSerializer(
-    AbstractPeeringInfoSerializerMixin,
-    InheritableFieldsSerializerMixin,
-    CustomFieldModelSerializer,
-):
+class ExtraAttributesSerializerMixin(serializers.Serializer):  # pylint: disable=abstract-method
+    """Common mixin for BGP Extra Attributes."""
+
+    extra_attributes = serializers.SerializerMethodField(read_only=True)
+
+    def get_extra_attributes(self, instance):
+        """Return either the `display` property of the instance or `str(instance)`."""
+        req = self.context["request"]
+
+        if hasattr(req, "query_params") and is_truthy(req.query_params.get("include_inherited", False)):
+            return instance.get_extra_attributes()
+
+        return instance.extra_attributes
+
+
+class PeerGroupTemplateSerializer(CustomFieldModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerGroup records."""
+
+    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peergrouptemplate-detail")
+
+    autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)
+    secret = NestedSecretSerializer(required=False, allow_null=True)
+
+    class Meta:
+        model = models.PeerGroupTemplate
+        fields = [
+            "id",
+            "url",
+            "name",
+            "role",
+            "description",
+            "enabled",
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "secret",
+        ]
+
+
+class PeerGroupSerializer(InheritableFieldsSerializerMixin, CustomFieldModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for PeerGroup records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peergroup-detail")
+    source_ip = NestedIPAddressSerializer(required=False, allow_null=True)  # noqa: F405
+    source_interface = NestedInterfaceSerializer(required=False, allow_null=True)  # noqa: F405
 
-    device_content_type = ContentTypeField(
-        queryset=ContentType.objects.filter(
-            Q(Q(app_label="dcim", model="device") | Q(app_label="virtualization", model="virtualmachine"))
-        ),
-    )
-    device = serializers.SerializerMethodField(read_only=True)
+    routing_instance = NestedRoutingInstanceSerializer(required=True)
 
-    update_source_content_type = ContentTypeField(
-        queryset=ContentType.objects.filter(
-            Q(Q(app_label="dcim", model="interface") | Q(app_label="virtualization", model="vminterface"))
-        ),
-        required=False,
-        allow_null=True,
-    )
-    update_source = serializers.SerializerMethodField(read_only=True)
+    autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)
+
+    template = NestedPeerGroupTemplateSerializer(required=False, allow_null=True)
+
+    secret = NestedSecretSerializer(required=False, allow_null=True)
 
     class Meta:
         model = models.PeerGroup
         fields = [
             "id",
             "url",
-            "device_content_type",
-            "device_object_id",
-            "device",
             "name",
+            "source_ip",
+            "source_interface",
+            "description",
+            "enabled",
+            "autonomous_system",
+            "routing_instance",
+            "template",
+            "secret",
+            "extra_attributes",
             "role",
-            *AbstractPeeringInfoSerializerMixin.Meta.fields,
         ]
-
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
-    def get_device(self, obj):
-        """Serializer method for 'device' GenericForeignKey field."""
-        if obj.device is None:
-            return None
-        serializer = get_serializer_for_model(obj.device, prefix="Nested")
-        context = {"request": self.context["request"]}
-        return serializer(obj.device, context=context).data
 
 
 class PeerEndpointSerializer(
     InheritableFieldsSerializerMixin,
-    AbstractPeeringInfoSerializerMixin,
     TaggedObjectSerializer,
     CustomFieldModelSerializer,
+    ExtraAttributesSerializerMixin,
 ):
     """REST API serializer for PeerEndpoint records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peerendpoint-detail")
-
+    source_ip = NestedIPAddressSerializer(required=False, allow_null=True)  # noqa: F405
+    source_interface = NestedInterfaceSerializer(required=False, allow_null=True)  # noqa: F405
     peer = NestedPeerEndpointSerializer(required=False, allow_null=True)  # noqa: F405
-    session = NestedPeerSessionSerializer(required=True, allow_null=True)  # noqa: F405
-
-    update_source_content_type = ContentTypeField(
-        queryset=ContentType.objects.filter(
-            Q(Q(app_label="dcim", model="interface") | Q(app_label="virtualization", model="vminterface"))
-        ),
-        required=False,
-        allow_null=True,
-    )
-    update_source = serializers.SerializerMethodField(read_only=True)
+    peering = NestedPeeringSerializer(required=True, allow_null=True)  # noqa: F405
+    peer_group = NestedPeerGroupSerializer(required=False, allow_null=True)
+    routing_instance = NestedRoutingInstanceSerializer(required=False, allow_null=True)
+    autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)
+    secret = NestedSecretSerializer(required=False, allow_null=True)
 
     class Meta:
         model = models.PeerEndpoint
         fields = [
             "id",
             "url",
-            "local_ip",
+            "routing_instance",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
             "peer_group",
             "peer",
-            "session",
-            *AbstractPeeringInfoSerializerMixin.Meta.fields,
+            "import_policy",
+            "export_policy",
+            "peering",
+            "secret",
             "tags",
+            "enabled",
         ]
 
     def create(self, validated_data):
         """Create a new PeerEndpoint and update the peer on both sides."""
         record = super().create(validated_data)
-        record.session.update_peers()
+        record.peering.update_peers()
         return record
 
     def update(self, instance, validated_data):
         """When updating an existing PeerEndpoint, ensure peer is properly setup on both side."""
-        session_has_been_updated = False
-        if instance.session.pk != validated_data.get("session"):
-            session_has_been_updated = True
+        peering_has_been_updated = False
+        if instance.peering.pk != validated_data.get("peering"):
+            peering_has_been_updated = True
 
         result = super().update(instance, validated_data)
 
-        if session_has_been_updated:
-            result.session.update_peers()
+        if peering_has_been_updated:
+            result.peering.update_peers()
 
         return result
 
 
-class PeerSessionSerializer(CustomFieldModelSerializer, StatusModelSerializerMixin):
-    """REST API serializer for PeerSession records."""
+class BGPRoutingInstanceSerializer(CustomFieldModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for Peering records."""
 
-    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peersession-detail")
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:bgproutinginstance-detail"
+    )
+
+    endpoints = NestedPeerEndpointSerializer(required=False, many=True)  # noqa: F405
+
+    device = NestedDeviceSerializer()
+
+    autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)
+
+    router_id = NestedIPAddressSerializer(required=False, allow_null=True)  # noqa: F405
+
+    class Meta:
+        model = models.BGPRoutingInstance
+        fields = [
+            "id",
+            "url",
+            "device",
+            "description",
+            "router_id",
+            "autonomous_system",
+            "endpoints",
+        ]
+
+
+class PeeringSerializer(CustomFieldModelSerializer, StatusModelSerializerMixin):
+    """REST API serializer for Peering records."""
+
+    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peering-detail")
 
     endpoints = NestedPeerEndpointSerializer(required=False, many=True)  # noqa: F405
 
     class Meta:
-        model = models.PeerSession
+        model = models.Peering
         fields = [
             "id",
             "url",
-            "role",
-            "authentication_key",
             "status",
             "endpoints",
         ]
 
 
-class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModelSerializer):
+class AddressFamilySerializer(CustomFieldModelSerializer):
     """REST API serializer for AddressFamily records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:addressfamily-detail")
 
-    device_content_type = ContentTypeField(
-        queryset=ContentType.objects.filter(
-            Q(Q(app_label="dcim", model="device") | Q(app_label="virtualization", model="virtualmachine"))
-        ),
-    )
-    device = serializers.SerializerMethodField(read_only=True)
+    routing_instance = NestedRoutingInstanceSerializer(required=True)
+
+    vrf = NestedVRFSerializer(required=False, allow_null=True)
 
     class Meta:
         model = models.AddressFamily
@@ -226,23 +243,8 @@ class AddressFamilySerializer(InheritableFieldsSerializerMixin, CustomFieldModel
             "id",
             "url",
             "afi_safi",
-            "device_content_type",
-            "device_object_id",
-            "device",
-            "peer_group",
-            "peer_endpoint",
+            "routing_instance",
+            "vrf",
             "export_policy",
             "import_policy",
-            "redistribute_static_policy",
-            "maximum_prefix",
-            "multipath",
         ]
-
-    @swagger_serializer_method(serializer_or_field=serializers.DictField)
-    def get_device(self, obj):
-        """Serializer method for 'device' GenericForeignKey field."""
-        if obj.device is None:
-            return None
-        serializer = get_serializer_for_model(obj.device, prefix="Nested")
-        context = {"request": self.context["request"]}
-        return serializer(obj.device, context=context).data

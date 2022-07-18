@@ -23,12 +23,12 @@ class NautobotBGPModelsConfig(PluginConfig):
     description = "Nautobot BGP Models Plugin."
     base_url = "bgp"
     required_settings = []
-    min_version = "1.1.0"
+    min_version = "1.3.0"
     max_version = "1.999"
     default_settings = {
         "default_statuses": {
             "AutonomousSystem": ["active", "available", "planned"],
-            "PeerSession": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
+            "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
         }
     }
     caching_config = {}
@@ -42,13 +42,9 @@ class NautobotBGPModelsConfig(PluginConfig):
         from . import dolt_compat  # noqa pylint: disable=import-outside-toplevel, unused-import
 
         from .signals import (  # pylint: disable=import-outside-toplevel
-            post_migrate_create_custom_fields,
-            post_migrate_create_relationships,
             post_migrate_create_statuses,
         )
 
-        post_migrate.connect(post_migrate_create_custom_fields, sender=self)
-        post_migrate.connect(post_migrate_create_relationships, sender=self)
         post_migrate.connect(post_migrate_create_statuses, sender=self)
 
 

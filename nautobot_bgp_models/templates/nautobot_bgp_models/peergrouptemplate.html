@@ -1,0 +1,81 @@
+{% extends 'generic/object_detail.html' %}
+{% load helpers %}
+
+{% block content_left_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>BGP Peer Group Template</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Authentication</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Secrets</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.secret %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Attributes</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Description</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.description %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Enabled</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.enabled %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Autonomous System</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.autonomous_system %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+{% endblock content_left_page %}
+{% block content_right_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Policy</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Import Policy</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.import_policy %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Export Policy</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.export_policy %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+{% endblock content_right_page %}
+
+{% block extra_nav_tabs %}
+        <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>
+            <a href="{% url 'plugins:nautobot_bgp_models:peergrouptemplate_extraattributes' pk=object.pk %}">Extra Attributes</a>
+        </li>
+{% endblock extra_nav_tabs %}

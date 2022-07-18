@@ -17,11 +17,13 @@ if DOLT_AVAILABLE:
     dolt.register_diff_tables(
         {
             "nautobot_bgp_models": {
+                "bgproutinginstance": tables.BGPRoutingInstanceTable,
                 "autonomoussystem": tables.AutonomousSystemTable,
                 "peeringrole": tables.PeeringRoleTable,
                 "peergroup": tables.PeerGroupTable,
+                "peergrouptemplate": tables.PeerGroupTemplateTable,
                 "peerendpoint": tables.PeerEndpointTable,
-                "peersession": tables.PeerSessionTable,
+                "peering": tables.PeeringTable,
                 "addressfamily": tables.AddressFamilyTable,
             }
         }

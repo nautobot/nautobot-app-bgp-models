@@ -1,0 +1,22 @@
+{% load helpers %}
+{% if property is not None and property != "" %}
+    {% if property.get_absolute_url %}
+        {% if property_type == "peering_role" %}
+        <a href="{{ property.get_absolute_url }}">
+            <label class="label" style="color: {{ property.color|fgcolor }}; background-color: #{{ property.color }}">
+                {{ property }}
+            </label>
+        </a>
+        {% else %}
+        <a href="{{ property.get_absolute_url }}">{{ property }}</a>
+        {% endif %}
+    {% elif property is True %}
+        <span class="text-success"><i class="mdi mdi-check-bold"></i></span>
+    {% elif property is False %}
+        <span class="text-danger"><i class="mdi mdi-close"></i></span>
+    {% else %}
+        {{ property }}
+    {% endif %}
+{% else %}
+    <span class="text-muted">{{ default | placeholder }}</span>
+{% endif %}

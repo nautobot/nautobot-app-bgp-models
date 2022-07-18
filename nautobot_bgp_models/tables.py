@@ -22,13 +22,41 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
 
     pk = ToggleColumn()
     asn = tables.LinkColumn()
+    provider = tables.LinkColumn()
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystem_list")
     actions = ButtonsColumn(model=models.AutonomousSystem)
 
     class Meta(BaseTable.Meta):
         model = models.AutonomousSystem
-        fields = ("pk", "asn", "status", "description", "tags")
-        default_columns = ("pk", "asn", "status", "description", "tags")
+        fields = ("pk", "asn", "status", "provider", "description", "tags")
+
+
+class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
+    """Table representation of BGPRoutingInstance records."""
+
+    pk = ToggleColumn()
+    routing_instance = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:bgproutinginstance",
+        args=[A("pk")],
+        text=str,
+    )
+    device = tables.LinkColumn()
+    autonomous_system = tables.LinkColumn()
+    router_id = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:BGPRoutingInstance_list")
+    actions = ButtonsColumn(model=models.BGPRoutingInstance)
+
+    class Meta(BaseTable.Meta):
+        model = models.BGPRoutingInstance
+        fields = ("pk", "routing_instance", "device", "autonomous_system", "router_id", "tags")
+        default_columns = (
+            "pk",
+            "routing_instance",
+            "device",
+            "autonomous_system",
+            "router_id",
+            "actions",
+        )
 
 
 class PeeringRoleTable(BaseTable):
@@ -37,7 +65,7 @@ class PeeringRoleTable(BaseTable):
     pk = ToggleColumn()
     name = tables.LinkColumn()
     color = ColorColumn()
-    actions = ButtonsColumn(model=models.PeeringRole)
+    actions = ButtonsColumn(model=models.PeeringRole, pk_field="slug")
 
     class Meta(BaseTable.Meta):
         model = models.PeeringRole
@@ -50,117 +78,170 @@ class PeeringRoleTable(BaseTable):
         )
 
 
-class AbstractPeeringInfoTable(BaseTable):
-    """Common parent of PeerGroupTable and PeeringEndpointTable."""
-
-    pk = ToggleColumn()
-    enabled = BooleanColumn()
-    vrf = tables.LinkColumn()
-    update_source = tables.LinkColumn(verbose_name="Update source")
-    router_id = tables.LinkColumn()
-    autonomous_system = tables.LinkColumn()
-    multipath = BooleanColumn()
-    bfd_fast_detection = BooleanColumn()
-    enforce_first_as = BooleanColumn()
-    send_community = BooleanColumn()
-
-    class Meta(BaseTable.Meta):
-        fields = (
-            "description",
-            "enabled",
-            "vrf",
-            "update_source",
-            "router_id",
-            "autonomous_system",
-            "maximum_paths_ibgp",
-            "maximum_paths_ebgp",
-            "maximum_paths_eibgp",
-            "maximum_prefix",
-            "bfd_multiplier",
-            "bfd_minimum_interval",
-            "bfd_fast_detection",
-            "enforce_first_as",
-            "send_community_ebgp",
-        )
-        default_columns = ("enabled", "vrf", "autonomous_system", "actions")
-
-
-class PeerGroupTable(AbstractPeeringInfoTable):
+class PeerGroupTable(BaseTable):
     """Table representation of PeerGroup records."""
 
-    device = tables.LinkColumn()
+    pk = ToggleColumn()
     name = tables.LinkColumn()
+    template = tables.LinkColumn()
+    routing_instance = tables.LinkColumn()
+    enabled = BooleanColumn()
     role = ColoredLabelColumn()
+    autonomous_system = tables.LinkColumn()
+    secret = tables.LinkColumn()
+    source_ip = tables.LinkColumn()
+    source_interface = tables.LinkColumn()
+
     actions = ButtonsColumn(model=models.PeerGroup)
 
-    class Meta(AbstractPeeringInfoTable.Meta):
+    class Meta(BaseTable.Meta):
         model = models.PeerGroup
         fields = (
             "pk",
-            "device",
             "name",
+            "template",
+            "routing_instance",
+            "enabled",
             "role",
-            *AbstractPeeringInfoTable.Meta.fields,
-        )
-        default_columns = ("pk", "device", "name", "role", *AbstractPeeringInfoTable.Meta.default_columns)
-
-
-class PeerEndpointTable(AbstractPeeringInfoTable):
-    """Table representation of PeerEndpoint records."""
-
-    endpoint = tables.LinkColumn(
-        viewname="plugins:nautobot_bgp_models:peerendpoint",
-        args=[A("pk")],
-        text=str,
-    )
-    device = tables.LinkColumn()
-    local_ip = tables.LinkColumn()
-    peer = tables.LinkColumn()
-    actions = ButtonsColumn(model=models.PeerEndpoint)
-
-    class Meta(AbstractPeeringInfoTable.Meta):
-        model = models.PeerEndpoint
-        fields = (
-            "pk",
-            "endpoint",
-            "peer_group",
-            "local_ip",
-            "peer",
-            *AbstractPeeringInfoTable.Meta.fields,
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "source_ip",
+            "source_interface",
+            "secret",
         )
         default_columns = (
             "pk",
-            "endpoint",
-            "peer_group",
-            "local_ip",
-            "peer",
-            *AbstractPeeringInfoTable.Meta.default_columns,
+            "name",
+            "template",
+            "routing_instance",
+            "enabled",
+            "role",
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "actions",
         )
 
 
-class PeerSessionTable(BaseTable):
-    """Table representation of PeerSession records."""
+class PeerGroupTemplateTable(BaseTable):
+    """Table representation of PeerGroup records."""
 
     pk = ToggleColumn()
-    session = tables.LinkColumn(
-        viewname="plugins:nautobot_bgp_models:peersession",
+    name = tables.LinkColumn()
+    enabled = BooleanColumn()
+    role = ColoredLabelColumn()
+    autonomous_system = tables.LinkColumn()
+    secret = tables.LinkColumn()
+    actions = ButtonsColumn(model=models.PeerGroupTemplate)
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerGroupTemplate
+        fields = (
+            "pk",
+            "name",
+            "enabled",
+            "role",
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "secret",
+        )
+        default_columns = (
+            "pk",
+            "name",
+            "enabled",
+            "role",
+            "autonomous_system",
+            "import_policy",
+            "export_policy",
+            "secret",
+            "actions",
+        )
+
+
+class PeerEndpointTable(BaseTable):
+    """Table representation of PeerEndpoint records."""
+
+    pk = ToggleColumn()
+    id = tables.LinkColumn()
+    routing_instance = tables.LinkColumn()
+    role = ColoredLabelColumn()
+    source_ip = tables.LinkColumn()
+    source_interface = tables.LinkColumn()
+    autonomous_system = tables.LinkColumn()
+    remote_autonomous_system = tables.LinkColumn()
+    peer = tables.LinkColumn()
+    peering = tables.LinkColumn()
+    vrf = tables.LinkColumn()
+    peer_group = tables.LinkColumn()
+
+    # actions = ButtonsColumn(model=models.PeerEndpoint)
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerEndpoint
+        fields = (
+            "pk",
+            "id",
+            "routing_instance",
+            "role",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
+            "remote_autonomous_system",
+            "peer",
+            "peering",
+            "vrf",
+            "peer_group",
+            "import_policy",
+            "export_policy",
+        )
+        default_columns = (
+            "pk",
+            "id",
+            "routing_instance",
+            "role",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
+            "remote_autonomous_system",
+            "peer",
+            "peering",
+            "vrf",
+            "peer_group",
+            "import_policy",
+            "export_policy",
+        )
+
+
+class PeeringTable(StatusTableMixin, BaseTable):
+    """Table representation of Peering records."""
+
+    # TODO(mzb): Add columns: Device_A, Device_B, Provider_A, Provider_Z
+
+    pk = ToggleColumn()
+    peering = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:peering",
         args=[A("pk")],
         text=str,
     )
-    endpoint_a = tables.LinkColumn()
-    endpoint_z = tables.LinkColumn()
-    role = ColoredLabelColumn()
-    status = ColoredLabelColumn()
-    actions = ButtonsColumn(model=models.PeerSession)
+
+    endpoint_a = tables.LinkColumn(
+        verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None
+    )
+
+    endpoint_z = tables.LinkColumn(
+        verbose_name="Endpoint", text=lambda x: str(x.endpoint_z.local_ip) if x.endpoint_z else None
+    )
+    actions = ButtonsColumn(model=models.Peering)
 
     class Meta(BaseTable.Meta):
-        model = models.PeerSession
+        model = models.Peering
         fields = (
             "pk",
-            "session",
+            "peering",
             "endpoint_a",
             "endpoint_z",
-            "role",
             "status",
         )
 
@@ -169,27 +250,36 @@ class AddressFamilyTable(BaseTable):
     """Table representation of AddressFamily records."""
 
     pk = ToggleColumn()
-    device = tables.LinkColumn()
-    afi_safi = tables.LinkColumn()
-    peer_group = tables.LinkColumn()
-    peer_endpoint = tables.LinkColumn()
+    address_family = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:addressfamily",
+        args=[A("pk")],
+        text=str,
+    )
+    routing_instance = tables.LinkColumn()
+    afi_safi = tables.Column()
+    vrf = tables.LinkColumn()
     actions = ButtonsColumn(model=models.AddressFamily)
 
     class Meta(BaseTable.Meta):
         model = models.AddressFamily
         fields = (
             "pk",
+            "address_family",
+            "routing_instance",
             "afi_safi",
-            "device",
-            "peer_group",
-            "peer_endpoint",
-            "maximum_prefix",
+            "vrf",
+            "import_policy",
+            "export_policy",
             "multipath",
         )
         default_columns = (
             "pk",
+            "address_family",
+            "routing_instance",
             "afi_safi",
-            "device",
-            "peer_group",
-            "peer_endpoint",
+            "vrf",
+            "import_policy",
+            "export_policy",
+            "multipath",
+            "actions",
         )

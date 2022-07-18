@@ -13,5 +13,7 @@
     <span class="text-muted">{{ default | placeholder }}</span>
 {% endif %}
 {% if property.inherited %}
-    (inherited from <a href="{{ property.source.get_absolute_url }}">{{ property.source }}</a>)
+<a href="{{ property.source.get_absolute_url }}" class="btn btn-xs btn-info">
+   <span class="mdi mdi-content-duplicate" aria-hidden="true"></span> {{ property.source }}
+</a>
 {% endif %}

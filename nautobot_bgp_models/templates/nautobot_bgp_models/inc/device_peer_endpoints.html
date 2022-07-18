@@ -1,6 +1,6 @@
 {% if endpoints %}
     <div class="panel panel-default">
-        <div class="panel-heading"><strong>BGP Peer Sessions</strong></div>
+        <div class="panel-heading"><strong>BGP Peerings</strong></div>
         <table class="table table-hover panel-body">
         {% for endpoint in endpoints %}
             <tr>
@@ -9,12 +9,21 @@
                 </td>
                 <td>↔︎</td>
                 <td>
-                    <a href="{{ endpoint.peer.get_absolute_url }}">{{ endpoint.peer }}</a>
+                    <a href="{{ endpoint.get_absolute_url }}">{{ endpoint.peer }}</a>
                 </td>
             </tr>
         {% endfor %}
         </table>
     </div>
 {% else %}
-    No endpoints
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>BGP Peer Sessions</strong></div>
+        <table class="table table-hover panel-body">
+            <tr>
+                <td>
+                    No peerings
+                </td>
+            </tr>
+        </table>
+    </div>
 {% endif %}

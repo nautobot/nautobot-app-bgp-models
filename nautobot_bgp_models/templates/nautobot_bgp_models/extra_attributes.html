@@ -1,0 +1,38 @@
+{% extends base_template %}
+{% load helpers %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Rendered BGP Extra Attributes</strong>
+                    {% include 'extras/inc/json_format.html' %}
+                </div>
+                <div class="panel-body">
+                    {% include 'extras/inc/json_data.html' with data=rendered_context format=format %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>BGP object's extra attributes</strong>
+                </div>
+                <div class="panel-body">
+                    {% if object.extra_attributes %}
+                        {% include 'extras/inc/json_data.html' with data=object.extra_attributes format=format %}
+                    {% else %}
+                        <span class="text-muted">None</span>
+                    {% endif %}
+                </div>
+                <div class="panel-footer">
+                    <span class="help-block">
+                        <i class="mdi mdi-information-outline"></i>
+                        The local BGP object's extra attribute overwrite all inherited attributes.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
