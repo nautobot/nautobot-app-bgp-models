@@ -10,9 +10,21 @@ from nautobot.ipam.models import VRF, IPAddress
 
 from . import choices, models
 
+# Support imports from Nautobot 1.4 and 1.3
+try:
+    from nautobot.extras.forms import RelationshipModelFormMixin  # 1.4
+
+    class _RelationshipModelForm(RelationshipModelFormMixin):
+        pass
+except ImportError:
+    from nautobot.extras.forms import RelationshipModelForm  # 1.3
+
+    class _RelationshipModelForm(RelationshipModelForm):
+        pass
+
 
 class AutonomousSystemForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating AutonomousSystem records."""
 
@@ -59,7 +71,7 @@ class AutonomousSystemBulkEditForm(
 
 
 class BGPRoutingInstanceForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating BGPRoutingInstance records."""
 
@@ -164,7 +176,7 @@ class BGPRoutingInstanceBulkEditForm(
 
 
 class PeeringRoleForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating PeeringRole records."""
 
@@ -205,7 +217,7 @@ class PeeringRoleBulkEditForm(utilities_forms.BootstrapMixin, extras_forms.Custo
 
 
 class PeerGroupForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating PeerGroup records."""
 
@@ -285,7 +297,7 @@ class PeerGroupBulkEditForm(
 
 
 class PeerGroupTemplateForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating PeerGroup records."""
 
@@ -370,7 +382,7 @@ class PeerGroupTemplateFilterForm(utilities_forms.BootstrapMixin, extras_forms.C
 
 
 class PeerEndpointForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating PeerEndpoint records."""
 
@@ -460,7 +472,7 @@ class PeerEndpointForm(
 
 
 class PeeringForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating Peering records."""
 
@@ -491,7 +503,7 @@ class PeeringFilterForm(
 
 
 class AddressFamilyForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
+    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, _RelationshipModelForm
 ):
     """Form for creating/updating AddressFamily records."""
 
