@@ -127,7 +127,7 @@ This model represents the shared configuration of a single BGP peer relationship
 > The nature of a session as BGP “internal” or “external” is useful in the construction of queries and filters, but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `Peering` model.
 
 ### PeeringRole
-This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the type field on `PeerGroup` and/or `PeerSession`. Similar to those models, this model has fields including a unique name, unique slug, and a HTML color value.
+This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the `role` field on `PeerGroupTemplate`, `PeerGroup` and/or `PeerEndpoint`. This model has fields including a unique name, unique slug, and a HTML color value.
 
 ### Inheritance between models
 
@@ -221,12 +221,12 @@ PLUGINS_CONFIG = {
     "nautobot_bgp_models": {
         "default_statuses": {
             "AutonomousSystem": ["active", "available", "planned"],
-            "PeerSession": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
+            "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
         }
     }
 }
 ```
-In the `default_statuses` section, you can define a list of default statuses to make available to `AutonomousSystem` and/or `PeerSession`. The lists must be composed of valid slugs of existing Status objects.
+In the `default_statuses` section, you can define a list of default statuses to make available to `AutonomousSystem` and/or `Peering`. The lists must be composed of valid slugs of existing Status objects.
 
 ## Screenshots
 
