@@ -16,6 +16,7 @@ class AutonomousSystemFilterSet(
     BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, StatusModelFilterSetMixin
 ):
     """Filtering of AutonomousSystem records."""
+
     q = django_filters.CharFilter(
         method="search",
         label="Search",
@@ -27,9 +28,7 @@ class AutonomousSystemFilterSet(
         """Free-text search method implementation."""
         if not value.strip():
             return queryset
-        return queryset.filter(
-            Q(asn__icontains=value) | Q(description__icontains=value)
-        ).distinct()
+        return queryset.filter(Q(asn__icontains=value) | Q(description__icontains=value)).distinct()
 
     class Meta:
         model = models.AutonomousSystem
