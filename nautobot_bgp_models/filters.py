@@ -16,8 +16,20 @@ class AutonomousSystemFilterSet(
     BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, StatusModelFilterSetMixin
 ):
     """Filtering of AutonomousSystem records."""
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
 
     tag = TagFilter()
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument,no-self-use
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(asn__icontains=value) | Q(description__icontains=value)
+        ).distinct()
 
     class Meta:
         model = models.AutonomousSystem
