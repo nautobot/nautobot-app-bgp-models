@@ -8,6 +8,7 @@ from nautobot.utilities.utils import dynamic_import
 
 from nautobot_bgp_models import filters
 from nautobot_bgp_models import models
+from nautobot_bgp_models.api.filter_backends import IncludeInheritedFilterBackend
 from . import serializers
 
 
@@ -77,6 +78,7 @@ class PeerGroupViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
 
     queryset = models.PeerGroup.objects.all()
     serializer_class = serializers.PeerGroupSerializer
+    filter_backends = [IncludeInheritedFilterBackend]
     filterset_class = filters.PeerGroupFilterSet
 
 
@@ -93,6 +95,7 @@ class PeerEndpointViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
 
     queryset = models.PeerEndpoint.objects.all()
     serializer_class = serializers.PeerEndpointSerializer
+    filter_backends = [IncludeInheritedFilterBackend]
     filterset_class = filters.PeerEndpointFilterSet
 
 
