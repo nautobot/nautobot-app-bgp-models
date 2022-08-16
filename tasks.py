@@ -344,6 +344,17 @@ def unittest_coverage(context):
     run_command(context, command)
 
 
+@task
+def yamllint(context):
+    """Run yamllint to validate formating adheres to NTC defined YAML standards.
+
+    Args:
+        context (obj): Used to run specific commands
+    """
+    command = "yamllint . --format standard"
+    run_command(context, command)
+
+
 @task(
     help={
         "failfast": "fail as soon as a single test fails don't run the entire test suite",
@@ -360,6 +371,8 @@ def tests(context, failfast=False):
     black(context)
     print("Running flake8...")
     flake8(context)
+    print("Running yamllint...")
+    yamllint(context)
     print("Running bandit...")
     bandit(context)
     print("Running pydocstyle...")
