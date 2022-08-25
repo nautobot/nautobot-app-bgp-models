@@ -4,22 +4,6 @@ A plugin for [Nautobot](https://github.com/nautobot/nautobot) to extend the core
 
 > The initial development of this plugin was sponsored by Riot Games, Inc.
 
-## Data Models
-
-Navigate to [Data Models](docs/cisco_use_case.md) for detailed descriptions on additional data models provided in the plugin.
-
-## Use Cases
-
-To make the start with the plugin easier, we provide two example use cases for common OS platforms: Cisco and Juniper.
-
-### Cisco Configuration Modeling and Rendering
-
-Navigate to [Cisco Example Use Case](docs/cisco_use_case.md) for detailed instructions how to consume BGP Models plugin on Cisco devices.
-
-### Juniper Configuration Modeling and Rendering
-
-Navigate to [Juniper Example Use Case](docs/juniper_use_case.md) for detailed instructions how to consume BGP Models plugin on Juniper devices.
-
 ## Installation
 
 The plugin is available as a Python package in PyPI and can be installed with `pip`:
@@ -56,20 +40,6 @@ PLUGINS_CONFIG = {
 
 In the `default_statuses` section, you can define a list of default statuses to make available to `AutonomousSystem` and/or `Peering`. The lists must be composed of valid slugs of existing Status objects.
 
-## Screenshots
-
-![Menu](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/main-page-menu.png)
-
-![Autonomous System](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/autonomous_system_01.png)
-
-![Peering List](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_session_list.png)
-
-![Peering](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peering_01.png)
-
-![Peer Endpoint](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_endpoint_01.png)
-
-![Peer Group](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_group_01.png)
-
 ## Contributing
 
 Pull requests are welcomed and automatically built and tested against multiple version of Python and multiple version of Nautobot through TravisCI.
@@ -83,5 +53,5 @@ The project is following Network to Code software development guideline and is l
 
 ## Questions
 
-For any questions or comments, please check the [FAQ](FAQ.md) first and feel free to swing by the [Network to Code slack channel](https://networktocode.slack.com/) (channel #networktocode).
+For any questions or comments, please feel free to swing by the [Network to Code slack channel](https://networktocode.slack.com/) (channel #networktocode).
 Sign up [here](http://slack.networktocode.com/)
