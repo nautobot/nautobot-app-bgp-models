@@ -123,6 +123,8 @@ class PeerGroupSerializer(InheritableFieldsSerializerMixin, CustomFieldModelSeri
             "secret",
             "extra_attributes",
             "role",
+            "import_policy",
+            "export_policy",
         ]
 
 
