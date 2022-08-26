@@ -345,6 +345,14 @@ def unittest_coverage(context):
 
 
 @task
+def check_docs(context):
+    """Build and test docs."""
+    command = "mkdocs build --no-directory-urls --strict"
+
+    run_command(context, command)
+
+
+@task
 def yamllint(context):
     """Run yamllint to validate formating adheres to NTC defined YAML standards.
 
@@ -379,6 +387,8 @@ def tests(context, failfast=False):
     pydocstyle(context)
     print("Running pylint...")
     pylint(context)
+    print("Running mkdocs...")
+    check_docs(context)
     print("Running unit tests...")
     unittest(context, failfast=failfast)
     print("All tests have passed!")
