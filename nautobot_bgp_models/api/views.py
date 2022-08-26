@@ -1,8 +1,7 @@
 """REST API viewsets for nautobot_bgp_models."""
 
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from nautobot.extras.api.views import CustomFieldModelViewSet, StatusViewSetMixin
 from nautobot.utilities.utils import dynamic_import
 
@@ -51,23 +50,24 @@ class PeeringRoleViewSet(PluginModelViewSet):
     filterset_class = filters.PeeringRoleFilterSet
 
 
-include_inherited = openapi.Parameter(
-    "include_inherited",
-    openapi.IN_QUERY,
+include_inherited = OpenApiParameter(
+    name="include_inherited",
+    required=False,
+    location=OpenApiParameter.QUERY,
     description="Include inherited configuration values",
-    type=openapi.TYPE_BOOLEAN,
+    type=OpenApiTypes.BOOL,
 )
 
 
 class InheritableFieldsViewSetMixin:
     """Common mixin for ViewSets that support an additional `include_inherited` query parameter."""
 
-    @swagger_auto_schema(manual_parameters=[include_inherited])
+    @extend_schema(parameters=[include_inherited])
     def list(self, request):
         """List all objects of this type."""
         return super().list(request)
 
-    @swagger_auto_schema(manual_parameters=[include_inherited])
+    @extend_schema(parameters=[include_inherited])
     def retrieve(self, request, pk=None):
         """Retrieve a specific object instance."""
         return super().retrieve(request, pk=pk)
