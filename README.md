@@ -62,7 +62,7 @@ In the `default_statuses` section, you can define a list of default statuses to 
 
 ![Autonomous System](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/autonomous_system_01.png)
 
-![Peering List](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_session_list.png)
+![Peering List](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peering_list.png)
 
 ![Peering](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peering_01.png)
 
