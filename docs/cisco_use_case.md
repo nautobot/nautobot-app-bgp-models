@@ -4,7 +4,7 @@ This document provides an example of generating a Cisco device's desired BGP con
 
 ## Querying for the data
 
-In order to retrieve a BGP data, following GraphQL query can be issued to a Nautobot.
+In order to retrieve a BGP data, following GraphQL query can be issued to Nautobot.
 
 ```python
 import pynautobot

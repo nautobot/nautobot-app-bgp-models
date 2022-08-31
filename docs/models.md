@@ -11,7 +11,7 @@ This plugin adds the following data models to Nautobot:
 - Peering
 - PeeringRole
 
-A key motivation behind this design is the idea that the Source of Truth should take a network-wide view of the BGP configuration, rather than a per-device view. This especially applies to the data models for autonomous systems (ASNs), BGP peerings, and network-wide templates (Peer Groups).
+A key motivation behind this design is the idea that the Source of Truth should take a network-wide view of the BGP configuration rather than a per-device view. This especially applies to the data models for autonomous systems (ASNs), BGP peerings, and network-wide templates (Peer Groups).
 
 The data models introduced by the BGP plugin support the following Nautobot features:
 
@@ -40,9 +40,9 @@ This model represents a device specific BGP process. It has a mandatory FK to a 
 
 ### Extra Attributes
 
-Additional BGP object's attributes can be defined in "Extra Attributes" field. Extra attributes is a JSON type field meant to store data defined by user.
+Additional BGP object attributes can be defined in "Extra Attributes" field. Extra attributes are JSON type fields meant to store data defined by the user.
 
-Extra attributes follow the inheritance pattern, thus allowing for merging of the inherited extra attributes.
+Extra attributes follow the inheritance pattern, thus allowing for the merging of the inherited extra attributes.
 
 Example of the extra attributes:
 
@@ -59,11 +59,11 @@ Extra Attributes are available for following models:
 
 ### PeeringRole
 
-This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the `Role` field used by `PeerGroup` and `Peering` records. Similar to those models, this model has fields including a unique name, unique slug, and a HTML color value.
+This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the `Role` field used by `PeerGroup` and `Peering` records. Similar to those models, this model has fields including a unique name, unique slug, and HTML color code.
 
 ### PeerGroupTemplate
 
-This model represents network-wide configuration for `PeerGroups`. `PeerGroupTemplate` aims to represent a global configuration, and it has a mandatory `Name` field, and following fields:
+This model represents a network-wide configuration for `PeerGroups`. `PeerGroupTemplate` aims to represent a global configuration, and it has a mandatory `Name` field, and the following fields:
 
 - ASN (optional, FK to `AutonomousSystem`)
 - Role (optional, FK to `PeeringRole`)
@@ -76,7 +76,7 @@ This model represents network-wide configuration for `PeerGroups`. `PeerGroupTem
 
 ### PeerGroup
 
-This model represents common configuration for a group of functionally related BGP peers. Peer Group aims to represent device-specific configuration shared across multiple peerings, and it has a mandatory `Name` field, optional FK to a network-wide `PeerGroupTemplate`, and additional fields including:
+This model represents a common configuration for a group of functionally related BGP peers. Peer Group aims to represent device-specific configuration shared across multiple peerings, and it has a mandatory `Name` field, optional FK to a network-wide `PeerGroupTemplate`, and additional fields including
 
 - ASN (optional, FK to `AutonomousSystem`)
 - Source IP (optional, FK to Nautobot `IPAddress`, mutually-exclusive with Source Interface)
@@ -91,11 +91,11 @@ This model represents common configuration for a group of functionally related B
 
 ### PeerEndpoint
 
-PeerEndpoint records are created when Peering instance is created.
+PeerEndpoint records are created when the Peering instance is created.
 
-This model represents the configuration of a single device with respect to a single BGP peering. 
+This model represents the configuration of a single device for a single BGP peering. 
 
-Note that in the case of an external peering (connection with an ISP or Transit Provider), there is no need to create and model provider's `Device` object. However, as a minimum `PeerEndpoint` (representing provider's side of `Peering`) created during `Peering` object creation, will have to store IP Address and ASN.
+Note that in the case of an external peering (connection with an ISP or Transit Provider), there is no need to create and model the provider's `Device` object. However, as a minimum `PeerEndpoint` (representing the provider's side of `Peering`) created during `Peering` object creation, will have to store IP Address and ASN.
 
 `PeerEndpoint` model has a mandatory FK to a BGP Routing Instance (`BGPRoutingInstance`) record, an optional foreign-key relationship to a `PeerGroup`, and additional keys including:
 
@@ -115,9 +115,9 @@ The device-specific `PeerEndpoint` custom modeling will be implemented in the fu
 
 #### PeerEndpoint Local-IP
 
-To ease the data presentation and consumption, `PeerEndpoint` provides also a property named `local_ip`.
+To ease the data presentation and consumption, `PeerEndpoint` provides a property named `local_ip`.
 
-The value of this property will be presented in plugin's Grapical User Interface (GUI), and can be used to render configuration templates.
+The value of this property will be presented in the plugin's Graphical User Interface (GUI) and can be used to render configuration templates.
 
 As Source-IP and Source-Interface could be defined at multiple inheritance levels, each Peer Endpoint will have a `local_ip` determined based on the following order:
 
@@ -143,7 +143,7 @@ This model represents the shared configuration of a single BGP peer relationship
 
 - Status (FK to Nautobot `Status`)
 
-> The nature of a session as BGP "internal" or "external" is useful in the construction of queries and filters, but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `Peering` model.
+> The classification of a session as BGP "internal" or "external" is useful in the construction of queries and filters but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `Peering` model.
 
 ### Inheritance between models
 
@@ -165,7 +165,7 @@ Example **PeerEndpoint** inheritance details:
 - A `PeerEndpoint` inherits `source_ip`, `source_interface` fields from:
     - `PeerGroup`
 
-As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically inherit above attributes of the `PeerGroup` that haven't been defined at the `PeerEndpoint` level. If an attribute is defined at both levels, the value defined in the `PeerEndpoint` will be used.
+As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically inherit the above attributes of the `PeerGroup` that haven't been defined at the `PeerEndpoint` level. If an attribute is defined at both levels, the value defined in the `PeerEndpoint` will be used.
 
 The inherited values will be automatically displayed in the UI and can be retrieved from the REST API by adding `?include_inherited=true` parameter.
 

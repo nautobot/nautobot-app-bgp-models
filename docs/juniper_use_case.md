@@ -4,7 +4,7 @@ This document provides an example of generating a Juniper device's desired BGP c
 
 ## Querying for the data
 
-In order to retrieve a BGP data, following GraphQL query can be issued to Nautobot.
+To retrieve BGP data, the following GraphQL query can be issued to Nautobot.
 
 ```python
 import pynautobot
