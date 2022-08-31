@@ -21,6 +21,11 @@ plugins:
   - "include-markdown"
 nav:
   - Introduction: "index.md"
-  - Examples: "example.md"
-  - Development Environment: "development.md"
-  - Models: "models.md"
+  - User Guide:
+    - Models: "models.md"
+    - Examples:
+      - Creating peerings workflow: "manual.md"
+      - Generating Cisco BGP Config: "cisco_use_case.md"
+      - Generating Juniper BGP Config: "juniper_use_case.md"
+  - Developer Guide:
+    - Development Environment: "development.md"
