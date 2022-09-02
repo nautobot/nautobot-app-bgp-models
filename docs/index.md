@@ -1,6 +1,8 @@
 # Nautobot BGP Models Plugin
 
-A plugin for [Nautobot](https://github.com/nautobot/nautobot) to extend the core models with BGP specific models. All types of BGP peerings can be model and managed, whether or not the device is present in Nautobot.
+A plugin for [Nautobot](https://github.com/nautobot/nautobot) extending the core models with BGP-specific models.
+
+New models enable modeling and management of BGP peerings, whether or not the peer device is present in Nautobot.
 
 > The initial development of this plugin was sponsored by Riot Games, Inc.
 

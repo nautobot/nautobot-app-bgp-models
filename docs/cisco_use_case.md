@@ -1,8 +1,10 @@
 # Example use of BGP Models plugin - Cisco BGP Configuration
+
 This document provides an example of generating a Cisco device's desired BGP configuration based on data stored in Nautobot using this plugin. A GraphQL query is used to retrieve the relevant data, which is then rendered through a Jinja2 template to produce the desired configuration.
 
 ## Querying for the data
-In order to retrieve a BGP data, following GraphQL can be issued to a Nautobot.  
+
+In order to retrieve a BGP data, following GraphQL query can be issued to Nautobot.
 
 ```python
 import pynautobot
@@ -352,7 +354,7 @@ router bgp {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 
 Following snippet represents an example Cisco BGP Renderer Configuration:
 
-```
+```text
 ! 
 router bgp 65535 
  neighbor EDGE-to-LEAF peer-group 

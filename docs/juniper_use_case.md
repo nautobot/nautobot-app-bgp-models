@@ -1,8 +1,10 @@
 # Example use of BGP Models plugin - Juniper BGP Configuration
+
 This document provides an example of generating a Juniper device's desired BGP configuration based on data stored in Nautobot using this plugin. A GraphQL query is used to retrieve the relevant data, which is then rendered through a Jinja2 template to produce the desired configuration.
 
 ## Querying for the data
-In order to retrieve a BGP data, following GraphQL can be issued to a Nautobot.  
+
+To retrieve BGP data, the following GraphQL query can be issued to Nautobot.
 
 ```python
 import pynautobot
@@ -344,7 +346,7 @@ set protocols bgp group {{ endpoint.peer_group.name }} neighbor {{ endpoint.peer
 
 Following snippet represents an example Juniper BGP Renderer Configuration:
 
-```
+```text
 root# show protocols bgp
 group EDGE-to-LEAF {
     type internal;

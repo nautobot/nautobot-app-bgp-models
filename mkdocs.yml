@@ -1,0 +1,31 @@
+---
+dev_addr: "127.0.0.1:8001"
+edit_uri: "edit/main/nautobot-plugin-bgp-models/docs"
+site_name: "Nautobot BGP Models Plugin Documentation"
+site_url: "https://nautobot-plugin-bgp-models.readthedocs.io/"
+site_dir: "nautobot_bgp_models/static/nautobot_bgp_models/docs"
+repo_url: "https://github.com/nautobot/nautobot-plugin-bgp-models"
+theme:
+  name: "readthedocs"
+  navigation_depth: 4
+  hljs_languages:
+    - "django"
+    - "yaml"
+extra_css:
+  - "extra.css"
+markdown_extensions:
+  - "admonition"
+  - toc:
+      permalink: true
+plugins:
+  - "include-markdown"
+nav:
+  - Introduction: "index.md"
+  - User Guide:
+    - Models: "models.md"
+    - Examples:
+      - Creating peerings workflow: "manual.md"
+      - Generating Cisco BGP Config: "cisco_use_case.md"
+      - Generating Juniper BGP Config: "juniper_use_case.md"
+  - Developer Guide:
+    - Development Environment: "development.md"
