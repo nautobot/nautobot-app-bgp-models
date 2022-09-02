@@ -24,7 +24,7 @@ The data models introduced by the BGP plugin support the following Nautobot feat
 - Custom data validation logic
 - Webhooks
 
-> The data models defined in this plugin were inspired by the Openconfig BGP data model (https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the RFC 9234 (https://datatracker.ietf.org/doc/rfc9234/)
+> The data models defined in this plugin were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
 
 ### AutonomousSystem
 
@@ -169,7 +169,7 @@ As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically
 
 The inherited values will be automatically displayed in the UI and can be retrieved from the REST API by adding `?include_inherited=true` parameter.
 
-(*) **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** GraphQL issue is tracked under https://github.com/nautobot/nautobot-plugin-bgp-models/issues/43 
+(*) **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** See [GraphQL issue #43](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/43) for details.
 
 Following is the complete documentation of the field inheritance hierarchy. Models are ordered with the topmost having the highest priority. The first model with an assigned attribute value will be used as an inheritance source.
 

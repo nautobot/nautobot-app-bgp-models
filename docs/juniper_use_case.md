@@ -346,7 +346,7 @@ set protocols bgp group {{ endpoint.peer_group.name }} neighbor {{ endpoint.peer
 
 Following snippet represents an example Juniper BGP Renderer Configuration:
 
-```
+```text
 root# show protocols bgp
 group EDGE-to-LEAF {
     type internal;

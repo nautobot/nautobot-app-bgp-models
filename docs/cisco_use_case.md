@@ -354,7 +354,7 @@ router bgp {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 
 Following snippet represents an example Cisco BGP Renderer Configuration:
 
-```
+```text
 ! 
 router bgp 65535 
  neighbor EDGE-to-LEAF peer-group 
