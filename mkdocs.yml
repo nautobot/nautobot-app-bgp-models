@@ -22,10 +22,10 @@ plugins:
 nav:
   - Introduction: "index.md"
   - User Guide:
-    - Models: "models.md"
-    - Examples:
-      - Creating peerings workflow: "manual.md"
-      - Generating Cisco BGP Config: "cisco_use_case.md"
-      - Generating Juniper BGP Config: "juniper_use_case.md"
+      - Models: "models.md"
+      - Examples:
+          - Creating peerings workflow: "manual.md"
+          - Generating Cisco BGP Config: "cisco_use_case.md"
+          - Generating Juniper BGP Config: "juniper_use_case.md"
   - Developer Guide:
-    - Development Environment: "development.md"
+      - Development Environment: "development.md"
