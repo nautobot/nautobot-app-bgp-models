@@ -1,8 +1,13 @@
 ---
 name: "CI"
 on: # yamllint disable-line rule:truthy rule:comments
-  - "push"
-  - "pull_request"
+  push:
+    branches:
+      - "main"
+      - "develop"
+    tags:
+      - "v*"
+  pull_request: ~
 
 env:
   PLUGIN_NAME: "nautobot-bgp-models"
