@@ -1,13 +1,17 @@
 """Nautobot signal handler functions for nautobot_bgp_models."""
 
+from django.apps import apps as global_apps
 from django.conf import settings
 
 PLUGIN_SETTINGS = settings.PLUGINS_CONFIG["nautobot_bgp_models"]
 
 
-def post_migrate_create_statuses(sender, apps, **kwargs):
+def post_migrate_create_statuses(sender, *, apps=global_apps, **kwargs):
     """Callback function for post_migrate() -- create default Statuses."""
     # pylint: disable=invalid-name
+    if not apps:
+        return
+
     Status = apps.get_model("extras", "Status")
 
     for model_name, default_statuses in PLUGIN_SETTINGS.get("default_statuses", {}).items():
