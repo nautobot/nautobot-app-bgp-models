@@ -80,7 +80,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.7"]
-        nautobot-version: ["1.3.3"]
+        nautobot-version: ["1.3.8"]
     env:
       INVOKE_NAUTOBOT_BGP_MODELS_PYTHON_VER: "${{ matrix.python-version }}"
       INVOKE_NAUTOBOT_BGP_MODELS_NAUTOBOT_VER: "${{ matrix.nautobot-version }}"
