@@ -1,89 +1,63 @@
-# Nautobot BGP Models Plugin
+# BGP Models
 
-A plugin for [Nautobot](https://github.com/nautobot/nautobot) extending the core models with BGP-specific models.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/icon-nautobot-bgp-models.png" class="logo" height="200px">
+  <br>
+  <a href="https://github.com/nautobot/nautobot-plugin-bgp-models/actions"><img src="https://github.com/nautobot/nautobot-plugin-bgp-models/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://docs.nautobot.com/projects/bgp-models/en/latest"><img src="https://readthedocs.org/projects/nautobot-plugin-bgp-models/badge/"></a>
+  <a href="https://pypi.org/project/nautobot-bgp-models/"><img src="https://img.shields.io/pypi/v/nautobot-bgp-models"></a>
+  <a href="https://pypi.org/project/nautobot-bgp-models/"><img src="https://img.shields.io/pypi/dm/nautobot-bgp-models"></a>
+  <br>
+  An <a href="https://www.networktocode.com/nautobot/apps/">App</a> for <a href="https://nautobot.com/">Nautobot</a>.
+</p>
 
-New models enable modeling and management of BGP peerings, whether or not the peer device is present in Nautobot.
+## Overview
+
+An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core models with BGP-specific models. They enable modeling and management of BGP peerings, whether or not the peer device is present in Nautobot.
 
 > The initial development of this plugin was sponsored by Riot Games, Inc.
 
-## Data Models
+### Screenshots
 
-Navigate to [Data Models](docs/cisco_use_case.md) for detailed descriptions on additional data models provided in the plugin.
+More screenshots can be found in the [Using the App](https://docs.nautobot.com/projects/bgp-models/en/latest/user/app_use_cases/) page in the documentation. Here's a quick overview of some of the plugin's added functionality:
 
-## Use Cases
+![Menu](https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/main-page-menu.png)
 
-To make the start with the plugin easier, we provide two example use cases for common OS platforms: Cisco and Juniper.
+![Autonomous System](https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/autonomous_system_01.png)
 
-### Cisco Configuration Modeling and Rendering
+![Peering List](https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/peering_list.png)
 
-Navigate to [Cisco Example Use Case](docs/cisco_use_case.md) for detailed instructions how to consume BGP Models plugin on Cisco devices.
+![Peering](https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/peering_01.png)
 
-### Juniper Configuration Modeling and Rendering
+![Peer Endpoint](https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/peer_endpoint_01.png)
 
-Navigate to [Juniper Example Use Case](docs/juniper_use_case.md) for detailed instructions how to consume BGP Models plugin on Juniper devices.
+![Peer Group](https://raw.githubusercontent.com/nautobot/nautobot-plugin-bgp-models/develop/docs/images/peer_group_01.png)
 
-## Installation
 
-The plugin is available as a Python package in PyPI and can be installed with `pip`:
+## Try it out!
 
-```shell
-pip install nautobot-bgp-models
-```
+This App is installed in the Nautobot Community Sandbox found over at [demo.nautobot.com](https://demo.nautobot.com/)!
 
-> The plugin is compatible with Nautobot 1.3 and higher
+> For a full list of all the available always-on sandbox environments, head over to the main page on [networktocode.com](https://www.networktocode.com/nautobot/sandbox-environments/).
 
-To ensure Nautobot BGP Models Plugin is automatically re-installed during future upgrades, create a file named `local_requirements.txt` (if not already existing) in the Nautobot root directory (alongside `requirements.txt`) and list the `nautobot-bgp-models` package:
+## Documentation
 
-```no-highlight
-# echo nautobot-bgp-models >> local_requirements.txt
-```
+Full documentation for this App can be found over on the [Nautobot Docs](https://docs.nautobot.com) website:
 
-Once installed, the plugin needs to be enabled in your `nautobot_config.py`
+- [User Guide](https://docs.nautobot.com/projects/bgp-models/en/latest/user/app_overview/) - Overview, Using the App, Getting Started.
+- [Administrator Guide](https://docs.nautobot.com/projects/bgp-models/en/latest/admin/install/) - How to Install, Configure, Upgrade, or Uninstall the App.
+- [Developer Guide](https://docs.nautobot.com/projects/bgp-models/en/latest/dev/contributing/) - Extending the App, Code Reference, Contribution Guide.
+- [Release Notes / Changelog](https://docs.nautobot.com/projects/bgp-models/en/latest/admin/release_notes/).
+- [Frequently Asked Questions](https://docs.nautobot.com/projects/bgp-models/en/latest/user/faq/).
 
-```python
-# In your configuration.py
-PLUGINS = ["nautobot_bgp_models"]
-```
+### Contributing to the Documentation
 
-```python
-PLUGINS_CONFIG = {
-    "nautobot_bgp_models": {
-        "default_statuses": {
-            "AutonomousSystem": ["active", "available", "planned"],
-            "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
-        }
-    }
-}
-```
+You can find all the Markdown source for the App documentation under the [`docs`](https://github.com/nautobot/nautobot-plugin-bgp-models/tree/develop/docs) folder in this repository. For simple edits, a Markdown capable editor is sufficient: clone the repository and edit away.
 
-In the `default_statuses` section, you can define a list of default statuses to make available to `AutonomousSystem` and/or `Peering`. The lists must be composed of valid slugs of existing Status objects.
+If you need to view the fully-generated documentation site, you can build it with [MkDocs](https://www.mkdocs.org/). A container hosting the documentation can be started using the `invoke` commands (details in the [Development Environment Guide](https://docs.nautobot.com/projects/bgp-models/en/latest/dev/dev_environment/#docker-development-environment)) on [http://localhost:8001](http://localhost:8001). Using this container, as your changes to the documentation are saved, they will be automatically rebuilt and any pages currently being viewed will be reloaded in your browser.
 
-## Screenshots
-
-![Menu](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/main-page-menu.png)
-
-![Autonomous System](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/autonomous_system_01.png)
-
-![Peering List](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peering_list.png)
-
-![Peering](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peering_01.png)
-
-![Peer Endpoint](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_endpoint_01.png)
-
-![Peer Group](https://github.com/nautobot/nautobot-plugin-bgp-models/blob/main/docs/images/peer_group_01.png)
-
-## Contributing
-
-Pull requests are welcomed and automatically built and tested against multiple version of Python and multiple version of Nautobot through TravisCI.
-
-The project is packaged with a light development environment based on `docker-compose` to help with the local development of the project and to run the tests within TravisCI.
-
-The project is following Network to Code software development guideline and is leveraging:
-
-- Black, Pylint, Bandit and pydocstyle for Python linting and formatting.
-- Django unit test to ensure the plugin is working properly.
+Any PRs with fixes or improvements are very welcome!
 
 ## Questions
 
-For any questions or comments, please check the [FAQ](FAQ.md) first and feel free to swing by the [Network to Code slack channel](https://networktocode.slack.com/) (channel #networktocode).
-Sign up [here](http://slack.networktocode.com/)
+For any questions or comments, please check the [FAQ](https://docs.nautobot.com/projects/bgp-models/en/latest/user/faq/) first. Feel free to also swing by the [Network to Code Slack](https://networktocode.slack.com/) (channel `#nautobot`), sign up [here](http://slack.networktocode.com/) if you don't have an account.
