@@ -16,14 +16,26 @@ Navigate to [Juniper Example Use Case](juniper_use_case.md) for detailed instruc
 
 ## Screenshots
 
+### Routing Menu
+
 ![Menu](../images/main-page-menu.png)
+
+### Autonomous System
 
 ![Autonomous System](../images/autonomous_system_01.png)
 
+### Peering List
+
 ![Peering List](../images/peering_list.png)
+
+### BGP Peering
 
 ![Peering](../images/peering_01.png)
 
+### Peer Endpoint
+
 ![Peer Endpoint](../images/peer_endpoint_01.png)
+
+### Peer Group
 
 ![Peer Group](../images/peer_group_01.png)
