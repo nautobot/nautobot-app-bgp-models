@@ -309,7 +309,7 @@ An example data returned from Nautobot is presented below.
 }
 ```
 
-## Creating Juniper Jinja2 BGP Configuration Template
+## Creating a Juniper Jinja2 BGP Configuration Template
 
 Following snippet represents an example Juniper BGP Configuration Template:
 
@@ -317,7 +317,7 @@ Following snippet represents an example Juniper BGP Configuration Template:
 # Set the ASN for Routing Instance
 set routing-options autonomous-system {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 
-# Configure Groups 
+# Configure Groups
 {%- for peer_group in data.device.bgp_routing_instances.0.peer_groups %}
 {%- if peer_group.template.role.slug == "peer" %}
 set protocols bgp group {{ peer_group.name }} type internal

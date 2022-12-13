@@ -309,7 +309,7 @@ An example data returned from Nautobot is presented below.
 }
 ```
 
-## Creating Cisco Jinja2 BGP Configuration Template
+## Creating a Cisco Jinja2 BGP Configuration Template
 
 Following snippet represents an example Cisco BGP Configuration Template:
 
@@ -355,39 +355,39 @@ router bgp {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 Following snippet represents an example Cisco BGP Renderer Configuration:
 
 ```text
-! 
-router bgp 65535 
- neighbor EDGE-to-LEAF peer-group 
- neighbor EDGE-to-LEAF route-map BGP-LEAF-IN in 
- neighbor EDGE-to-LEAF route-map BGP-LEAF-OUT out 
- neighbor EDGE-to-LEAF next-hop-self 
- neighbor EDGE-to-LEAF send-community 
- neighbor EDGE-to-TRANSIT peer-group 
- neighbor EDGE-to-TRANSIT route-map BGP-TRANSIT-IN in 
- neighbor EDGE-to-TRANSIT route-map BGP-TRANSIT-OUT out 
- neighbor EDGE-to-TRANSIT ttl-security hops 1 
-! 
- neighbor 10.11.192.13 remote-as 4200000000 
- neighbor 10.11.192.13 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.29 remote-as 4200000000 
- neighbor 10.11.192.29 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.9 remote-as 4200000000 
- neighbor 10.11.192.9 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.25 remote-as 4200000000 
- neighbor 10.11.192.25 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.5 remote-as 4200000000 
- neighbor 10.11.192.5 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.21 remote-as 4200000000 
- neighbor 10.11.192.21 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.17 remote-as 4200000000 
- neighbor 10.11.192.17 peer-group EDGE-to-LEAF 
- neighbor 10.11.192.33 remote-as 4200000000 
- neighbor 10.11.192.33 peer-group EDGE-to-LEAF 
- neighbor 104.94.128.2 remote-as 1299 
- neighbor 104.94.128.2 peer-group EDGE-to-TRANSIT 
- neighbor 104.94.128.10 remote-as 2914 
- neighbor 104.94.128.10 peer-group EDGE-to-TRANSIT 
-! 
- no synchronization 
+!
+router bgp 65535
+ neighbor EDGE-to-LEAF peer-group
+ neighbor EDGE-to-LEAF route-map BGP-LEAF-IN in
+ neighbor EDGE-to-LEAF route-map BGP-LEAF-OUT out
+ neighbor EDGE-to-LEAF next-hop-self
+ neighbor EDGE-to-LEAF send-community
+ neighbor EDGE-to-TRANSIT peer-group
+ neighbor EDGE-to-TRANSIT route-map BGP-TRANSIT-IN in
+ neighbor EDGE-to-TRANSIT route-map BGP-TRANSIT-OUT out
+ neighbor EDGE-to-TRANSIT ttl-security hops 1
+!
+ neighbor 10.11.192.13 remote-as 4200000000
+ neighbor 10.11.192.13 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.29 remote-as 4200000000
+ neighbor 10.11.192.29 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.9 remote-as 4200000000
+ neighbor 10.11.192.9 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.25 remote-as 4200000000
+ neighbor 10.11.192.25 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.5 remote-as 4200000000
+ neighbor 10.11.192.5 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.21 remote-as 4200000000
+ neighbor 10.11.192.21 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.17 remote-as 4200000000
+ neighbor 10.11.192.17 peer-group EDGE-to-LEAF
+ neighbor 10.11.192.33 remote-as 4200000000
+ neighbor 10.11.192.33 peer-group EDGE-to-LEAF
+ neighbor 104.94.128.2 remote-as 1299
+ neighbor 104.94.128.2 peer-group EDGE-to-TRANSIT
+ neighbor 104.94.128.10 remote-as 2914
+ neighbor 104.94.128.10 peer-group EDGE-to-TRANSIT
+!
+ no synchronization
 !
 ```
