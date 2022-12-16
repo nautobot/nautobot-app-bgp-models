@@ -10,7 +10,6 @@ from django.views.generic import View
 from nautobot.core.views import generic
 
 from . import filters, forms, models, tables
-from .forms import AutonomousSystemBulkAddForm
 
 
 class AutonomousSystemListView(generic.ObjectListView):
@@ -56,7 +55,7 @@ class AutonomousSystemBulkCreateView(generic.BulkCreateView):
 
     queryset = models.AutonomousSystem.objects.all()
     form = forms.AutonomousSystemBulkCreateForm
-    model_form = AutonomousSystemBulkAddForm
+    model_form = forms.AutonomousSystemBulkAddForm
     pattern_target = "asn"
     template_name = "nautobot_bgp_models/autonomoussystem_bulk_add.html"
 
