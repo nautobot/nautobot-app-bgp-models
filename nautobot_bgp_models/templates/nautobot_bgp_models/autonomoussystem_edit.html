@@ -1,0 +1,18 @@
+{% extends 'generic/object_edit.html' %}
+{% load form_helpers %}
+
+{% block tabs %}
+    {% include 'nautobot_bgp_models/inc/autonomoussystem_edit_header.html' with active_tab='add' %}
+{% endblock %}
+
+{% block form %}
+    <div class="panel panel-default">
+        <div class="panel-body">
+            {% render_field form.asn %}
+            {% render_field form.description %}
+            {% render_field form.provider %}
+            {% render_field form.status %}
+        </div>
+    </div>
+    {% include 'inc/extras_features_edit_form_fields.html' %}
+{% endblock %}
