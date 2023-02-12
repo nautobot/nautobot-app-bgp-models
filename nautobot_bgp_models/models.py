@@ -8,15 +8,15 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.urls import reverse
 from nautobot.circuits.models import Provider
-from nautobot.core.fields import AutoSlugField
+from nautobot.core.models.fields import AutoSlugField
 from nautobot.core.models.generics import PrimaryModel, OrganizationalModel
 from nautobot.dcim.fields import ASNField
 from nautobot.extras.models import StatusModel
 from nautobot.extras.utils import extras_features
 from nautobot.ipam.models import IPAddress
-from nautobot.utilities.choices import ColorChoices
-from nautobot.utilities.fields import ColorField
-from nautobot.utilities.utils import deepmerge
+from nautobot.core.choices import ColorChoices
+from nautobot.core.models.fields import ColorField
+from nautobot.core.utils.data import deepmerge
 
 from nautobot_bgp_models.choices import AFISAFIChoices
 

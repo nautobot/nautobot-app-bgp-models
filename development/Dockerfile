@@ -1,7 +1,8 @@
 
 ARG PYTHON_VER
 ARG NAUTOBOT_VER
-FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VER}-py${PYTHON_VER}
+# FROM ghcr.io/nautobot/nautobot-dev:${NAUTOBOT_VER}-py${PYTHON_VER}2.0.0-alpha.1
+FROM ghcr.io/nautobot/nautobot-dev:2.0.0-alpha.1
 
 WORKDIR /source
 

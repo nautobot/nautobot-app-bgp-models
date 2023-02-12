@@ -3,7 +3,7 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from nautobot.extras.api.views import CustomFieldModelViewSet, StatusViewSetMixin
-from nautobot.utilities.utils import dynamic_import
+from nautobot.core.api.utils import dynamic_import
 
 from nautobot_bgp_models import filters
 from nautobot_bgp_models import models

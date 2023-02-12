@@ -7,7 +7,8 @@ from django.db.models import Q
 from nautobot.dcim.models import Device
 from nautobot.extras.filters import StatusModelFilterSetMixin, CreatedUpdatedFilterSet, CustomFieldModelFilterSet
 from nautobot.ipam.models import VRF
-from nautobot.utilities.filters import BaseFilterSet, NameSlugSearchFilterSet, TagFilter
+from nautobot.apps.filters import BaseFilterSet
+from nautobot.core.filters import NameSlugSearchFilterSet, TagFilter
 
 from . import choices, models
 

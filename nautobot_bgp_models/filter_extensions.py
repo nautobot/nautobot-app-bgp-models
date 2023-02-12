@@ -2,7 +2,7 @@
 from django import forms
 
 from nautobot.extras.plugins import PluginFilterExtension
-from nautobot.utilities.filters import MultiValueCharFilter
+from nautobot.apps.filters import MultiValueCharFilter
 
 
 class IPAddressFilterExtension(PluginFilterExtension):

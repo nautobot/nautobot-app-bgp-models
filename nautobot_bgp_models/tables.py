@@ -4,15 +4,15 @@ import django_tables2 as tables
 from django_tables2.utils import A
 
 from nautobot.extras.tables import StatusTableMixin
-from nautobot.utilities.tables import (
+from nautobot.apps.tables import (
     BaseTable,
     BooleanColumn,
     ButtonsColumn,
-    ColorColumn,
     ColoredLabelColumn,
     TagColumn,
     ToggleColumn,
 )
+from nautobot.core.tables import ColorColumn
 
 from . import models
 

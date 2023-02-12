@@ -1,7 +1,7 @@
 """Forms and FilterForms for nautobot_bgp_models."""
 
 import nautobot.extras.forms as extras_forms
-import nautobot.utilities.forms as utilities_forms
+import nautobot.core.forms as utilities_forms
 from django import forms
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, Interface
