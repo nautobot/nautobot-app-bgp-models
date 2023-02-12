@@ -5,7 +5,8 @@ import nautobot.core.forms as utilities_forms
 from django import forms
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, Interface
-from nautobot.extras.models import Tag, Secret
+from nautobot.extras.models import Tag, Secret, Role
+from nautobot.extras.forms.mixins import RoleModelFilterFormMixin
 from nautobot.ipam.models import VRF, IPAddress
 
 from . import choices, models
@@ -163,47 +164,6 @@ class BGPRoutingInstanceBulkEditForm(
         ]
 
 
-class PeeringRoleForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
-    """Form for creating/updating PeeringRole records."""
-
-    slug = utilities_forms.SlugField()
-
-    class Meta:
-        model = models.PeeringRole
-        fields = ("name", "slug", "color", "description")
-
-
-class PeeringRoleFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
-    """Form for filtering PeeringRole records in combination with PeeringRoleFilterSet."""
-
-    model = models.PeeringRole
-    q = forms.CharField(required=False, label="Search")
-    color = forms.CharField(max_length=6, required=False, widget=utilities_forms.ColorSelect())
-
-
-class PeeringRoleCSVForm(extras_forms.CustomFieldModelCSVForm):
-    """Form for importing PeeringRole records from CSV data."""
-
-    class Meta:
-        model = models.PeeringRole
-        fields = models.PeeringRole.csv_headers
-
-
-class PeeringRoleBulkEditForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldBulkEditForm):
-    """Form for bulk-editing multiple PeeringRole records."""
-
-    pk = forms.ModelMultipleChoiceField(queryset=models.PeeringRole.objects.all(), widget=forms.MultipleHiddenInput())
-    color = forms.CharField(max_length=6, required=False, widget=utilities_forms.ColorSelect())
-    description = forms.CharField(max_length=200, required=False)
-
-    class Meta:
-        nullable_fields = [
-            "description",
-        ]
-
-
 class PeerGroupForm(
     utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
 ):
@@ -243,7 +203,11 @@ class PeerGroupForm(
         label="Autonomous System",
     )
 
-    role = utilities_forms.DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
+    role = utilities_forms.DynamicModelChoiceField(
+        required=False,
+        queryset=Role.objects.all(),
+        query_params={"content_types": "peergroup"},
+    )
 
     template = utilities_forms.DynamicModelChoiceField(queryset=models.PeerGroupTemplate.objects.all(), required=False)
 
@@ -294,8 +258,11 @@ class PeerGroupTemplateForm(
         required=False,
         label="Autonomous System",
     )
-
-    role = utilities_forms.DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
+    role = utilities_forms.DynamicModelChoiceField(
+        required=False,
+        queryset=Role.objects.all(),
+        query_params={"content_types": "peergrouptemplate"},
+    )
 
     secret = utilities_forms.DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
 
@@ -329,16 +296,12 @@ class PeerGroupTemplateBulkEditForm(
         ]
 
 
-class PeerGroupFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class PeerGroupFilterForm(utilities_forms.BootstrapMixin, RoleModelFilterFormMixin, extras_forms.CustomFieldFilterForm):
     """Form for filtering PeerGroup records in combination with PeerGroupFilterSet."""
 
     model = models.PeerGroup
 
     q = forms.CharField(required=False, label="Search")
-
-    role = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
-    )
 
     enabled = forms.NullBooleanField(
         required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
@@ -349,16 +312,14 @@ class PeerGroupFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFie
     )
 
 
-class PeerGroupTemplateFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class PeerGroupTemplateFilterForm(
+    utilities_forms.BootstrapMixin, RoleModelFilterFormMixin, extras_forms.CustomFieldFilterForm
+):
     """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
 
     model = models.PeerGroup
 
     q = forms.CharField(required=False, label="Search")
-
-    role = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
-    )
 
     enabled = forms.NullBooleanField(
         required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
@@ -420,8 +381,11 @@ class PeerEndpointForm(
         required=False,
         label="Peer Group",
     )
-
-    role = utilities_forms.DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
+    role = utilities_forms.DynamicModelChoiceField(
+        required=False,
+        queryset=Role.objects.all(),
+        query_params={"content_types": "peerendpoint"},
+    )
 
     secret = utilities_forms.DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
 
@@ -470,7 +434,10 @@ class PeeringForm(
 
 
 class PeeringFilterForm(
-    utilities_forms.BootstrapMixin, extras_forms.StatusFilterFormMixin, extras_forms.CustomFieldFilterForm
+    utilities_forms.BootstrapMixin,
+    extras_forms.StatusFilterFormMixin,
+    RoleModelFilterFormMixin,
+    extras_forms.CustomFieldFilterForm,
 ):
     """Form for filtering Peering records in combination with PeeringFilterSet."""
 
@@ -481,9 +448,6 @@ class PeeringFilterForm(
         "status",
         "device",
     ]
-    role = utilities_forms.DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
-    )
 
     device = utilities_forms.DynamicModelMultipleChoiceField(
         queryset=Device.objects.all(), to_field_name="name", required=False

@@ -42,14 +42,6 @@ class AutonomousSystemViewSet(PluginModelViewSet, StatusViewSetMixin):
     filterset_class = filters.AutonomousSystemFilterSet
 
 
-class PeeringRoleViewSet(PluginModelViewSet):
-    """REST API viewset for PeeringRole records."""
-
-    queryset = models.PeeringRole.objects.all()
-    serializer_class = serializers.PeeringRoleSerializer
-    filterset_class = filters.PeeringRoleFilterSet
-
-
 include_inherited = OpenApiParameter(
     name="include_inherited",
     required=False,

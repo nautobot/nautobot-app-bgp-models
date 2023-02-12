@@ -59,25 +59,6 @@ class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
         )
 
 
-class PeeringRoleTable(BaseTable):
-    """Table representation of PeeringRole records."""
-
-    pk = ToggleColumn()
-    name = tables.LinkColumn()
-    color = ColorColumn()
-    actions = ButtonsColumn(model=models.PeeringRole, pk_field="slug")
-
-    class Meta(BaseTable.Meta):
-        model = models.PeeringRole
-        fields = (
-            "pk",
-            "name",
-            "slug",
-            "color",
-            "description",
-        )
-
-
 class PeerGroupTable(BaseTable):
     """Table representation of PeerGroup records."""
 

@@ -15,6 +15,7 @@ limitations under the License.
 from distutils.util import strtobool
 from invoke import Collection, task as invoke_task
 import os
+from time import sleep
 
 
 def is_truthy(arg):
@@ -393,3 +394,40 @@ def tests(context, failfast=False):
     unittest(context, failfast=failfast)
     print("All tests have passed!")
     unittest_coverage(context)
+
+
+@task
+def db_export(context, filename="nautobot.sql"):
+    """Export the database from the dev environment to nautobot.sql."""
+    docker_compose(context, "up -d postgres")
+    sleep(2)  # Wait for the database to be ready
+
+    print("Exporting the database as an SQL dump...")
+    export_cmd = 'exec postgres sh -c "pg_dump -h localhost -d \${} -U \${} > /tmp/{}"'.format(
+        "{NAUTOBOT_DB_NAME}", "{NAUTOBOT_DB_USER}", filename
+    )  # noqa: W605 pylint: disable=anomalous-backslash-in-string
+    docker_compose(context, export_cmd, pty=True)
+
+    copy_cmd = f"docker cp {context.nautobot_bgp_models.project_name}-postgres-1:/tmp/{filename} {filename}"
+    print("Copying the SQL Dump locally...")
+    context.run(copy_cmd)
+
+
+@task
+def db_import(context, filename="nautobot.sql"):
+    """Install the backup of Nautobot db into development environment."""
+    print("Importing Database into Development...\n")
+
+    print("Starting Postgres for DB import...\n")
+    docker_compose(context, "up -d postgres")
+    sleep(2)
+
+    print("Copying DB Dump to DB container...\n")
+    copy_cmd = f"docker cp {filename} {context.nautobot_bgp_models.project_name}-postgres-1:/tmp/{filename}"
+    context.run(copy_cmd)
+
+    print("Importing DB...\n")
+    import_cmd = 'exec postgres sh -c "psql -h localhost -U \${} < /tmp/{}"'.format(
+        "{NAUTOBOT_DB_USER}", filename
+    )  # noqa: W605 pylint: disable=anomalous-backslash-in-string
+    docker_compose(context, import_cmd, pty=True)

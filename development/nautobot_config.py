@@ -147,7 +147,7 @@ BANNER_LOGIN = os.environ.get("BANNER_LOGIN", "")
 CACHEOPS_DEFAULTS = {"timeout": 900}
 
 # Set to False to disable caching with cacheops. (Default: True)
-CACHEOPS_ENABLED = True
+CACHEOPS_ENABLED = False
 
 # Maximum number of days to retain logged changes. Set to 0 to retain changes indefinitely. (Default: 90)
 CHANGELOG_RETENTION = int(os.environ.get("CHANGELOG_RETENTION", 90))

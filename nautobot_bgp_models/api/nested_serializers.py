@@ -8,7 +8,6 @@ from nautobot_bgp_models import models
 
 __all__ = (
     "NestedAutonomousSystemSerializer",
-    "NestedPeeringRoleSerializer",
     "NestedPeerGroupSerializer",
     "NestedPeerGroupTemplateSerializer",
     "NestedPeerEndpointSerializer",
@@ -26,16 +25,6 @@ class NestedAutonomousSystemSerializer(WritableNestedSerializer):
     class Meta:
         model = models.AutonomousSystem
         fields = ["id", "url", "asn"]
-
-
-class NestedPeeringRoleSerializer(WritableNestedSerializer):
-    """Nested/brief serializer for PeeringRole."""
-
-    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peeringrole-detail")
-
-    class Meta:
-        model = models.PeeringRole
-        fields = ["id", "url", "name", "slug", "color"]
 
 
 class NestedPeerGroupSerializer(WritableNestedSerializer):

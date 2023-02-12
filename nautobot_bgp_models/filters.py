@@ -5,7 +5,12 @@ import django_filters
 from django.db.models import Q
 
 from nautobot.dcim.models import Device
-from nautobot.extras.filters import StatusModelFilterSetMixin, CreatedUpdatedFilterSet, CustomFieldModelFilterSet
+from nautobot.extras.filters import (
+    StatusModelFilterSetMixin,
+    CreatedUpdatedFilterSet,
+    CustomFieldModelFilterSet,
+    RoleModelFilterSetMixin,
+)
 from nautobot.ipam.models import VRF
 from nautobot.apps.filters import BaseFilterSet
 from nautobot.core.filters import NameSlugSearchFilterSet, TagFilter
@@ -78,28 +83,7 @@ class BGPRoutingInstanceFilterSet(
         return queryset.filter(Q(device__name__icontains=value)).distinct()
 
 
-class PeeringRoleFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, NameSlugSearchFilterSet):
-    """Filtering of PeeringRole records."""
-
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
-    )
-
-    class Meta:
-        model = models.PeeringRole
-        fields = ["id", "name", "slug", "color", "description"]
-
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument,no-self-use
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) | Q(slug__icontains=value) | Q(description__icontains=value)
-        ).distinct()
-
-
-class PeerGroupFilterSet(BaseFilterSet):
+class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerGroup records."""
 
     q = django_filters.CharFilter(
@@ -121,13 +105,6 @@ class PeerGroupFilterSet(BaseFilterSet):
         label="BGP Routing Instance ID",
     )
 
-    role = django_filters.ModelMultipleChoiceFilter(
-        field_name="role__slug",
-        queryset=models.PeeringRole.objects.all(),
-        to_field_name="slug",
-        label="Peering role (slug)",
-    )
-
     class Meta:
         model = models.PeerGroup
         fields = ["id", "name", "enabled"]
@@ -139,7 +116,7 @@ class PeerGroupFilterSet(BaseFilterSet):
         return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
 
 
-class PeerGroupTemplateFilterSet(BaseFilterSet):
+class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerGroupTemplate records."""
 
     q = django_filters.CharFilter(
@@ -154,13 +131,6 @@ class PeerGroupTemplateFilterSet(BaseFilterSet):
         label="Autonomous System Number",
     )
 
-    role = django_filters.ModelMultipleChoiceFilter(
-        field_name="role__slug",
-        queryset=models.PeeringRole.objects.all(),
-        to_field_name="slug",
-        label="Peering role (slug)",
-    )
-
     class Meta:
         model = models.PeerGroupTemplate
         fields = ["id", "name", "enabled"]
@@ -172,7 +142,7 @@ class PeerGroupTemplateFilterSet(BaseFilterSet):
         return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
 
 
-class PeerEndpointFilterSet(BaseFilterSet):
+class PeerEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerEndpoint records."""
 
     q = django_filters.CharFilter(

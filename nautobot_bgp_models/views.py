@@ -112,60 +112,6 @@ class BGPRoutingInstanceBulkDeleteView(generic.BulkDeleteView):
     table = tables.BGPRoutingInstanceTable
 
 
-class PeeringRoleListView(generic.ObjectListView):
-    """List/table view of PeeringRole records."""
-
-    queryset = models.PeeringRole.objects.all()
-    table = tables.PeeringRoleTable
-    filterset = filters.PeeringRoleFilterSet
-    filterset_form = forms.PeeringRoleFilterForm
-    action_buttons = ("add",)
-
-
-class PeeringRoleView(generic.ObjectView):
-    """Detail view of a single PeeringRole."""
-
-    queryset = models.PeeringRole.objects.all()
-
-
-class PeeringRoleEditView(generic.ObjectEditView):
-    """Create/edit view for a PeeringRole."""
-
-    queryset = models.PeeringRole.objects.all()
-    model_form = forms.PeeringRoleForm
-
-
-class PeeringRoleDeleteView(generic.ObjectDeleteView):
-    """Delete view for a PeeringRole."""
-
-    queryset = models.PeeringRole.objects.all()
-
-
-# class PeeringRoleBulkImportView(generic.BulkImportView):
-#     """Bulk-importing view for multiple PeeringRoles."""
-#
-#     queryset = models.PeeringRole.objects.all()
-#     model_form = forms.PeeringRoleCSVForm
-#     table = tables.PeeringRoleTable
-
-
-class PeeringRoleBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple PeeringRoles."""
-
-    queryset = models.PeeringRole.objects.all()
-    filterset = filters.PeeringRoleFilterSet
-    table = tables.PeeringRoleTable
-    form = forms.PeeringRoleBulkEditForm
-
-
-class PeeringRoleBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple PeeringRoles."""
-
-    queryset = models.PeeringRole.objects.all()
-    filterset = filters.PeeringRoleFilterSet
-    table = tables.PeeringRoleTable
-
-
 class PeerGroupListView(generic.ObjectListView):
     """List/table view of PeerGroup records."""
 
