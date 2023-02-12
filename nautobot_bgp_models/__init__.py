@@ -1,8 +1,9 @@
 """Plugin declaration for nautobot_bgp_models."""
-
 from importlib import metadata
+
 from django.db.models.signals import post_migrate
 from nautobot.extras.plugins import PluginConfig
+
 
 __version__ = metadata.version(__name__)
 
@@ -17,13 +18,13 @@ class NautobotBGPModelsConfig(PluginConfig):
     description = "Nautobot BGP Models Plugin."
     base_url = "bgp"
     required_settings = []
-    min_version = "1.5.4"
-    max_version = "1.999"
+    min_version = "2.0.0b1"
+    max_version = "2.999"
     default_settings = {
         "default_statuses": {
-            "AutonomousSystem": ["active", "available", "planned"],
-            "BGPRoutingInstance": ["planned", "active", "decommissioned"],
-            "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
+            "AutonomousSystem": ["Active", "Available", "Planned"],
+            "BGPRoutingInstance": ["Planned", "Active", "Decommissioned"],
+            "Peering": ["Active", "Decommissioned", "Deprovisioning", "Offline", "Planned", "Provisioning"],
         }
     }
     caching_config = {}

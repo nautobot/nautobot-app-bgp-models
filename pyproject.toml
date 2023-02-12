@@ -19,11 +19,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-nautobot = "^1.5.4"
+python = ">=3.8,<3.12"
+nautobot = "^2.0.0-rc.2"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
+toml = "*"
 black = "*"
 django-debug-toolbar = "*"
 yamllint = "*"

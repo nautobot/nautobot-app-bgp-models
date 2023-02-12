@@ -27,21 +27,6 @@ menu_items = (
                         ),
                     ),
                     NavMenuItem(
-                        link="plugins:nautobot_bgp_models:peeringrole_list",
-                        name="Peering Roles",
-                        permissions=["nautobot_bgp_models.view_peeringrole"],
-                        buttons=(
-                            NavMenuAddButton(
-                                link="plugins:nautobot_bgp_models:peeringrole_add",
-                                permissions=["nautobot_bgp_models.add_peeringrole"],
-                            ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:peeringrole_import",
-                                permissions=["nautobot_bgp_models.add_peeringrole"],
-                            ),
-                        ),
-                    ),
-                    NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergrouptemplate_list",
                         name="Peer Group Templates",
                         permissions=["nautobot_bgp_models.view_peergrouptemplate"],

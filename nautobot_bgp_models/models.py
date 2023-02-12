@@ -6,17 +6,13 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.urls import reverse
 from nautobot.circuits.models import Provider
-from nautobot.core.fields import AutoSlugField
 from nautobot.core.models.generics import PrimaryModel, OrganizationalModel
 from nautobot.dcim.fields import ASNField
-from nautobot.extras.models import StatusModel
-from nautobot.extras.utils import extras_features
-from nautobot.ipam.models import IPAddress
-from nautobot.utilities.choices import ColorChoices
-from nautobot.utilities.fields import ColorField
-from nautobot.utilities.utils import deepmerge
+from nautobot.extras.models import StatusModel, RoleField
+from nautobot.apps.models import extras_features
+from nautobot.ipam.models import IPAddress, IPAddressToInterface
+from nautobot.core.utils.data import deepmerge
 
 from nautobot_bgp_models.choices import AFISAFIChoices
 
@@ -138,8 +134,6 @@ class AutonomousSystem(PrimaryModel, StatusModel):
     description = models.CharField(max_length=200, blank=True)
     provider = models.ForeignKey(to=Provider, on_delete=models.PROTECT, blank=True, null=True)
 
-    csv_headers = ["asn", "description", "status", "provider"]
-
     class Meta:
         ordering = ["asn"]
         verbose_name = "Autonomous system"
@@ -147,49 +141,6 @@ class AutonomousSystem(PrimaryModel, StatusModel):
     def __str__(self):
         """String representation of an AutonomousSystem."""
         return f"AS {self.asn}"
-
-    def get_absolute_url(self):
-        """Get the URL for detailed view of a single AutonomousSystem."""
-        return reverse("plugins:nautobot_bgp_models:autonomoussystem", args=[self.pk])
-
-    def to_csv(self):
-        """Render an AutonomousSystem record to CSV fields."""
-        return self.asn, self.description, self.get_status_display(), self.provider
-
-
-@extras_features(
-    "custom_fields",
-    "custom_links",
-    "custom_validators",
-    "export_templates",
-    "graphql",
-    "relationships",
-    "webhooks",
-)
-class PeeringRole(OrganizationalModel):
-    """Role definition for use with a PeerGroup or PeerEndpoint."""
-
-    name = models.CharField(max_length=100, unique=True)
-    slug = AutoSlugField(populate_from="name")
-    color = ColorField(default=ColorChoices.COLOR_GREY)
-    description = models.CharField(max_length=200, blank=True)
-
-    csv_headers = ["name", "slug", "color", "description"]
-
-    class Meta:
-        verbose_name = "BGP Peering Role"
-
-    def __str__(self):
-        """String representation of a PeeringRole."""
-        return self.name
-
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single PeeringRole."""
-        return reverse("plugins:nautobot_bgp_models:peeringrole", args=[self.slug])
-
-    def to_csv(self):
-        """Render a PeeringRole record to CSV fields."""
-        return self.name, self.slug, self.color, self.description
 
 
 @extras_features(
@@ -227,18 +178,6 @@ class BGPRoutingInstance(PrimaryModel, StatusModel, BGPExtraAttributesMixin):
         on_delete=models.PROTECT,
     )
 
-    csv_headers = [
-        "device",
-        "autonomous_system",
-        "router_id",
-        "status",
-        "description",
-    ]
-
-    def get_absolute_url(self):
-        """Get the URL for detailed view of a single BGPRoutingInstance."""
-        return reverse("plugins:nautobot_bgp_models:bgproutinginstance", args=[self.pk])
-
     def __str__(self):
         """String representation of a BGPRoutingInstance."""
         return f"{self.device} - {self.autonomous_system}"
@@ -246,16 +185,6 @@ class BGPRoutingInstance(PrimaryModel, StatusModel, BGPExtraAttributesMixin):
     class Meta:
         verbose_name = "BGP Routing Instance"
         unique_together = [("device", "autonomous_system")]
-
-    def to_csv(self):
-        """Render an BGPRoutingInstance record to CSV fields."""
-        return (
-            self.device.identifier if self.device else None,
-            self.autonomous_system.asn if self.autonomous_system else None,
-            self.router_id.address if self.router_id else None,
-            self.get_status_display(),
-            self.description,
-        )
 
     def clean(self):
         """Clean."""
@@ -280,9 +209,7 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
 
     enabled = models.BooleanField(default=True)
 
-    role = models.ForeignKey(
-        to=PeeringRole, on_delete=models.PROTECT, related_name="peer_group_templates", blank=True, null=True
-    )
+    role = RoleField(blank=True, null=True)
 
     description = models.CharField(max_length=200, blank=True)
 
@@ -305,26 +232,10 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
         blank=True,
         null=True,
     )
-    csv_headers = ["name", "import_policy", "export_policy", "autonomous_system", "enabled", "role"]
-
-    def to_csv(self):
-        """Render a PeerGroupTemplate record to CSV fields."""
-        return (
-            self.name,
-            self.import_policy,
-            self.export_policy,
-            self.autonomous_system.asn if self.autonomous_system else None,
-            self.enabled,
-            self.role.name if self.role else None,
-        )
 
     def __str__(self):
         """String."""
         return f"{self.name}"
-
-    def get_absolute_url(self):
-        """Get the URL for detailed view of a single PeerGroupTemplate."""
-        return reverse("plugins:nautobot_bgp_models:peergrouptemplate", args=[self.pk])
 
     class Meta:
         verbose_name = "BGP Peer Group Template"
@@ -359,9 +270,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         to=PeerGroupTemplate, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True
     )
 
-    role = models.ForeignKey(
-        to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True
-    )
+    role = RoleField(blank=True, null=True)
 
     description = models.CharField(max_length=200, blank=True)
 
@@ -412,45 +321,14 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         null=True,
     )
 
-    csv_headers = [
-        "name",
-        "routing_instance",
-        "autonomous_system",
-        "import_policy",
-        "export_policy",
-        "source_interface",
-        "source_ip",
-        "peergroup_template",
-        "enabled",
-        "role",
-    ]
-
-    def to_csv(self):
-        """Export data."""
-        return (
-            self.name,
-            self.routing_instance.pk,
-            self.autonomous_system.asn if self.autonomous_system else None,
-            self.import_policy,
-            self.export_policy,
-            self.source_interface.name if self.source_interface else None,
-            self.source_ip.address if self.source_ip else None,
-            self.peergroup_template.name if self.peergroup_template else None,
-            self.enabled,
-            self.role.name if self.role else None,
-        )
-
     def __str__(self):
         """String."""
         return f"{self.name}"
 
-    def get_absolute_url(self):
-        """Get the URL for detailed view of a single PeerGroup."""
-        return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
-
     class Meta:
         unique_together = [("name", "routing_instance")]
         verbose_name = "BGP Peer Group"
+        ordering = ["name"]
 
     def clean(self):
         """Clean."""
@@ -464,7 +342,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         # Ensure IP related to the routing instance
         if self.routing_instance and self.source_ip:
-            if self.source_ip not in IPAddress.objects.filter(interface__device_id=self.routing_instance.device.id):
+            if self.source_ip not in IPAddress.objects.filter(interfaces__device_id=self.routing_instance.device.id):
                 raise ValidationError("Group IP not associated with Routing Instance")
 
 
@@ -480,6 +358,8 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
     """BGP information about single endpoint of a peering."""
 
+    natural_key_field_names = ["id"]
+
     extra_attributes_inheritance = ["peer_group", "peer_group.peergroup_template", "routing_instance"]
     property_inheritance = {
         "autonomous_system": ["peer_group", "peer_group.peergroup_template", "routing_instance"],
@@ -494,7 +374,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     description = models.CharField(max_length=200, blank=True)
 
-    role = models.ForeignKey(to=PeeringRole, on_delete=models.PROTECT, related_name="endpoints", blank=True, null=True)
+    role = RoleField(blank=True, null=True)
 
     enabled = models.BooleanField(default=True)
 
@@ -554,18 +434,6 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         verbose_name="Source Interface",
     )
 
-    csv_headers = [
-        "routing_instance",
-        "peer",
-    ]
-
-    def to_csv(self):
-        """Export data."""
-        return (
-            self.routing_instance,
-            self.peer,
-        )
-
     @property
     def local_ip(self):
         """Compute effective peering endpoint IP address.
@@ -601,16 +469,15 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         null=True,
     )
 
+    class Meta:
+        verbose_name = "BGP Peer Endpoint"
+
     def __str__(self):
         """String."""
         if self.routing_instance and self.routing_instance.device:
             return f"{self.routing_instance.device}"
 
         return f"{self.local_ip} ({self.autonomous_system})"
-
-    def get_absolute_url(self):
-        """Get the URL for detailed view of a single PeerEndpoint."""
-        return reverse("plugins:nautobot_bgp_models:peerendpoint", args=[self.pk])
 
     def clean(self):
         """
@@ -640,10 +507,10 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         # Ensure IP related to the routing instance
         if self.routing_instance:
-            if local_ip_value not in IPAddress.objects.filter(interface__device_id=self.routing_instance.device.id):
+            if local_ip_value not in IPAddress.objects.filter(interfaces__device_id=self.routing_instance.device.id):
                 raise ValidationError("Peer IP not associated with Routing Instance")
         # Enforce Routing Instance if local IP belongs to the Device
-        elif not self.routing_instance and local_ip_value.interface.exists():
+        elif not self.routing_instance and IPAddressToInterface.objects.filter(ip_address=local_ip_value).exists():
             raise ValidationError("Must specify Routing Instance for this IP Address")
 
 
@@ -659,6 +526,8 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 )
 class Peering(OrganizationalModel, StatusModel):
     """Linkage between two PeerEndpoint records."""
+
+    natural_key_field_names = ["id"]
 
     class Meta:
         verbose_name = "BGP Peering"
@@ -676,10 +545,6 @@ class Peering(OrganizationalModel, StatusModel):
     def __str__(self):
         """String representation of a single Peering."""
         return f"{self.endpoint_a} ↔︎ {self.endpoint_z}"
-
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single Peering."""
-        return reverse("plugins:nautobot_bgp_models:peering", args=[self.pk])
 
     def update_peers(self):
         """Update peer field for both PeerEndpoints."""
@@ -718,6 +583,8 @@ class Peering(OrganizationalModel, StatusModel):
 class AddressFamily(OrganizationalModel):
     """Address-family (AFI-SAFI) model."""
 
+    natural_key_field_names = ["routing_instance", "vrf", "afi_safi"]
+
     afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
     vrf = models.ForeignKey(
@@ -746,36 +613,12 @@ class AddressFamily(OrganizationalModel):
         verbose_name = "BGP address family"
         verbose_name_plural = "BGP Address Families"
 
-    csv_headers = [
-        "routing_instance",
-        "vrf",
-        "afi_safi",
-        "import_policy",
-        "export_policy",
-        "multipath",
-    ]
-
-    def to_csv(self):
-        """Export data."""
-        return (
-            self.routing_instance.pk,
-            self.vrf.name if self.vrf else None,
-            self.afi_safi,
-            self.import_policy,
-            self.export_policy,
-            self.multipath,
-        )
-
     def __str__(self):
         """String representation of a single AddressFamily."""
         if self.vrf:
             return f"{self.afi_safi} AF (VRF {self.vrf}) {self.routing_instance.device}"
 
         return f"{self.afi_safi} AF - {self.routing_instance.device}"
-
-    def get_absolute_url(self):
-        """Get the URL for a detailed view of a single AddressFamily."""
-        return reverse("plugins:nautobot_bgp_models:addressfamily", args=[self.pk])
 
     def validate_unique(self, exclude=None):
         """Validate uniqueness."""
