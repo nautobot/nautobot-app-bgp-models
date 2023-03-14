@@ -227,6 +227,8 @@ class BGPRoutingInstance(PrimaryModel, BGPExtraAttributesMixin):
         on_delete=models.PROTECT,
     )
 
+    csv_headers = ["device", "router_id", "autonomous_system"]
+
     def get_absolute_url(self):
         """Get the URL for detailed view of a single BGPRoutingInstance."""
         return reverse("plugins:nautobot_bgp_models:bgproutinginstance", args=[self.pk])
@@ -281,6 +283,7 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
         blank=True,
         null=True,
     )
+    csv_headers = ["name", "import_policy", "export_policy", "autonomous_system", "enabled", "role"]
 
     def __str__(self):
         """String."""
@@ -374,6 +377,17 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         blank=True,
         null=True,
     )
+
+    csv_headers = [
+        "name",
+        "import_policy",
+        "export_policy",
+        "source_interface",
+        "source_ip",
+        "template",
+        "enabled",
+        "role",
+    ]
 
     def __str__(self):
         """String."""
@@ -488,6 +502,8 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         related_name="bgp_peer_endpoints",
         verbose_name="Source Interface",
     )
+
+    csv_headers = [k for k, v in property_inheritance.items()]
 
     @property
     def local_ip(self):
@@ -663,6 +679,8 @@ class AddressFamily(OrganizationalModel):
     export_policy = models.CharField(max_length=100, default="", blank=True)
 
     multipath = models.BooleanField(blank=True, null=True)
+
+    csv_headers = ["afi_safi", "vrf", "routing_instance", "import_policy", "export_policy", "multipath"]
 
     class Meta:
         ordering = ["-routing_instance", "-vrf"]

@@ -34,12 +34,12 @@ class AutonomousSystemFilterForm(
     tag = utilities_forms.TagFilterField(model)
 
 
-# class AutonomousSystemCSVForm(extras_forms.StatusModelCSVFormMixin, extras_forms.CustomFieldModelCSVForm):
-#     """Form for importing AutonomousSystems from CSV data."""
-#
-#     class Meta:
-#         model = models.AutonomousSystem
-#         fields = models.AutonomousSystem.csv_headers
+class AutonomousSystemCSVForm(extras_forms.CSVModelForm):
+    """Form for importing AutonomousSystems from CSV data."""
+
+    class Meta:
+        model = models.AutonomousSystem
+        fields = models.AutonomousSystem.csv_headers
 
 
 class AutonomousSystemBulkEditForm(
@@ -161,6 +161,14 @@ class BGPRoutingInstanceBulkEditForm(
         nullable_fields = [
             "description",
         ]
+
+
+class BGPRoutingInstanceCSVForm(extras_forms.CSVModelForm):
+    """Form for importing BGPRoutingInstance from CSV data."""
+
+    class Meta:
+        model = models.BGPRoutingInstance
+        fields = models.BGPRoutingInstance.csv_headers
 
 
 class PeeringRoleForm(
@@ -369,6 +377,22 @@ class PeerGroupTemplateFilterForm(utilities_forms.BootstrapMixin, extras_forms.C
     )
 
 
+class PeerGroupTemplateCSVForm(extras_forms.CSVModelForm):
+    """Form for importing PeerGroupTemplate from CSV data."""
+
+    class Meta:
+        model = models.PeerGroupTemplate
+        fields = models.PeerGroupTemplate.csv_headers
+
+
+class PeerGroupCSVForm(extras_forms.CSVModelForm):
+    """Form for importing PeerGroup from CSV data."""
+
+    class Meta:
+        model = models.PeerGroup
+        fields = models.PeerGroup.csv_headers
+
+
 class PeerEndpointForm(
     utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
 ):
@@ -457,6 +481,34 @@ class PeerEndpointForm(
             endpoint.peering.update_peers()
 
         return endpoint
+
+
+class PeerEndpointCSVForm(extras_forms.CSVModelForm):
+    """Form for importing PeerEndpoint from CSV data."""
+
+    class Meta:
+        model = models.PeerEndpoint
+        fields = models.PeerEndpoint.csv_headers
+
+
+class PeerEndpointFilterForm(
+    utilities_forms.BootstrapMixin, extras_forms.StatusFilterFormMixin, extras_forms.CustomFieldFilterForm
+):
+    """Form for filtering PeerEndpoint records in combination with PeerEndpointFilterSet."""
+
+    model = models.PeerEndpoint
+    tag = utilities_forms.TagFilterField(model)
+
+
+class PeerEndpointBulkEditForm(
+    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
+):
+    """Form for bulk-editing multiple PeerEndpoint records."""
+
+    pk = forms.ModelMultipleChoiceField(queryset=models.PeerEndpoint.objects.all(), widget=forms.MultipleHiddenInput())
+
+    class Meta:
+        nullable_fields = []
 
 
 class PeeringForm(
@@ -559,3 +611,11 @@ class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.Custo
     )
 
     vrf = utilities_forms.DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
+
+
+class AddressFamilyCSVForm(extras_forms.CSVModelForm):
+    """Form for importing AddressFamily from CSV data."""
+
+    class Meta:
+        model = models.AddressFamily
+        fields = models.AddressFamily.csv_headers
