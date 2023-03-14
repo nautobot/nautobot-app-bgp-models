@@ -129,6 +129,7 @@ class PeerGroupTestCase(TestCase):
             description="Hello World!",
             autonomous_system=cls.asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
         models.PeerGroup.objects.create(
@@ -231,6 +232,7 @@ class PeerEndpointTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn,
             device=device,
+            status=status_active,
         )
 
         cls.peergroup = models.PeerGroup.objects.create(
@@ -331,6 +333,7 @@ class PeeringTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn1,
             device=device1,
+            status=status_active,
         )
 
         interfaces_device1 = [
@@ -499,6 +502,7 @@ class AddressFamilyTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn1,
             device=device1,
+            status=status_active,
         )
 
         cls.peergroup = models.PeerGroup.objects.create(

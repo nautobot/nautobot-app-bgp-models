@@ -28,6 +28,7 @@ class NautobotBGPModelsConfig(PluginConfig):
     default_settings = {
         "default_statuses": {
             "AutonomousSystem": ["active", "available", "planned"],
+            "BGPRoutingInstance": ["planned", "active", "decommissioned"],
             "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
         }
     }

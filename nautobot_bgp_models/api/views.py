@@ -2,7 +2,7 @@
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from nautobot.extras.api.views import CustomFieldModelViewSet, StatusViewSetMixin
+from nautobot.extras.api.views import NautobotModelViewSet, StatusViewSetMixin
 from nautobot.utilities.utils import dynamic_import
 
 from nautobot_bgp_models import filters
@@ -11,7 +11,7 @@ from nautobot_bgp_models.api.filter_backends import IncludeInheritedFilterBacken
 from . import serializers
 
 
-class PluginModelViewSet(CustomFieldModelViewSet):
+class PluginModelViewSet(NautobotModelViewSet):
     """Base class for all REST API viewsets in this plugin."""
 
     def get_serializer_class(self):

@@ -1,9 +1,11 @@
 """Unit tests for nautobot_bgp_models."""  # pylint: disable=too-many-lines
+
 from unittest import skip
 from rest_framework import status
 from django.test import override_settings
 
 from django.contrib.contenttypes.models import ContentType
+
 from nautobot.circuits.models import Provider
 from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
@@ -52,10 +54,6 @@ class AutonomousSystemAPITestCase(APIViewTestCases.APIViewTestCase):
             {"asn": 4294967294, "status": "active", "description": "Reserved for private use"},
         ]
 
-    @skip("Not implemented")
-    def test_notes_url_on_object(self):
-        pass
-
 
 class PeeringRoleAPITestCase(APIViewTestCases.APIViewTestCase):
     """Test the PeeringRole API."""
@@ -77,10 +75,6 @@ class PeeringRoleAPITestCase(APIViewTestCases.APIViewTestCase):
         models.PeeringRole.objects.create(name="Alpha", slug="alpha", color="ff0000")
         models.PeeringRole.objects.create(name="Beta", slug="beta", color="00ff00")
         models.PeeringRole.objects.create(name="Gamma", slug="gamma", color="0000ff")
-
-    @skip("Not implemented")
-    def test_notes_url_on_object(self):
-        pass
 
 
 class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
@@ -178,10 +172,6 @@ class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
         # Ensure extra_attributes are as on the model
         self.assertEqual(extra_attrs, pgt1_ea)
 
-    @skip("Not implemented")
-    def test_notes_url_on_object(self):
-        pass
-
 
 class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
     """Test the BGPRoutingInstance API."""
@@ -193,6 +183,8 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
         "description": "Glenn was here.",
     }
 
+    choices_fields = ["status"]
+
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     validation_excluded_fields = ["status"]
 
@@ -200,6 +192,7 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
     def setUpTestData(cls):  # pylint: disable=too-many-locals
         status_active = Status.objects.get(slug="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+        status_active.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
 
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
@@ -240,6 +233,7 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
                 "device": device_1.pk,
                 "router_id": address.pk,
                 "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+                "status": "active",
             },
         ]
 
@@ -253,14 +247,17 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
             device=device_2,
             autonomous_system=asn_5616,
             extra_attributes={"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+            status=status_active,
         )
         models.BGPRoutingInstance.objects.create(
             device=device_3,
             autonomous_system=asn_8545,
+            status=status_active,
         )
         models.BGPRoutingInstance.objects.create(
             device=device_4,
             autonomous_system=asn_15521,
+            status=status_active,
         )
 
         cls.maxDiff = None
@@ -349,6 +346,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             autonomous_system=asn_8545,
             device=device,
             extra_attributes={"ri_key": "ri_value", "ri_nk": {"ri_nk": "ri_nv", "ri_nk2": "ri_nv2"}},
+            status=status_active,
         )
 
         cls.create_data = [
@@ -400,7 +398,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             role=peeringrole,
             routing_instance=bgp_routing_instance,
             extra_attributes={"pg_key": "pg_value", "ri_nk": {"pg_nk": "pg_nv", "ri_nk2": "pg_nv2"}},
-            template=pgt1,
+            peergroup_template=pgt1,
         )
 
         models.PeerGroup.objects.create(name="Group 2", role=peeringrole, routing_instance=bgp_routing_instance)
@@ -622,6 +620,7 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             description="Hello World!",
             autonomous_system=cls.asn,
             device=device,
+            status=cls.status_active,
         )
 
         cls.pgt1 = models.PeerGroupTemplate.objects.create(
@@ -633,7 +632,7 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             name="Group 1",
             role=cls.peeringrole,
             routing_instance=cls.bgp_routing_instance,
-            template=cls.pgt1,
+            peergroup_template=cls.pgt1,
             extra_attributes={"pg_key": "pg_value"},
             # vrf=cls.vrf,
             # router_id=cls.addresses[3],
@@ -688,10 +687,6 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
         ]
 
         cls.maxDiff = None
-
-    @skip("Not implemented")
-    def test_notes_url_on_object(self):
-        pass
 
     @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
     def test_peerendpoint_inherits_extra_attributes(self):
@@ -904,10 +899,6 @@ class PeeringAPITestCase(APIViewTestCases.APIViewTestCase):
             "status": "provisioning",
         }
 
-    @skip("Not implemented")
-    def test_notes_url_on_object(self):
-        pass
-
 
 class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
     """Test the AddressFamily API."""
@@ -945,6 +936,7 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             description="Hello World!",
             autonomous_system=asn_8545,
             device=device,
+            status=status_active,
         )
 
         # interface_1 = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
@@ -1020,10 +1012,6 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             "import_policy": "IMPORT_V4",
             "export_policy": "EXPORT_V4",
         }
-
-    @skip("Not implemented")
-    def test_notes_url_on_object(self):
-        pass
 
 
 #     @override_settings(EXEMPT_VIEW_PERMISSIONS=[])

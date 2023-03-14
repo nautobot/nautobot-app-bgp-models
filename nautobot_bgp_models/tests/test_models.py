@@ -32,7 +32,7 @@ class AutonomousSystemTestCase(TestCase):
 
     def test_to_csv(self):
         """Test CSV representation of an AutonomousSystem."""
-        self.assertEqual(self.autonomous_system.to_csv(), (15521, "Hi ex Premium Internet AS!", "Active"))
+        self.assertEqual(self.autonomous_system.to_csv(), (15521, "Hi ex Premium Internet AS!", "Active", None))
 
 
 class PeeringRoleTestCase(TestCase):
@@ -85,11 +85,16 @@ class BGPRoutingInstanceTestCase(TestCase):
             description="Hello World!",
             autonomous_system=self.autonomous_system_8545,
             device=self.device_1,
+            status=self.status_active,
         )
 
     def test_str(self):
         """Test string representation of a PeerGroup."""
         self.assertEqual(str(self.bgp_routing_instance), f"{self.device_1} - {self.autonomous_system_8545}")
+
+    def test_to_csv(self):
+        """Test CSV representation of a BGPRoutingInstance."""
+        self.assertEqual(self.bgp_routing_instance.to_csv(), ("Device 1", 8545, None, "Active", "Hello World!"))
 
 
 class PeerGroupTestCase(TestCase):
@@ -121,6 +126,7 @@ class PeerGroupTestCase(TestCase):
             description="Hello World!",
             autonomous_system=autonomous_system_5616,
             device=device_1,
+            status=status_active,
         )
 
     def setUp(self):
@@ -132,6 +138,12 @@ class PeerGroupTestCase(TestCase):
     def test_str(self):
         """Test string representation of a PeerGroup."""
         self.assertEqual(str(self.peergroup), f"{self.peergroup.name}")
+
+    def test_to_csv(self):
+        """Test CSV representation of a PeerGroup."""
+        self.assertEqual(
+            self.peergroup.to_csv(), ("Peer Group A", "Device 1", None, "", "", None, None, None, True, None)
+        )
 
     # def test_vrf_fixup_from_router_id(self):
     #     """If VRF is None, but the router-id references a VRF, use that."""
@@ -187,6 +199,7 @@ class PeerEndpointTestCase(TestCase):
             description="BGP Routing Instance for device 1",
             autonomous_system=autonomous_system_12345,
             device=device_1,
+            status=status_active,
         )
         cls.bgp_routing_instance_1 = bgp_routing_instance_1
 
@@ -194,6 +207,7 @@ class PeerEndpointTestCase(TestCase):
             description="BGP Routing Instance for device 2",
             autonomous_system=autonomous_system_12345,
             device=device_2,
+            status=status_active,
         )
         cls.bgp_routing_instance_2 = bgp_routing_instance_2
 
@@ -400,6 +414,7 @@ class AddressFamilyTestCase(TestCase):
             description="BGP Routing Instance for device 1",
             autonomous_system=self.autonomous_system_12345,
             device=self.device,
+            status=self.status_active,
         )
 
         # interface = Interface.objects.create(device=self.device, name="Loopback1")
@@ -432,6 +447,10 @@ class AddressFamilyTestCase(TestCase):
         """Test the string representation of an AddressFamily."""
         self.assertEqual("ipv4_unicast AF - Device 1", str(self.addressfamily_1))
         self.assertEqual("ipv4_unicast AF (VRF global) Device 1", str(self.addressfamily_2))
+
+    def test_to_csv(self):
+        """Test CSV representation of a AddressFamily."""
+        self.assertEqual(self.addressfamily_1.to_csv(), ("Device 1", None, "ipv4_unicast", "", "", None))
 
 
 #     def test_peer_group_peer_endpoint_mutual_exclusion(self):
