@@ -80,7 +80,7 @@ def docker_compose(context, command, **kwargs):
         "NAUTOBOT_VER": context.nautobot_bgp_models.nautobot_ver,
         "PYTHON_VER": context.nautobot_bgp_models.python_ver,
     }
-    compose_command = f'docker-compose --project-name {context.nautobot_bgp_models.project_name} --project-directory "{context.nautobot_bgp_models.compose_dir}"'
+    compose_command = f'docker compose --project-name {context.nautobot_bgp_models.project_name} --project-directory "{context.nautobot_bgp_models.compose_dir}"'
     for compose_file in context.nautobot_bgp_models.compose_files:
         compose_file_path = os.path.join(context.nautobot_bgp_models.compose_dir, compose_file)
         compose_command += f' -f "{compose_file_path}"'
