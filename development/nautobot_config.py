@@ -95,9 +95,6 @@ CACHES = {
 # RQ_QUEUES is not set here because it just uses the default that gets imported
 # up top via `from nautobot.core.settings import *`.
 
-# Redis Cacheops
-CACHEOPS_REDIS = parse_redis_connection(redis_database=1)
-
 # This key is used for secure generation of random numbers and strings. It must never be exposed outside of this file.
 # For optimal security, SECRET_KEY should be at least 50 characters in length and contain a mix of letters, numbers, and
 # symbols. Nautobot will not run without this defined. For more information, see
@@ -142,12 +139,6 @@ BANNER_BOTTOM = os.environ.get("BANNER_BOTTOM", "")
 
 # Text to include on the login page above the login form. HTML is allowed.
 BANNER_LOGIN = os.environ.get("BANNER_LOGIN", "")
-
-# Cache timeout in seconds. Cannot be 0. Defaults to 900 (15 minutes). To disable caching, set CACHEOPS_ENABLED to False
-CACHEOPS_DEFAULTS = {"timeout": 900}
-
-# Set to False to disable caching with cacheops. (Default: True)
-CACHEOPS_ENABLED = False
 
 # Maximum number of days to retain logged changes. Set to 0 to retain changes indefinitely. (Default: 90)
 CHANGELOG_RETENTION = int(os.environ.get("CHANGELOG_RETENTION", 90))
