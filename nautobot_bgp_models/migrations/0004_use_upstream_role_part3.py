@@ -24,4 +24,19 @@ class Migration(migrations.Migration):
         migrations.DeleteModel(
             name="PeeringRole",
         ),
+        migrations.RenameField(
+            model_name="peergroup",
+            old_name="role_new",
+            new_name="role",
+        ),
+        migrations.RenameField(
+            model_name="peergrouptemplate",
+            old_name="role_new",
+            new_name="role",
+        ),
+        migrations.RenameField(
+            model_name="peerendpoint",
+            old_name="role_new",
+            new_name="role",
+        ),
     ]

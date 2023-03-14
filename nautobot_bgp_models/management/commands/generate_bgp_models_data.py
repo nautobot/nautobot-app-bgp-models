@@ -1,7 +1,4 @@
 """Generate BGP data."""
-
-import itertools
-from datetime import datetime
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
 from django.db.models import Q
@@ -11,7 +8,6 @@ from nautobot.dcim.models import Cable, Device, Site, Interface
 from nautobot.extras.choices import RelationshipTypeChoices
 from nautobot.extras.models import Status, Relationship, RelationshipAssociation, Role
 from nautobot.ipam.models import Prefix, IPAddress
-from nautobot_bgp_models.choices import AFISAFIChoices
 from nautobot_bgp_models.models import (
     AutonomousSystem,
     BGPRoutingInstance,
@@ -19,7 +15,6 @@ from nautobot_bgp_models.models import (
     Peering,
     PeerGroup,
     PeerGroupTemplate,
-    AddressFamily,
 )
 
 PUBLIC_ASN = 65535
@@ -198,7 +193,7 @@ def get_next_circuit_prefix():
 
             # Check if the prefix is already associated with a circuit, if not it's available
             try:
-                rel = RelationshipAssociation.objects.get(relationship=rel_prefix_circuit, destination_id=prefix.id)
+                RelationshipAssociation.objects.get(relationship=rel_prefix_circuit, destination_id=prefix.id)
             except RelationshipAssociation.DoesNotExist:
                 return prefix
 
@@ -315,7 +310,7 @@ class Command(BaseCommand):
                 )
 
                 for pg in EDGE_PEER_GROUPS:
-                    ri_pg = PeerGroup.objects.get_or_create(
+                    PeerGroup.objects.get_or_create(
                         name=pg["name"],
                         template=PeerGroupTemplate.objects.get(name=pg["template__name"]),
                         routing_instance=ri,
@@ -359,7 +354,7 @@ class Command(BaseCommand):
                     )
 
                     for pg in LEAF_PEER_GROUPS:
-                        ri_pg = PeerGroup.objects.get_or_create(
+                        PeerGroup.objects.get_or_create(
                             name=pg["name"],
                             template=PeerGroupTemplate.objects.get(name=pg["template__name"]),
                             routing_instance=ri,

@@ -13,7 +13,7 @@ from nautobot.extras.filters import (
 )
 from nautobot.ipam.models import VRF
 from nautobot.apps.filters import BaseFilterSet
-from nautobot.core.filters import NameSlugSearchFilterSet, TagFilter
+from nautobot.core.filters import TagFilter
 
 from . import choices, models
 

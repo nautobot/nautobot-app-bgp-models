@@ -5,8 +5,8 @@ from django.test import TestCase
 
 # from nautobot.circuits.models import Provider
 from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
-from nautobot.extras.models import Status
+from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Site
+from nautobot.extras.models import Status, Role
 from nautobot.ipam.models import IPAddress
 
 
@@ -57,48 +57,6 @@ class AutonomousSystemTestCase(TestCase):
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
 
-class PeeringRoleTestCase(TestCase):
-    """Test filtering of PeeringRole records."""
-
-    queryset = models.PeeringRole.objects.all()
-    filterset = filters.PeeringRoleFilterSet
-
-    @classmethod
-    def setUpTestData(cls):
-        """One-time class setup to prepopulate required data for tests."""
-        models.PeeringRole.objects.create(name="Alpha", slug="alpha", color="ff0000", description="Actually omega")
-        models.PeeringRole.objects.create(name="Beta", slug="beta", color="00ff00")
-        models.PeeringRole.objects.create(name="Gamma", slug="gamma", color="0000ff")
-
-    def test_search(self):
-        """Test text search."""
-        # Match on name/slug (case-insensitive)
-        self.assertEqual(self.filterset({"q": "Alpha"}, self.queryset).qs.count(), 1)
-        self.assertEqual(self.filterset({"q": "ALPHA"}, self.queryset).qs.count(), 1)
-        # Match on description
-        self.assertEqual(self.filterset({"q": "actually"}, self.queryset).qs.count(), 1)
-
-    def test_id(self):
-        """Test filtering by ID (primary key)."""
-        params = {"id": self.queryset.values_list("pk", flat=True)[:2]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_name(self):
-        """Test filtering by name field."""
-        params = {"name": ["Alpha", "Beta"]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_slug(self):
-        """Test filtering by slug field."""
-        params = {"slug": ["alpha", "gamma"]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-    def test_color(self):
-        """Test filtering by color field."""
-        params = {"color": ["ff0000", "0000ff"]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
-
 class PeerGroupTestCase(TestCase):
     """Test filtering of PeerGroup records."""
 
@@ -114,16 +72,19 @@ class PeerGroupTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", site=site, status=status_active
         )
 
         cls.asn_1 = models.AutonomousSystem.objects.create(asn=4294967294, status=status_active)
         asn_2 = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
 
-        cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
-        peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
+        cls.peeringrole_internal = Role.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
+        peeringrole_external = Role.objects.create(name="External", slug="external", color="ffffff")
+        peeringrole_external.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
             description="Hello World!",
@@ -207,14 +168,16 @@ class PeerEndpointTestCase(TestCase):
         asn = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
         # asn_15521 = models.AutonomousSystem.objects.create(asn=15521, status=status_active, provider=provider)
 
-        peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
+        peeringrole = Role.objects.create(name="Internal", slug="internal", color="ffffff")
+        peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         cls.site = Site.objects.create(name="Site 1", slug="site-1")
-        cls.devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        cls.devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        cls.devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         device = Device.objects.create(
             device_type=cls.devicetype,
-            device_role=cls.devicerole,
+            role=cls.devicerole,
             name="Device 1",
             site=cls.site,
             status=status_active,
@@ -312,17 +275,18 @@ class PeeringTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         device1 = Device.objects.create(
             device_type=devicetype,
-            device_role=devicerole,
+            role=devicerole,
             name="device1",
             site=site,
             status=status_active,
         )
         # device2 = Device.objects.create(
         #     device_type=devicetype,
-        #     device_role=devicerole,
+        #     role=devicerole,
         #     name="device2",
         #     site=site,
         #     status=status_active
@@ -484,14 +448,16 @@ class AddressFamilyTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         device1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", site=site, status=status_active
         )
         interface = Interface.objects.create(device=device1, name="Loopback1")
         address = IPAddress.objects.create(address="1.1.1.1/32", status=status_active, assigned_object=interface)
 
-        peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
+        peeringrole = Role.objects.create(name="Internal", slug="internal", color="ffffff")
+        peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         asn1 = models.AutonomousSystem.objects.create(asn=65000, status=status_active)
 

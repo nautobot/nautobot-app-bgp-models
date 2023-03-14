@@ -300,3 +300,6 @@ creds.env
 
 # Invoke overrides
 invoke.yml
+
+# MKDocs Build
+nautobot_bgp_models/static/nautobot_bgp_models/docs

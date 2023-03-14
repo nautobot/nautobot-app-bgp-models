@@ -4,8 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from nautobot.circuits.models import Provider
-from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
-from nautobot.extras.models import Status
+from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Site
+from nautobot.extras.models import Status, Role
 from nautobot.ipam.models import IPAddress
 
 from nautobot_bgp_models import models, forms
@@ -59,9 +59,10 @@ class PeerGroupFormTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", site=site, status=status_active
         )
         cls.interface_1 = Interface.objects.create(device=cls.device_1, name="Loopback1")
         cls.ip = IPAddress.objects.create(address="1.1.1.2/32", status=status_active, assigned_object=cls.interface_1)
@@ -71,7 +72,8 @@ class PeerGroupFormTestCase(TestCase):
         # cls.virtualmachine_1 = VirtualMachine.objects.create(name="VM 1", cluster=cluster, status=status_active)
         # cls.vminterface_1 = VMInterface.objects.create(name="eth0", virtual_machine=cls.virtualmachine_1)
 
-        cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole_internal = Role.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         asn_1 = models.AutonomousSystem.objects.create(asn=4294967294, status=status_active)
 
@@ -156,9 +158,10 @@ class PeerEndpointFormTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", site=site, status=status_active
         )
         cls.interface_1 = Interface.objects.create(device=cls.device_1, name="Loopback1")
 
@@ -188,7 +191,8 @@ class PeerEndpointFormTestCase(TestCase):
         # cls.virtualmachine_1 = VirtualMachine.objects.create(name="VM 1", cluster=cluster, status=status_active)
         # cls.vminterface_1 = VMInterface.objects.create(name="eth0", virtual_machine=cls.virtualmachine_1)
 
-        cls.peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole = Role.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerEndpoint))
 
         cls.peering = models.Peering.objects.create(
             status=status_active,
@@ -274,9 +278,10 @@ class AddressFamilyFormTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole = Role.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", site=site, status=status_active
         )
 
         cls.asn_1 = models.AutonomousSystem.objects.create(asn=4294967292, status=status_active)

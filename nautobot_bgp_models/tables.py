@@ -12,7 +12,6 @@ from nautobot.apps.tables import (
     TagColumn,
     ToggleColumn,
 )
-from nautobot.core.tables import ColorColumn
 
 from . import models
 
