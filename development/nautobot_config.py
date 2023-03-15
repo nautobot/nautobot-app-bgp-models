@@ -11,6 +11,7 @@ import sys
 from distutils.util import strtobool
 from django.core.exceptions import ImproperlyConfigured
 from nautobot.core import settings
+from nautobot.core.settings_funcs import parse_redis_connection
 
 # Enforce required configuration parameters
 for key in [
@@ -83,7 +84,7 @@ if REDIS_SSL:
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_SCHEME}://{REDIS_HOST}:{REDIS_PORT}/0",
+        "LOCATION": parse_redis_connection(redis_database=0),
         "TIMEOUT": 300,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
@@ -94,9 +95,6 @@ CACHES = {
 
 # RQ_QUEUES is not set here because it just uses the default that gets imported
 # up top via `from nautobot.core.settings import *`.
-
-# REDIS CACHEOPS
-CACHEOPS_REDIS = f"{REDIS_SCHEME}://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1"
 
 # This key is used for secure generation of random numbers and strings. It must never be exposed outside of this file.
 # For optimal security, SECRET_KEY should be at least 50 characters in length and contain a mix of letters, numbers, and
@@ -142,12 +140,6 @@ BANNER_BOTTOM = os.environ.get("BANNER_BOTTOM", "")
 
 # Text to include on the login page above the login form. HTML is allowed.
 BANNER_LOGIN = os.environ.get("BANNER_LOGIN", "")
-
-# Cache timeout in seconds. Cannot be 0. Defaults to 900 (15 minutes). To disable caching, set CACHEOPS_ENABLED to False
-CACHEOPS_DEFAULTS = {"timeout": 900}
-
-# Set to False to disable caching with cacheops. (Default: True)
-CACHEOPS_ENABLED = True
 
 # Maximum number of days to retain logged changes. Set to 0 to retain changes indefinitely. (Default: 90)
 CHANGELOG_RETENTION = int(os.environ.get("CHANGELOG_RETENTION", 90))

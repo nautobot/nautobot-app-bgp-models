@@ -3,6 +3,7 @@
 import nautobot.extras.forms as extras_forms
 import nautobot.utilities.forms as utilities_forms
 from django import forms
+from nautobot.apps.forms import CSVModelForm, NautobotModelForm, NautobotBulkEditForm
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, Interface
 from nautobot.extras.models import Tag, Secret
@@ -11,9 +12,7 @@ from nautobot.ipam.models import VRF, IPAddress
 from . import choices, models
 
 
-class AutonomousSystemForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class AutonomousSystemForm(NautobotModelForm):
     """Form for creating/updating AutonomousSystem records."""
 
     tags = utilities_forms.DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
@@ -24,9 +23,7 @@ class AutonomousSystemForm(
         fields = ("asn", "description", "provider", "status", "tags")
 
 
-class AutonomousSystemFilterForm(
-    utilities_forms.BootstrapMixin, extras_forms.StatusFilterFormMixin, extras_forms.CustomFieldFilterForm
-):
+class AutonomousSystemFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering AutonomousSystem records in combination with AutonomousSystemFilterSet."""
 
     model = models.AutonomousSystem
@@ -34,7 +31,7 @@ class AutonomousSystemFilterForm(
     tag = utilities_forms.TagFilterField(model)
 
 
-class AutonomousSystemCSVForm(extras_forms.CSVModelForm):
+class AutonomousSystemCSVForm(CSVModelForm):
     """Form for importing AutonomousSystems from CSV data."""
 
     class Meta:
@@ -42,9 +39,7 @@ class AutonomousSystemCSVForm(extras_forms.CSVModelForm):
         fields = models.AutonomousSystem.csv_headers
 
 
-class AutonomousSystemBulkEditForm(
-    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
-):
+class AutonomousSystemBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple AutonomousSystem records."""
 
     pk = forms.ModelMultipleChoiceField(
@@ -58,9 +53,7 @@ class AutonomousSystemBulkEditForm(
         ]
 
 
-class BGPRoutingInstanceForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class BGPRoutingInstanceForm(NautobotModelForm):
     """Form for creating/updating BGPRoutingInstance records."""
 
     def __init__(self, *args, **kwargs):
@@ -117,7 +110,7 @@ class BGPRoutingInstanceForm(
         fields = ("device", "autonomous_system", "description", "router_id", "template", "tags", "extra_attributes")
 
 
-class BGPRoutingInstanceFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class BGPRoutingInstanceFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering BGPRoutingInstance records in combination with BGPRoutingInstanceFilterSet."""
 
     q = forms.CharField(required=False, label="Search")
@@ -147,9 +140,7 @@ class BGPRoutingInstanceFilterForm(utilities_forms.BootstrapMixin, extras_forms.
     ]
 
 
-class BGPRoutingInstanceBulkEditForm(
-    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
-):
+class BGPRoutingInstanceBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple BGPRoutingInstance records."""
 
     pk = forms.ModelMultipleChoiceField(
@@ -163,7 +154,7 @@ class BGPRoutingInstanceBulkEditForm(
         ]
 
 
-class BGPRoutingInstanceCSVForm(extras_forms.CSVModelForm):
+class BGPRoutingInstanceCSVForm(CSVModelForm):
     """Form for importing BGPRoutingInstance from CSV data."""
 
     class Meta:
@@ -171,9 +162,7 @@ class BGPRoutingInstanceCSVForm(extras_forms.CSVModelForm):
         fields = models.BGPRoutingInstance.csv_headers
 
 
-class PeeringRoleForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class PeeringRoleForm(NautobotModelForm):
     """Form for creating/updating PeeringRole records."""
 
     slug = utilities_forms.SlugField()
@@ -183,7 +172,7 @@ class PeeringRoleForm(
         fields = ("name", "slug", "color", "description")
 
 
-class PeeringRoleFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class PeeringRoleFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering PeeringRole records in combination with PeeringRoleFilterSet."""
 
     model = models.PeeringRole
@@ -191,7 +180,7 @@ class PeeringRoleFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomF
     color = forms.CharField(max_length=6, required=False, widget=utilities_forms.ColorSelect())
 
 
-class PeeringRoleCSVForm(extras_forms.CustomFieldModelCSVForm):
+class PeeringRoleCSVForm(CSVModelForm):
     """Form for importing PeeringRole records from CSV data."""
 
     class Meta:
@@ -199,7 +188,7 @@ class PeeringRoleCSVForm(extras_forms.CustomFieldModelCSVForm):
         fields = models.PeeringRole.csv_headers
 
 
-class PeeringRoleBulkEditForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldBulkEditForm):
+class PeeringRoleBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple PeeringRole records."""
 
     pk = forms.ModelMultipleChoiceField(queryset=models.PeeringRole.objects.all(), widget=forms.MultipleHiddenInput())
@@ -212,9 +201,7 @@ class PeeringRoleBulkEditForm(utilities_forms.BootstrapMixin, extras_forms.Custo
         ]
 
 
-class PeerGroupForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class PeerGroupForm(NautobotModelForm):
     """Form for creating/updating PeerGroup records."""
 
     def __init__(self, *args, **kwargs):
@@ -276,9 +263,7 @@ class PeerGroupForm(
         )
 
 
-class PeerGroupBulkEditForm(
-    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
-):
+class PeerGroupBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple PeerGroup records."""
 
     pk = forms.ModelMultipleChoiceField(
@@ -292,9 +277,7 @@ class PeerGroupBulkEditForm(
         ]
 
 
-class PeerGroupTemplateForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class PeerGroupTemplateForm(NautobotModelForm):
     """Form for creating/updating PeerGroup records."""
 
     autonomous_system = utilities_forms.DynamicModelChoiceField(
@@ -321,9 +304,7 @@ class PeerGroupTemplateForm(
         )
 
 
-class PeerGroupTemplateBulkEditForm(
-    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
-):
+class PeerGroupTemplateBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple PeerGroupTemplate records."""
 
     pk = forms.ModelMultipleChoiceField(
@@ -337,7 +318,7 @@ class PeerGroupTemplateBulkEditForm(
         ]
 
 
-class PeerGroupFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class PeerGroupFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering PeerGroup records in combination with PeerGroupFilterSet."""
 
     model = models.PeerGroup
@@ -357,7 +338,7 @@ class PeerGroupFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFie
     )
 
 
-class PeerGroupTemplateFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class PeerGroupTemplateFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
 
     model = models.PeerGroup
@@ -377,7 +358,7 @@ class PeerGroupTemplateFilterForm(utilities_forms.BootstrapMixin, extras_forms.C
     )
 
 
-class PeerGroupTemplateCSVForm(extras_forms.CSVModelForm):
+class PeerGroupTemplateCSVForm(CSVModelForm):
     """Form for importing PeerGroupTemplate from CSV data."""
 
     class Meta:
@@ -385,7 +366,7 @@ class PeerGroupTemplateCSVForm(extras_forms.CSVModelForm):
         fields = models.PeerGroupTemplate.csv_headers
 
 
-class PeerGroupCSVForm(extras_forms.CSVModelForm):
+class PeerGroupCSVForm(CSVModelForm):
     """Form for importing PeerGroup from CSV data."""
 
     class Meta:
@@ -393,9 +374,7 @@ class PeerGroupCSVForm(extras_forms.CSVModelForm):
         fields = models.PeerGroup.csv_headers
 
 
-class PeerEndpointForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class PeerEndpointForm(NautobotModelForm):
     """Form for creating/updating PeerEndpoint records."""
 
     def __init__(self, *args, **kwargs):
@@ -483,7 +462,7 @@ class PeerEndpointForm(
         return endpoint
 
 
-class PeerEndpointCSVForm(extras_forms.CSVModelForm):
+class PeerEndpointCSVForm(CSVModelForm):
     """Form for importing PeerEndpoint from CSV data."""
 
     class Meta:
@@ -491,18 +470,14 @@ class PeerEndpointCSVForm(extras_forms.CSVModelForm):
         fields = models.PeerEndpoint.csv_headers
 
 
-class PeerEndpointFilterForm(
-    utilities_forms.BootstrapMixin, extras_forms.StatusFilterFormMixin, extras_forms.CustomFieldFilterForm
-):
+class PeerEndpointFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering PeerEndpoint records in combination with PeerEndpointFilterSet."""
 
     model = models.PeerEndpoint
     tag = utilities_forms.TagFilterField(model)
 
 
-class PeerEndpointBulkEditForm(
-    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
-):
+class PeerEndpointBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple PeerEndpoint records."""
 
     pk = forms.ModelMultipleChoiceField(queryset=models.PeerEndpoint.objects.all(), widget=forms.MultipleHiddenInput())
@@ -511,9 +486,7 @@ class PeerEndpointBulkEditForm(
         nullable_fields = []
 
 
-class PeeringForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class PeeringForm(NautobotModelForm):
     """Form for creating/updating Peering records."""
 
     class Meta:
@@ -521,9 +494,7 @@ class PeeringForm(
         fields = ("status",)
 
 
-class PeeringFilterForm(
-    utilities_forms.BootstrapMixin, extras_forms.StatusFilterFormMixin, extras_forms.CustomFieldFilterForm
-):
+class PeeringFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering Peering records in combination with PeeringFilterSet."""
 
     model = models.Peering
@@ -542,9 +513,7 @@ class PeeringFilterForm(
     )
 
 
-class AddressFamilyForm(
-    utilities_forms.BootstrapMixin, extras_forms.CustomFieldModelForm, extras_forms.RelationshipModelForm
-):
+class AddressFamilyForm(NautobotModelForm):
     """Form for creating/updating AddressFamily records."""
 
     routing_instance = utilities_forms.DynamicModelChoiceField(
@@ -581,9 +550,7 @@ class AddressFamilyForm(
         )
 
 
-class AddressFamilyBulkEditForm(
-    utilities_forms.BootstrapMixin, extras_forms.AddRemoveTagsForm, extras_forms.CustomFieldBulkEditForm
-):
+class AddressFamilyBulkEditForm(NautobotBulkEditForm):
     """Form for bulk-editing multiple AddressFamily records."""
 
     pk = forms.ModelMultipleChoiceField(
@@ -594,7 +561,7 @@ class AddressFamilyBulkEditForm(
         nullable_fields = []
 
 
-class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.CustomFieldFilterForm):
+class AddressFamilyFilterForm(extras_forms.NautobotFilterForm):
     """Form for filtering AddressFamily records in combination with AddressFamilyFilterSet."""
 
     model = models.AddressFamily
@@ -613,7 +580,7 @@ class AddressFamilyFilterForm(utilities_forms.BootstrapMixin, extras_forms.Custo
     vrf = utilities_forms.DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
 
 
-class AddressFamilyCSVForm(extras_forms.CSVModelForm):
+class AddressFamilyCSVForm(CSVModelForm):
     """Form for importing AddressFamily from CSV data."""
 
     class Meta:

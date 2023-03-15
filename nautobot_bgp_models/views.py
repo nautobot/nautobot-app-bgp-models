@@ -7,8 +7,8 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import View
 
-from nautobot.core.views import NautobotUIViewSet
-from nautobot.core.view import mixins
+from nautobot.apps.views import NautobotUIViewSet
+from nautobot.core.views import mixins
 from nautobot.core.views import generic
 
 from . import filters, forms, models, tables
@@ -99,7 +99,7 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerEndpointTable
 
 
-class PeeringUIViewSet(
+class PeeringUIViewSet(  # pylint: disable=abstract-method
     mixins.ObjectDestroyViewMixin,
     mixins.ObjectEditViewMixin,
     mixins.ObjectChangeLogViewMixin,
