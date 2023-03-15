@@ -241,6 +241,10 @@ class BGPRoutingInstance(PrimaryModel, BGPExtraAttributesMixin):
         verbose_name = "BGP Routing Instance"
         unique_together = [("device", "autonomous_system")]
 
+    def to_csv(self):
+        """Render an BGPRoutingInstance record to CSV fields."""
+        return self.device.id, self.router_id, self.autonomous_system.id
+
 
 @extras_features(
     "custom_fields",
@@ -321,7 +325,8 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     name = models.CharField(max_length=100)
 
-    template = models.ForeignKey(
+    # Rename to avoid clash with DRF renderer
+    peergroup_template = models.ForeignKey(
         to=PeerGroupTemplate, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True
     )
 
@@ -384,10 +389,15 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "export_policy",
         "source_interface",
         "source_ip",
-        "template",
+        "peergroup_template",
         "enabled",
         "role",
+        "routing_instance",
     ]
+
+    def to_csv(self):
+        """Export data."""
+        return (getattr(self, i) for i in self.csv_headers if i)
 
     def __str__(self):
         """String."""
@@ -504,6 +514,10 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
     )
 
     csv_headers = [k for k, v in property_inheritance.items()]
+
+    def to_csv(self):
+        """Export data."""
+        return (getattr(self, i) for i in self.csv_headers)
 
     @property
     def local_ip(self):
@@ -686,6 +700,10 @@ class AddressFamily(OrganizationalModel):
         ordering = ["-routing_instance", "-vrf"]
         verbose_name = "BGP address family"
         verbose_name_plural = "BGP Address Families"
+
+    def to_csv(self):
+        """Export data."""
+        return (getattr(self, i) for i in self.csv_headers)
 
     def __str__(self):
         """String representation of a single AddressFamily."""

@@ -50,12 +50,12 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
             "tags": [tag.pk for tag in tags],
         }
 
-        # cls.csv_data = (
-        #     "asn,status",
-        #     "4200000003,active",
-        #     "4200000004,active",
-        #     "4200000005,active",
-        # )
+        cls.csv_data = (
+            "asn,description,status",
+            "4200000003,asn3,active",
+            "4200000004,asn4,active",
+            "4200000005,asn5,active",
+        )
 
         cls.bulk_edit_data = {
             "description": "New description",
@@ -116,10 +116,10 @@ class PeerGroupTestCase(
 
     test_create_object_with_constrained_permission = None  # TODO(mzb): FIXME
 
-    def _get_base_url(self):
-        return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
-            self.model._meta.app_label, self.model._meta.model_name
-        )
+    # def _get_base_url(self):
+    #     return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
+    #         self.model._meta.app_label, self.model._meta.model_name
+    #     )
 
     @classmethod
     def setUpTestData(cls):
@@ -149,6 +149,13 @@ class PeerGroupTestCase(
         models.PeerGroup.objects.create(routing_instance=bgp_routing_instance, name="Group C", role=peeringrole)
 
         cls.form_data = {"name": "Group D", "routing_instance": bgp_routing_instance.pk}
+
+        cls.csv_data = (
+            "name,routing_instance",
+            f"Group E,{bgp_routing_instance.pk}",
+            f"Group F,{bgp_routing_instance.pk}",
+            f"Group G,{bgp_routing_instance.pk}",
+        )
 
         cls.bulk_edit_data = {"description": "Generic description"}
 

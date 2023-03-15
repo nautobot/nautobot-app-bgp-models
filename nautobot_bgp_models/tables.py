@@ -83,7 +83,7 @@ class PeerGroupTable(BaseTable):
 
     pk = ToggleColumn()
     name = tables.LinkColumn()
-    template = tables.LinkColumn()
+    peergroup_template = tables.LinkColumn()
     routing_instance = tables.LinkColumn()
     enabled = BooleanColumn()
     role = ColoredLabelColumn()
@@ -99,7 +99,7 @@ class PeerGroupTable(BaseTable):
         fields = (
             "pk",
             "name",
-            "template",
+            "peergroup_template",
             "routing_instance",
             "enabled",
             "role",
@@ -113,7 +113,7 @@ class PeerGroupTable(BaseTable):
         default_columns = (
             "pk",
             "name",
-            "template",
+            "peergroup_template",
             "routing_instance",
             "enabled",
             "role",

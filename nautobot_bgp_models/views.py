@@ -19,7 +19,7 @@ class AutonomousSystemUIViewSet(NautobotUIViewSet):
     """UIViewset for AutonomousSystem model."""
 
     bulk_create_form_class = forms.AutonomousSystemCSVForm
-    bulk_update_form_class = forms.AddressFamilyBulkEditForm
+    bulk_update_form_class = forms.AutonomousSystemBulkEditForm
     filterset_class = filters.AutonomousSystemFilterSet
     filterset_form_class = forms.AutonomousSystemFilterForm
     form_class = forms.AutonomousSystemForm
@@ -51,7 +51,6 @@ class PeeringRoleUIViewSet(NautobotUIViewSet):
     filterset_class = filters.PeeringRoleFilterSet
     filterset_form_class = forms.PeeringRoleFilterForm
     form_class = forms.PeeringRoleForm
-    lookup_field = "pk"
     queryset = models.PeeringRole.objects.all()
     serializer_class = serializers.PeeringRoleSerializer
     table_class = tables.PeeringRoleTable
@@ -102,9 +101,9 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
 class PeeringUIViewSet(  # pylint: disable=abstract-method
     mixins.ObjectDestroyViewMixin,
     mixins.ObjectEditViewMixin,
-    mixins.ObjectChangeLogViewMixin,
     mixins.ObjectListViewMixin,
     mixins.ObjectDetailViewMixin,
+    mixins.ObjectChangeLogViewMixin,
 ):
     """UIViewset for Peering model."""
 

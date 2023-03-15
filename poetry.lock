@@ -2722,14 +2722,14 @@ social-auth-core = ">=4.1.0"
 
 [[package]]
 name = "social-auth-core"
-version = "4.3.0"
+version = "4.4.0"
 description = "Python social authentication made simple."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "social-auth-core-4.3.0.tar.gz", hash = "sha256:4686f0e43cf12954216875a32e944847bb1dc69e7cd9573d16a9003bb05ca477"},
-    {file = "social_auth_core-4.3.0-py3-none-any.whl", hash = "sha256:1e3440d104f743b02dfe258c9d4dba5b4065abf24b2f7eb362b47054d21797df"},
+    {file = "social-auth-core-4.4.0.tar.gz", hash = "sha256:359f6be5bb2d4caef6500eb6e1b40821a40dde9add8d339d539b1adbba2c9bf7"},
+    {file = "social_auth_core-4.4.0-py3-none-any.whl", hash = "sha256:89536f218fa1a769caeaa56ef90f965ea50a81b9a7e3e5a2c5a61b832df11bde"},
 ]
 
 [package.dependencies]
@@ -2742,11 +2742,11 @@ requests = ">=2.9.1"
 requests-oauthlib = ">=0.6.1"
 
 [package.extras]
-all = ["cryptography (>=2.1.1)", "lxml (<4.7)", "python-jose (>=3.0.0)", "python3-saml (>=1.2.1)"]
-allpy3 = ["cryptography (>=2.1.1)", "lxml (<4.7)", "python-jose (>=3.0.0)", "python3-saml (>=1.2.1)"]
+all = ["cryptography (>=2.1.1)", "python-jose (>=3.0.0)", "python3-saml (>=1.5.0)"]
+allpy3 = ["cryptography (>=2.1.1)", "python-jose (>=3.0.0)", "python3-saml (>=1.5.0)"]
 azuread = ["cryptography (>=2.1.1)"]
 openidconnect = ["python-jose (>=3.0.0)"]
-saml = ["lxml (<4.7)", "python3-saml (>=1.2.1)"]
+saml = ["python3-saml (>=1.5.0)"]
 
 [[package]]
 name = "sqlparse"
