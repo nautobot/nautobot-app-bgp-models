@@ -137,7 +137,7 @@ PLUGINS = ["nautobot_bgp_models"]
 # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
 # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
 # PLUGINS_CONFIG = {
-#     '{{cookiecutter.plugin_name}}': {
+#     'nautobot_bgp_models': {
 #         'foo': 'bar',
 #         'buzz': 'bazz'
 #     }
