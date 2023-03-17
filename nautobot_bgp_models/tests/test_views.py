@@ -9,6 +9,7 @@ from nautobot.utilities.testing import ViewTestCases
 
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices
+from unittest import skip
 
 
 class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
@@ -19,6 +20,14 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
     test_bulk_import_objects_without_permission = None
     test_bulk_import_objects_with_permission = None
     test_bulk_import_objects_with_constrained_permission = None
+
+    @skip("Route disabled in commit `c97f037f`")
+    def test_bulk_import_objects_with_permission_csv_file(self):
+        pass
+
+    @skip("Route disabled in commit `c97f037f`")
+    def test_get_object_notes(self):
+        pass
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
@@ -70,6 +79,14 @@ class PeeringRoleTestCase(ViewTestCases.OrganizationalObjectViewTestCase, ViewTe
     test_bulk_import_objects_without_permission = None
     test_bulk_import_objects_with_permission = None
     test_bulk_import_objects_with_constrained_permission = None
+
+    @skip("Route disabled in commit `c97f037f`")
+    def test_bulk_import_objects_with_permission_csv_file(self):
+        pass
+
+    @skip("Route disabled in commit `c97f037f`")
+    def test_get_object_notes(self):
+        pass
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
