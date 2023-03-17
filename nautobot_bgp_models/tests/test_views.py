@@ -1,5 +1,6 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
 
+from unittest import skip
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
@@ -9,7 +10,6 @@ from nautobot.utilities.testing import ViewTestCases
 
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices
-from unittest import skip
 
 
 class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
