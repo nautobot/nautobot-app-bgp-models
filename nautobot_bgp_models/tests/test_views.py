@@ -1,6 +1,8 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
 
-from unittest import skip
+from unittest import skip, skipIf
+from packaging import version
+
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
@@ -10,6 +12,16 @@ from nautobot.utilities.testing import ViewTestCases
 
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices
+
+try:
+    from importlib import metadata
+except ImportError:
+    # Running on pre-3.8 Python; use importlib-metadata package
+    import importlib_metadata as metadata
+
+_NAUTOBOT_VERSION = version.parse(metadata.version("nautobot"))
+# Related to this issue: https://github.com/nautobot/nautobot/issues/2948
+_FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS = [version.parse("1.5.4"), version.parse("1.5.5")]
 
 
 class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
@@ -28,6 +40,10 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
     @skip("Route disabled in commit `c97f037f`")
     def test_get_object_notes(self):
         pass
+
+    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
+    def test_list_objects_with_permission(self):
+        super().test_list_objects_with_permission()
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
@@ -88,6 +104,10 @@ class PeeringRoleTestCase(ViewTestCases.OrganizationalObjectViewTestCase, ViewTe
     def test_get_object_notes(self):
         pass
 
+    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
+    def test_list_objects_with_permission(self):
+        super().test_list_objects_with_permission()
+
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
             self.model._meta.app_label, self.model._meta.model_name
@@ -132,6 +152,10 @@ class PeerGroupTestCase(
     model = models.PeerGroup
 
     test_create_object_with_constrained_permission = None  # TODO(mzb): FIXME
+
+    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
+    def test_list_objects_with_permission(self):
+        super().test_list_objects_with_permission()
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
@@ -183,6 +207,10 @@ class PeerEndpointTestCase(
 
     model = models.PeerEndpoint
     maxDiff = None
+
+    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
+    def test_list_objects_with_permission(self):
+        super().test_list_objects_with_permission()
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
@@ -271,6 +299,10 @@ class PeeringTestCase(
     model = models.Peering
     maxDiff = None
 
+    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
+    def test_list_objects_with_permission(self):
+        super().test_list_objects_with_permission()
+
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
             self.model._meta.app_label, self.model._meta.model_name
@@ -325,6 +357,10 @@ class AddressFamilyTestCase(
 
     model = models.AddressFamily
     maxDiff = None
+
+    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
+    def test_list_objects_with_permission(self):
+        super().test_list_objects_with_permission()
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
