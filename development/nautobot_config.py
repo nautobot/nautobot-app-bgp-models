@@ -48,6 +48,8 @@ if DATABASES["default"]["ENGINE"] == "django.db.backends.mysql":
 
 DEBUG = True
 
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+
 # Django Debug Toolbar
 DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda _request: DEBUG and not TESTING}
 
@@ -61,8 +63,6 @@ if DEBUG and "debug_toolbar.middleware.DebugToolbarMiddleware" not in MIDDLEWARE
 #
 
 LOG_LEVEL = "DEBUG" if DEBUG else "INFO"
-
-TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 # Verbose logging during normal development operation, but quiet logging during unit test execution
 if not TESTING:
@@ -137,7 +137,7 @@ PLUGINS = ["nautobot_bgp_models"]
 # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
 # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
 # PLUGINS_CONFIG = {
-#     '{{cookiecutter.plugin_name}}': {
+#     'nautobot_bgp_models': {
 #         'foo': 'bar',
 #         'buzz': 'bazz'
 #     }
