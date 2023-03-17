@@ -39,7 +39,7 @@ namespace.configure(
     {
         "nautobot_bgp_models": {
             "nautobot_ver": "1.5.4",
-            "project_name": "nautobot-bgp-models",
+            "project_name": "nautobot_bgp_models",
             "python_ver": "3.8",
             "local": False,
             "compose_dir": os.path.join(os.path.dirname(__file__), "development"),
@@ -167,11 +167,11 @@ def debug(context):
     docker_compose(context, "up")
 
 
-@task
-def start(context):
+@task(help={"service": "If specified, only affect this service."})
+def start(context, service=None):
     """Start Nautobot and its dependencies in detached mode."""
     print("Starting Nautobot in detached mode...")
-    docker_compose(context, "up --detach")
+    docker_compose(context, "up --detach", service=service)
 
 
 @task
@@ -265,7 +265,7 @@ def createsuperuser(context, user="admin"):
 )
 def makemigrations(context, name=""):
     """Perform makemigrations operation in Django."""
-    command = "nautobot-server makemigrations nautobot_bgp_plugin"
+    command = "nautobot-server makemigrations nautobot_bgp_models"
 
     if name:
         command += f" --name {name}"
