@@ -29,8 +29,8 @@ Network Admins who need to model their BGP internal and external peerings inside
 
 ## Authors and Maintainers
 
-!!! warning "Developer Note - Remove Me!"
-    Add the team and/or the main individuals maintaining this project. Include historical maintainers as well.
+- Glenn Matthews (@glennmatthews)
+- Marek Zbroch (@mzbroch)
 
 ## Nautobot Features Used
 
