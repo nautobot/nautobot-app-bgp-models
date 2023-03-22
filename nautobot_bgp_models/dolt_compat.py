@@ -12,7 +12,6 @@ else:
 
 # Only do this if Dolt is available (aka "version control").
 if DOLT_AVAILABLE:
-
     # Tables used to display diffs
     dolt.register_diff_tables(
         {
