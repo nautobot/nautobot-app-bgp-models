@@ -66,16 +66,17 @@ class InheritableFieldsSerializerMixin:
 class ExtraAttributesSerializerMixin(serializers.Serializer):  # pylint: disable=abstract-method
     """Common mixin for BGP Extra Attributes."""
 
-    extra_attributes = serializers.SerializerMethodField(read_only=True)
+    extra_attributes = serializers.JSONField(required=False, allow_null=True)
 
-    def get_extra_attributes(self, instance):
-        """Return either the `display` property of the instance or `str(instance)`."""
+    def to_representation(self, instance):
+        """Render the model instance to a Python dict.
+
+        If `include_inherited` is specified as a request parameter, include object's get_extra_attributes().
+        """
         req = self.context["request"]
-
         if hasattr(req, "query_params") and is_truthy(req.query_params.get("include_inherited", False)):
-            return instance.get_extra_attributes()
-
-        return instance.extra_attributes
+            setattr(instance, "extra_attributes", instance.get_extra_attributes())
+        return super().to_representation(instance)
 
 
 class PeerGroupTemplateSerializer(CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin):
@@ -98,6 +99,7 @@ class PeerGroupTemplateSerializer(CustomFieldModelSerializerMixin, ExtraAttribut
             "autonomous_system",
             "import_policy",
             "export_policy",
+            "extra_attributes",
             "secret",
         ]
 
