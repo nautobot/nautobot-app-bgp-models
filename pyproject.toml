@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "0.7.0b1"
+version = "0.7.0"
 description = "Nautobot BGP Models Plugin"
 authors = ["Network to Code, LLC <info@networktocode.com>"]
 
