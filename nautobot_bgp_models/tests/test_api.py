@@ -80,6 +80,93 @@ class PeeringRoleAPITestCase(APIViewTestCases.APIViewTestCase):
         pass
 
 
+class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
+    """Test the BGPRoutingInstance API."""
+
+    model = models.BGPRoutingInstance
+    view_namespace = "plugins-api:nautobot_bgp_models"
+    brief_fields = ["display", "id", "url"]
+    bulk_update_data = {
+        "description": "Glenn was here.",
+    }
+
+    # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
+    validation_excluded_fields = ["status"]
+
+    @classmethod
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
+        status_active = Status.objects.get(slug="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
+        site = Site.objects.create(name="Site 1", slug="site-1")
+        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        device_1 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+        )
+        device_2 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 2", site=site, status=status_active
+        )
+        device_3 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 3", site=site, status=status_active
+        )
+        device_4 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 4", site=site, status=status_active
+        )
+        interface = Interface.objects.create(device=device_1, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
+
+        vrf = VRF.objects.create(name="Ark B")
+        address = IPAddress.objects.create(
+            address="10.1.1.1/24", status=status_active, vrf=vrf, assigned_object=interface
+        )
+
+        # Marek's ex ASes
+        asn_5616 = models.AutonomousSystem.objects.create(asn=5616, status=status_active, description="ex Mediatel AS!")
+
+        asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
+
+        asn_15521 = models.AutonomousSystem.objects.create(
+            asn=15521, status=status_active, description="Hi ex Premium Internet AS!"
+        )
+
+        cls.create_data = [
+            {
+                "description": "Hello World!",
+                "autonomous_system": asn_8545.pk,
+                "device": device_1.pk,
+                "router_id": address.pk,
+                "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+            },
+        ]
+
+        cls.update_data = {
+            "description": "Hello World!!!",
+            "extra_attributes": '{"key1": "value1"}',
+            "router_id": None,
+        }
+
+        models.BGPRoutingInstance.objects.create(
+            device=device_2,
+            autonomous_system=asn_5616,
+            extra_attributes={"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+        )
+        models.BGPRoutingInstance.objects.create(
+            device=device_3,
+            autonomous_system=asn_8545,
+        )
+        models.BGPRoutingInstance.objects.create(
+            device=device_4,
+            autonomous_system=asn_15521,
+        )
+
+        cls.maxDiff = None
+
+    @skip("Not implemented")
+    def test_notes_url_on_object(self):
+        pass
+
+
 class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
     """Test the PeerGroup API.
 
