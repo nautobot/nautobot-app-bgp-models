@@ -14,7 +14,7 @@ __all__ = (
     "NestedPeerEndpointSerializer",
     "NestedPeeringSerializer",
     "NestedAddressFamilySerializer",
-    "NestedRoutingInstanceSerializer",
+    "NestedBGPRoutingInstanceSerializer",
 )
 
 
@@ -55,7 +55,7 @@ class NestedPeerGroupTemplateSerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.PeerGroupTemplate
-        fields = ["id", "url", "name", "role", "enabled"]
+        fields = ["id", "url", "name"]
 
 
 class NestedPeerEndpointSerializer(WritableNestedSerializer):
@@ -68,7 +68,7 @@ class NestedPeerEndpointSerializer(WritableNestedSerializer):
         fields = ["id", "url"]
 
 
-class NestedRoutingInstanceSerializer(WritableNestedSerializer):
+class NestedBGPRoutingInstanceSerializer(WritableNestedSerializer):
     """Nested/brief serializer for PeerEndpoint."""
 
     url = serializers.HyperlinkedIdentityField(
@@ -77,7 +77,7 @@ class NestedRoutingInstanceSerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.BGPRoutingInstance
-        fields = ["id", "url"]
+        fields = ["display", "id", "url"]
 
 
 class NestedPeeringSerializer(WritableNestedSerializer):

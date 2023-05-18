@@ -1,5 +1,7 @@
-"""Unit tests for nautobot_bgp_models."""
+"""Unit tests for nautobot_bgp_models."""  # pylint: disable=too-many-lines
 from unittest import skip
+from rest_framework import status
+from django.test import override_settings
 
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider
@@ -8,6 +10,7 @@ from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manu
 from nautobot.extras.models import Status
 from nautobot.ipam.models import IPAddress, VRF
 from nautobot.utilities.testing.api import APIViewTestCases
+from nautobot.users.models import ObjectPermission
 
 from nautobot_bgp_models import models
 
@@ -80,6 +83,221 @@ class PeeringRoleAPITestCase(APIViewTestCases.APIViewTestCase):
         pass
 
 
+class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
+    """Test the PeerGroupTemplate API."""
+
+    model = models.PeerGroupTemplate
+    view_namespace = "plugins-api:nautobot_bgp_models"
+    brief_fields = ["display", "id", "name", "url"]
+
+    # TODO(mzb): Fix bulk update via #96 - ViewSets migration
+    # bulk_update_data = {
+    # }
+
+    @classmethod
+    def setUpTestData(cls):
+        status_active = Status.objects.get(slug="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        # Marek's ex ASes
+        asn_5616 = models.AutonomousSystem.objects.create(asn=5616, status=status_active, description="ex Mediatel AS!")
+        asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
+
+        peeringrole_int = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        peeringrole_ext = models.PeeringRole.objects.create(name="External", slug="external", color="333334")
+
+        cls.create_data = [
+            {
+                "name": "Parent Peer Group Template 1",
+                "enabled": True,
+                "role": peeringrole_int.pk,
+                "description": "Marek was here",
+                "autonomous_system": asn_5616.pk,
+                "import_policy": "bgp_policy_in",
+                "export_policy": "bgp_policy_out",
+                "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+            },
+        ]
+
+        cls.update_data = {
+            "name": "Parent Peer Group Template 1 - modified",
+            "enabled": False,
+            "role": peeringrole_ext.pk,
+            "description": "Marek was here",
+            "autonomous_system": asn_8545.pk,
+            "import_policy": "bgp_policy_in_2",
+            "export_policy": "bgp_policy_out_2",
+            "extra_attributes": {"key1": 2},
+        }
+
+        # PGT1 re-used by subsequent test-cases.
+        models.PeerGroupTemplate.objects.create(
+            name="PGT1",
+            autonomous_system=asn_5616,
+            enabled=True,
+            extra_attributes={"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+        )
+        models.PeerGroupTemplate.objects.create(
+            name="PGT2",
+            enabled=True,
+            autonomous_system=asn_8545,
+            extra_attributes={"key1": 2},
+        )
+        models.PeerGroupTemplate.objects.create(
+            name="PGT3",
+            enabled=False,
+            autonomous_system=asn_8545,
+            extra_attributes={"key3": 3},
+        )
+
+    @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
+    def test_peer_group_template_extra_attributes(self):
+        """Test PeerGroup's inheritance path for extra attributes."""
+        instance = models.PeerGroupTemplate.objects.get(name="PGT1")
+        url = self._get_detail_url(instance)
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(
+            name="Test permission",
+            constraints={"pk": instance.pk},
+            actions=["view"],
+        )
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        pgt1_ea = {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}}
+
+        # URLs tested. In each case, PeerGroupTemplate extra attribute should be the same.
+        # PeerGroupTemplate does not support include_inherited filter param.
+        # TODO(mzb): add negative test case for not-supported include_inherited.
+        response = self.client.get(url, **self.header)
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        extra_attrs = dict(response.data["extra_attributes"])
+
+        # Ensure extra_attributes are as on the model
+        self.assertEqual(extra_attrs, pgt1_ea)
+
+    @skip("Not implemented")
+    def test_notes_url_on_object(self):
+        pass
+
+
+class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
+    """Test the BGPRoutingInstance API."""
+
+    model = models.BGPRoutingInstance
+    view_namespace = "plugins-api:nautobot_bgp_models"
+    brief_fields = ["display", "id", "url"]
+    bulk_update_data = {
+        "description": "Glenn was here.",
+    }
+
+    # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
+    validation_excluded_fields = ["status"]
+
+    @classmethod
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
+        status_active = Status.objects.get(slug="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
+        site = Site.objects.create(name="Site 1", slug="site-1")
+        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        device_1 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+        )
+        device_2 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 2", site=site, status=status_active
+        )
+        device_3 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 3", site=site, status=status_active
+        )
+        device_4 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 4", site=site, status=status_active
+        )
+        interface = Interface.objects.create(device=device_1, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
+
+        vrf = VRF.objects.create(name="Ark B")
+        address = IPAddress.objects.create(
+            address="10.1.1.1/24", status=status_active, vrf=vrf, assigned_object=interface
+        )
+
+        # Marek's ex ASes
+        asn_5616 = models.AutonomousSystem.objects.create(asn=5616, status=status_active, description="ex Mediatel AS!")
+
+        asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
+
+        asn_15521 = models.AutonomousSystem.objects.create(
+            asn=15521, status=status_active, description="Hi ex Premium Internet AS!"
+        )
+
+        cls.create_data = [
+            {
+                "description": "Hello World!",
+                "autonomous_system": asn_8545.pk,
+                "device": device_1.pk,
+                "router_id": address.pk,
+                "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+            },
+        ]
+
+        cls.update_data = {
+            "description": "Hello World!!!",
+            "extra_attributes": '{"key1": "value1"}',
+            "router_id": None,
+        }
+
+        models.BGPRoutingInstance.objects.create(
+            device=device_2,
+            autonomous_system=asn_5616,
+            extra_attributes={"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
+        )
+        models.BGPRoutingInstance.objects.create(
+            device=device_3,
+            autonomous_system=asn_8545,
+        )
+        models.BGPRoutingInstance.objects.create(
+            device=device_4,
+            autonomous_system=asn_15521,
+        )
+
+        cls.maxDiff = None
+
+    @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
+    def test_bgp_routing_instance_extra_attributes(self):
+        """Test PeerGroup's inheritance path for extra attributes."""
+        instance = models.BGPRoutingInstance.objects.get(device__name="Device 2")
+        url = self._get_detail_url(instance)
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(
+            name="Test permission",
+            constraints={"pk": instance.pk},
+            actions=["view"],
+        )
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        device_2_extra_attributes = {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}}
+
+        # URLs tested. In each case, BGPRoutingInstance extra attribute should be the same.
+        # PeerGroupTemplate does not support include_inherited filter param.
+        # TODO(mzb): add negative test case for not-supported include_inherited.
+        response = self.client.get(url, **self.header)
+        self.assertHttpStatus(response, status.HTTP_200_OK)
+        extra_attrs = dict(response.data["extra_attributes"])
+
+        # Ensure extra_attributes are as on the model
+        self.assertEqual(extra_attrs, device_2_extra_attributes)
+
+    @skip("Not implemented")
+    def test_notes_url_on_object(self):
+        pass
+
+
 class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
     """Test the PeerGroup API.
 
@@ -99,7 +317,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
     validation_excluded_fields = ["status"]
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
         status_active = Status.objects.get(slug="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
@@ -130,6 +348,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             description="Hello World!",
             autonomous_system=asn_8545,
             device=device,
+            extra_attributes={"ri_key": "ri_value", "ri_nk": {"ri_nk": "ri_nv", "ri_nk2": "ri_nv2"}},
         )
 
         cls.create_data = [
@@ -170,12 +389,105 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             "source_interface": interface.pk,
             "extra_attributes": '{"key1": "value1", "key2": {"nested_key2": "nested_value2"}}',
         }
+        pgt1 = models.PeerGroupTemplate.objects.create(
+            name="PGT1",
+            extra_attributes={"pgt1_key": "pgt1_value"},
+        )
 
-        models.PeerGroup.objects.create(name="Group 1", role=peeringrole, routing_instance=bgp_routing_instance)
+        # Note: PeerGroup "Group 1" re-used in subsequent inheritance test-cases.
+        models.PeerGroup.objects.create(
+            name="Group 1",
+            role=peeringrole,
+            routing_instance=bgp_routing_instance,
+            extra_attributes={"pg_key": "pg_value", "ri_nk": {"pg_nk": "pg_nv", "ri_nk2": "pg_nv2"}},
+            template=pgt1,
+        )
+
         models.PeerGroup.objects.create(name="Group 2", role=peeringrole, routing_instance=bgp_routing_instance)
+
         models.PeerGroup.objects.create(name="Group 3", role=peeringrole, routing_instance=bgp_routing_instance)
 
         cls.maxDiff = None
+
+    @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
+    def test_peergroup_inherits_extra_attributes(self):
+        """Test PeerGroup's inheritance path for extra attributes."""
+        instance = models.PeerGroup.objects.get(name="Group 1")
+        url = self._get_detail_url(instance)
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(
+            name="Test permission",
+            constraints={"pk": instance.pk},
+            actions=["view"],
+        )
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        urls = [
+            f"{url}?include_inherited=true",
+            f"{url}?include_inherited=True",
+            f"{url}?include_inherited=1",
+        ]
+
+        for _url in urls:
+            response = self.client.get(_url, **self.header)
+
+            self.assertHttpStatus(response, status.HTTP_200_OK)
+            api_extra_attrs = dict(response.data["extra_attributes"])
+
+            # BGPRoutingInstance extra_attrs: {"ri_key": "ri_value", "ri_nk": {"ri_nk": "ri_nv", "ri_nk2": "ri_nv2"}}
+            # PeerGroup's extra_attrs: {"pg_key": "pg_value", "ri_nk": {"pg_nk": "pg_nv", "ri_nk2": "pg_nv2"}},
+            # pgt1_extra_attributes = {"pgt1_key": "pgt1_value"},
+
+            # Ensure extra_attributes are deep-merged
+            self.assertEqual(
+                api_extra_attrs,
+                {
+                    "ri_key": "ri_value",  # Root-inherited from BGP RI
+                    "pgt1_key": "pgt1_value",  # Root-inherited from PeerGroupTemplate
+                    "pg_key": "pg_value",  # Root-added by PeerGroup
+                    "ri_nk": {
+                        "pg_nk": "pg_nv",  # Deep-added by PeerGroup
+                        "ri_nk": "ri_nv",  # Deep-Inherited from BGP RI
+                        "ri_nk2": "pg_nv2",  # Deep-Overriden from BGP RI
+                    },
+                },
+            )
+
+    @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
+    def test_peergroup_owns_extra_attributes(self):
+        """Test PeerGroup's inheritance path for extra attributes."""
+        instance = models.PeerGroup.objects.get(name="Group 1")
+        url = self._get_detail_url(instance)
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(
+            name="Test permission",
+            constraints={"pk": instance.pk},
+            actions=["view"],
+        )
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        urls = [
+            f"{url}?include_inherited=false",
+            f"{url}?include_inherited=False",
+            f"{url}?include_inherited=0",
+            f"{url}",
+        ]
+
+        for _url in urls:
+            response = self.client.get(_url, **self.header)
+
+            self.assertHttpStatus(response, status.HTTP_200_OK)
+            api_extra_attrs = dict(response.data["extra_attributes"])
+            pg_extra_attrs = {"pg_key": "pg_value", "ri_nk": {"pg_nk": "pg_nv", "ri_nk2": "pg_nv2"}}
+
+            # Ensure extra_attributes are not deep-merged and returned as defined on the model instance.
+            self.assertEqual(api_extra_attrs, pg_extra_attrs)
 
     @skip("Not implemented")
     def test_notes_url_on_object(self):
@@ -211,10 +523,7 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
     view_namespace = "plugins-api:nautobot_bgp_models"
     brief_fields = [
         "display",
-        # "enabled",
         "id",
-        # "local_ip",
-        # "peer_group",
         "url",
     ]
     bulk_update_data = {
@@ -315,21 +624,29 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             device=device,
         )
 
+        cls.pgt1 = models.PeerGroupTemplate.objects.create(
+            name="PGT1",
+            extra_attributes={"pgt_key": "pgt_value"},
+        )
+
         peergroup = models.PeerGroup.objects.create(
             name="Group 1",
             role=cls.peeringrole,
             routing_instance=cls.bgp_routing_instance,
+            template=cls.pgt1,
+            extra_attributes={"pg_key": "pg_value"},
             # vrf=cls.vrf,
             # router_id=cls.addresses[3],
             # autonomous_system=cls.asn,
         )
 
         # Peering #0
-        models.PeerEndpoint.objects.create(
+        cls.pe = models.PeerEndpoint.objects.create(
             routing_instance=cls.bgp_routing_instance,
             source_ip=cls.addresses[0],
             peer_group=peergroup,
             peering=cls.peering[0],
+            extra_attributes={"pe_key": "pe_value"},
         )
         models.PeerEndpoint.objects.create(
             source_ip=cls.addresses[3],
@@ -375,6 +692,75 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
     @skip("Not implemented")
     def test_notes_url_on_object(self):
         pass
+
+    @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
+    def test_peerendpoint_inherits_extra_attributes(self):
+        """Test PeerEndpoint's inheritance path for extra attributes."""
+        instance = self.pe
+        url = self._get_detail_url(instance)
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(
+            name="Test permission",
+            constraints={"pk": instance.pk},
+            actions=["view"],
+        )
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        urls = [
+            f"{url}?include_inherited=true",
+            f"{url}?include_inherited=True",
+            f"{url}?include_inherited=1",
+        ]
+
+        for _url in urls:
+            response = self.client.get(_url, **self.header)
+
+            self.assertHttpStatus(response, status.HTTP_200_OK)
+            api_extra_attrs = dict(response.data["extra_attributes"])
+            inherited_extra_attrs = {
+                "pe_key": "pe_value",
+                "pg_key": "pg_value",
+                "pgt_key": "pgt_value",
+            }
+            # Ensure extra_attributes are deep-merged
+            self.assertEqual(api_extra_attrs, inherited_extra_attrs)
+
+    @override_settings(EXEMPT_VIEW_PERMISSIONS=[])
+    def test_peerendpoint_owns_extra_attributes(self):
+        """Test PeerEndpoint's inheritance path for extra attributes."""
+        instance = self.pe
+        url = self._get_detail_url(instance)
+
+        # Add object-level permission
+        obj_perm = ObjectPermission(
+            name="Test permission",
+            constraints={"pk": instance.pk},
+            actions=["view"],
+        )
+        obj_perm.save()
+        obj_perm.users.add(self.user)
+        obj_perm.object_types.add(ContentType.objects.get_for_model(self.model))
+
+        urls = [
+            f"{url}?include_inherited=false",
+            f"{url}?include_inherited=False",
+            f"{url}?include_inherited=0",
+            f"{url}",
+        ]
+
+        for _url in urls:
+            response = self.client.get(_url, **self.header)
+
+            self.assertHttpStatus(response, status.HTTP_200_OK)
+            api_extra_attrs = dict(response.data["extra_attributes"])
+            # Extra attrs defined on the cls.pe. (class' peerendpoint)
+            pe_extra_attrs = {"pe_key": "pe_value"}
+
+            # Ensure extra_attributes are not deep-merged and returned as defined on the model instance.
+            self.assertEqual(api_extra_attrs, pe_extra_attrs)
 
 
 #     @override_settings(EXEMPT_VIEW_PERMISSIONS=[])

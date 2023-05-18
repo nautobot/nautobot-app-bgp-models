@@ -79,7 +79,9 @@ class ExtraAttributesSerializerMixin(serializers.Serializer):  # pylint: disable
         return super().to_representation(instance)
 
 
-class PeerGroupTemplateSerializer(CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin):
+class PeerGroupTemplateSerializer(
+    CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin, RelationshipModelSerializerMixin
+):
     """REST API serializer for PeerGroup records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peergrouptemplate-detail")
@@ -116,7 +118,7 @@ class PeerGroupSerializer(
     source_ip = NestedIPAddressSerializer(required=False, allow_null=True)  # noqa: F405
     source_interface = NestedInterfaceSerializer(required=False, allow_null=True)  # noqa: F405
 
-    routing_instance = NestedRoutingInstanceSerializer(required=True)  # noqa: F405
+    routing_instance = NestedBGPRoutingInstanceSerializer(required=True)  # noqa: F405
 
     autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)  # noqa: F405
 
@@ -160,7 +162,7 @@ class PeerEndpointSerializer(
     peer = NestedPeerEndpointSerializer(required=False, allow_null=True)  # noqa: F405
     peering = NestedPeeringSerializer(required=True, allow_null=True)  # noqa: F405
     peer_group = NestedPeerGroupSerializer(required=False, allow_null=True)  # noqa: F405
-    routing_instance = NestedRoutingInstanceSerializer(required=False, allow_null=True)  # noqa: F405
+    routing_instance = NestedBGPRoutingInstanceSerializer(required=False, allow_null=True)  # noqa: F405
     autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)  # noqa: F405
     secret = NestedSecretSerializer(required=False, allow_null=True)
 
@@ -181,6 +183,7 @@ class PeerEndpointSerializer(
             "secret",
             "tags",
             "enabled",
+            "extra_attributes",
         ]
 
     def create(self, validated_data):
@@ -203,7 +206,9 @@ class PeerEndpointSerializer(
         return result
 
 
-class BGPRoutingInstanceSerializer(CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin):
+class BGPRoutingInstanceSerializer(
+    CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin, RelationshipModelSerializerMixin
+):
     """REST API serializer for Peering records."""
 
     url = serializers.HyperlinkedIdentityField(
@@ -228,6 +233,7 @@ class BGPRoutingInstanceSerializer(CustomFieldModelSerializerMixin, ExtraAttribu
             "router_id",
             "autonomous_system",
             "endpoints",
+            "extra_attributes",
         ]
 
 
@@ -256,7 +262,7 @@ class AddressFamilySerializer(
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:addressfamily-detail")
 
-    routing_instance = NestedRoutingInstanceSerializer(required=True)  # noqa: F405
+    routing_instance = NestedBGPRoutingInstanceSerializer(required=True)  # noqa: F405
 
     vrf = NestedVRFSerializer(required=False, allow_null=True)
 
