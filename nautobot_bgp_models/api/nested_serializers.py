@@ -55,7 +55,7 @@ class NestedPeerGroupTemplateSerializer(WritableNestedSerializer):
 
     class Meta:
         model = models.PeerGroupTemplate
-        fields = ["id", "url", "name", "role", "enabled"]
+        fields = ["id", "url", "name"]
 
 
 class NestedPeerEndpointSerializer(WritableNestedSerializer):
