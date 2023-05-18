@@ -79,7 +79,9 @@ class ExtraAttributesSerializerMixin(serializers.Serializer):  # pylint: disable
         return super().to_representation(instance)
 
 
-class PeerGroupTemplateSerializer(CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin):
+class PeerGroupTemplateSerializer(
+    CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin, RelationshipModelSerializerMixin
+):
     """REST API serializer for PeerGroup records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:peergrouptemplate-detail")
@@ -205,9 +207,7 @@ class PeerEndpointSerializer(
 
 
 class BGPRoutingInstanceSerializer(
-    CustomFieldModelSerializerMixin,
-    ExtraAttributesSerializerMixin,
-    RelationshipModelSerializerMixin
+    CustomFieldModelSerializerMixin, ExtraAttributesSerializerMixin, RelationshipModelSerializerMixin
 ):
     """REST API serializer for Peering records."""
 
