@@ -23,3 +23,13 @@
 ### Fixed
 
 - [#99](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/99) - fix: allow read/write for extra attributes from API
+
+## [v0.7.1] - 2023-05-19
+
+### Added
+
+### Changed
+
+### Fixed
+
+- [#104](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/104) - Multiple fixes for test cases and serializers 
