@@ -142,7 +142,8 @@ class PeerGroupTestCase(TestCase):
     def test_to_csv(self):
         """Test CSV representation of a PeerGroup."""
         self.assertEqual(
-            self.peergroup.to_csv(), ("Peer Group A", "Device 1", None, "", "", None, None, None, True, None)
+            self.peergroup.to_csv(),
+            ("Peer Group A", self.bgp_routing_instance.pk, None, "", "", None, None, None, True, None),
         )
 
     # def test_vrf_fixup_from_router_id(self):
@@ -450,7 +451,10 @@ class AddressFamilyTestCase(TestCase):
 
     def test_to_csv(self):
         """Test CSV representation of a AddressFamily."""
-        self.assertEqual(self.addressfamily_1.to_csv(), ("Device 1", None, "ipv4_unicast", "", "", None))
+        self.assertEqual(
+            self.addressfamily_1.to_csv(),
+            (self.bgp_routing_instance_1.pk, None, "ipv4_unicast", "", "", None),
+        )
 
 
 #     def test_peer_group_peer_endpoint_mutual_exclusion(self):
