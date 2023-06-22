@@ -4,7 +4,7 @@ from django import forms
 import nautobot.utilities.forms as utilities_forms
 from nautobot.apps.forms import (
     CSVModelChoiceField,
-    CSVModelForm,
+    CustomFieldModelCSVForm,
     DynamicModelMultipleChoiceField,
     DynamicModelChoiceField,
     NautobotModelForm,
@@ -41,7 +41,7 @@ class AutonomousSystemFilterForm(NautobotFilterForm):
     tag = TagFilterField(model)
 
 
-class AutonomousSystemCSVForm(StatusModelCSVFormMixin, CSVModelForm):
+class AutonomousSystemCSVForm(StatusModelCSVFormMixin, CustomFieldModelCSVForm):
     """Form for importing AutonomousSystems from CSV data."""
 
     provider = CSVModelChoiceField(
@@ -179,7 +179,7 @@ class BGPRoutingInstanceBulkEditForm(NautobotBulkEditForm):
         ]
 
 
-class BGPRoutingInstanceCSVForm(StatusModelCSVFormMixin, CSVModelForm):
+class BGPRoutingInstanceCSVForm(StatusModelCSVFormMixin, CustomFieldModelCSVForm):
     """Form for importing BGPRoutingInstance from CSV data."""
 
     device = CSVModelChoiceField(
@@ -224,7 +224,7 @@ class PeeringRoleFilterForm(NautobotFilterForm):
     color = forms.CharField(max_length=6, required=False, widget=utilities_forms.ColorSelect())
 
 
-class PeeringRoleCSVForm(CSVModelForm):
+class PeeringRoleCSVForm(CustomFieldModelCSVForm):
     """Form for importing PeeringRole records from CSV data."""
 
     class Meta:
@@ -402,7 +402,7 @@ class PeerGroupTemplateFilterForm(NautobotFilterForm):
     )
 
 
-class PeerGroupTemplateCSVForm(CSVModelForm):
+class PeerGroupTemplateCSVForm(CustomFieldModelCSVForm):
     """Form for importing PeerGroupTemplate from CSV data."""
 
     role = CSVModelChoiceField(
@@ -424,7 +424,7 @@ class PeerGroupTemplateCSVForm(CSVModelForm):
         fields = models.PeerGroupTemplate.csv_headers
 
 
-class PeerGroupCSVForm(CSVModelForm):
+class PeerGroupCSVForm(CustomFieldModelCSVForm):
     """Form for importing PeerGroup from CSV data."""
 
     peergroup_template = CSVModelChoiceField(
@@ -555,7 +555,7 @@ class PeerEndpointForm(NautobotModelForm):
         return endpoint
 
 
-class PeerEndpointCSVForm(CSVModelForm):
+class PeerEndpointCSVForm(CustomFieldModelCSVForm):
     """Form for importing PeerEndpoint from CSV data."""
 
     class Meta:
@@ -669,7 +669,7 @@ class AddressFamilyFilterForm(NautobotFilterForm):
     vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
 
 
-class AddressFamilyCSVForm(CSVModelForm):
+class AddressFamilyCSVForm(CustomFieldModelCSVForm):
     """Form for importing AddressFamily from CSV data."""
 
     class Meta:
