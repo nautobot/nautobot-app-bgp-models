@@ -257,6 +257,12 @@ class BGPRoutingInstance(PrimaryModel, StatusModel, BGPExtraAttributesMixin):
             self.description,
         )
 
+    def clean(self):
+        """Clean."""
+        # Ensure .status attribute:
+        if not self.status:
+            raise ValidationError("Status must be defined for the BGP Routing Instance.")
+
 
 @extras_features(
     "custom_fields",
