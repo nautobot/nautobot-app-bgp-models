@@ -1,6 +1,6 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
 
-from unittest import skip, skipIf
+from unittest import skipIf
 from packaging import version
 
 from django.contrib.contenttypes.models import ContentType
@@ -32,14 +32,6 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
     test_bulk_import_objects_without_permission = None
     test_bulk_import_objects_with_permission = None
     test_bulk_import_objects_with_constrained_permission = None
-
-    @skip("Route disabled in commit `c97f037f`")
-    def test_bulk_import_objects_with_permission_csv_file(self):
-        pass
-
-    @skip("Route disabled in commit `c97f037f`")
-    def test_get_object_notes(self):
-        pass
 
     @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
     def test_list_objects_with_permission(self):
@@ -75,12 +67,12 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
             "tags": [tag.pk for tag in tags],
         }
 
-        # cls.csv_data = (
-        #     "asn,status",
-        #     "4200000003,active",
-        #     "4200000004,active",
-        #     "4200000005,active",
-        # )
+        cls.csv_data = (
+            "asn,description,status",
+            "4200000003,asn3,active",
+            "4200000004,asn4,active",
+            "4200000005,asn5,active",
+        )
 
         cls.bulk_edit_data = {
             "description": "New description",
@@ -95,14 +87,6 @@ class PeeringRoleTestCase(ViewTestCases.OrganizationalObjectViewTestCase, ViewTe
     test_bulk_import_objects_without_permission = None
     test_bulk_import_objects_with_permission = None
     test_bulk_import_objects_with_constrained_permission = None
-
-    @skip("Route disabled in commit `c97f037f`")
-    def test_bulk_import_objects_with_permission_csv_file(self):
-        pass
-
-    @skip("Route disabled in commit `c97f037f`")
-    def test_get_object_notes(self):
-        pass
 
     @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
     def test_list_objects_with_permission(self):
@@ -183,6 +167,7 @@ class PeerGroupTestCase(
             description="Hello World!",
             autonomous_system=asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
         models.PeerGroup.objects.create(routing_instance=bgp_routing_instance, name="Group A", role=peeringrole)
@@ -190,6 +175,13 @@ class PeerGroupTestCase(
         models.PeerGroup.objects.create(routing_instance=bgp_routing_instance, name="Group C", role=peeringrole)
 
         cls.form_data = {"name": "Group D", "routing_instance": bgp_routing_instance.pk}
+
+        cls.csv_data = (
+            "name,routing_instance",
+            f"Group E,{bgp_routing_instance.pk}",
+            f"Group F,{bgp_routing_instance.pk}",
+            f"Group G,{bgp_routing_instance.pk}",
+        )
 
         cls.bulk_edit_data = {"description": "Generic description"}
 
@@ -239,6 +231,7 @@ class PeerEndpointTestCase(
             description="Hello World!",
             autonomous_system=asn_1,
             device=device,
+            status=status_active,
         )
 
         interface = Interface.objects.create(name="Loopback1", device=device)
@@ -388,6 +381,7 @@ class AddressFamilyTestCase(
             description="Hello World!",
             autonomous_system=asn_1,
             device=device,
+            status=status_active,
         )
 
         models.AddressFamily.objects.create(

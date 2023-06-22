@@ -1,341 +1,144 @@
 """View classes for nautobot_bgp_models."""
 
-
-from django import template
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import View
 
+from nautobot.apps.views import NautobotUIViewSet
+from nautobot.core.views import mixins
 from nautobot.core.views import generic
+from nautobot.extras.utils import get_base_template
 
 from . import filters, forms, models, tables
+from .api import serializers
 
 
-class AutonomousSystemListView(generic.ObjectListView):
-    """List/table view of AutonomousSystem records."""
+class AutonomousSystemUIViewSet(NautobotUIViewSet):
+    """UIViewset for AutonomousSystem model."""
 
+    bulk_create_form_class = forms.AutonomousSystemCSVForm
+    bulk_update_form_class = forms.AutonomousSystemBulkEditForm
+    filterset_class = filters.AutonomousSystemFilterSet
+    filterset_form_class = forms.AutonomousSystemFilterForm
+    form_class = forms.AutonomousSystemForm
+    lookup_field = "pk"
     queryset = models.AutonomousSystem.objects.all()
-    table = tables.AutonomousSystemTable
-    filterset = filters.AutonomousSystemFilterSet
-    filterset_form = forms.AutonomousSystemFilterForm
-    action_buttons = ("add",)
+    serializer_class = serializers.AutonomousSystemSerializer
+    table_class = tables.AutonomousSystemTable
 
 
-class AutonomousSystemView(generic.ObjectView):
-    """Detail view of a single AutonomousSystem."""
+class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
+    """UIViewset for BGPRoutingInstance model."""
 
-    queryset = models.AutonomousSystem.objects.all()
-
-
-class AutonomousSystemEditView(generic.ObjectEditView):
-    """Create/edit view for an AutonomousSystem."""
-
-    queryset = models.AutonomousSystem.objects.all()
-    model_form = forms.AutonomousSystemForm
-
-
-class AutonomousSystemDeleteView(generic.ObjectDeleteView):
-    """Delete view for an AutonomousSystem."""
-
-    queryset = models.AutonomousSystem.objects.all()
-
-
-# class AutonomousSystemBulkImportView(generic.BulkImportView):
-#     """Bulk-importing view for multiple AutonomousSystems."""
-#
-#     queryset = models.AutonomousSystem.objects.all()
-#     model_form = forms.AutonomousSystemCSVForm
-#     table = tables.AutonomousSystemTable
-
-
-class AutonomousSystemBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple AutonomousSystems."""
-
-    queryset = models.AutonomousSystem.objects.all()
-    filterset = filters.AutonomousSystemFilterSet
-    table = tables.AutonomousSystemTable
-    form = forms.AutonomousSystemBulkEditForm
-
-
-class AutonomousSystemBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple AutonomousSystems."""
-
-    queryset = models.AutonomousSystem.objects.all()
-    filterset = filters.AutonomousSystemFilterSet
-    table = tables.AutonomousSystemTable
-
-
-class BGPRoutingInstanceListView(generic.ObjectListView):
-    """List/table view of BGPRoutingInstance records."""
-
+    bulk_create_form_class = forms.BGPRoutingInstanceCSVForm
+    bulk_update_form_class = forms.BGPRoutingInstanceBulkEditForm
+    filterset_class = filters.BGPRoutingInstanceFilterSet
+    filterset_form_class = forms.BGPRoutingInstanceFilterForm
+    form_class = forms.BGPRoutingInstanceForm
+    lookup_field = "pk"
     queryset = models.BGPRoutingInstance.objects.all()
-    table = tables.BGPRoutingInstanceTable
-    filterset = filters.BGPRoutingInstanceFilterSet
-    filterset_form = forms.BGPRoutingInstanceFilterForm
-    action_buttons = ("add",)
+    serializer_class = serializers.BGPRoutingInstanceSerializer
+    table_class = tables.BGPRoutingInstanceTable
 
 
-class BGPRoutingInstanceView(generic.ObjectView):
-    """Detail view of a single BGPRoutingInstance."""
+class PeeringRoleUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeeringRole model."""
 
-    queryset = models.BGPRoutingInstance.objects.all()
-
-
-class BGPRoutingInstanceEditView(generic.ObjectEditView):
-    """Create/edit view for an BGPRoutingInstance."""
-
-    queryset = models.BGPRoutingInstance.objects.all()
-    model_form = forms.BGPRoutingInstanceForm
-
-
-class BGPRoutingInstanceDeleteView(generic.ObjectDeleteView):
-    """Delete view for an BGPRoutingInstance."""
-
-    queryset = models.BGPRoutingInstance.objects.all()
-
-
-class BGPRoutingInstanceBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple BGPRoutingInstances."""
-
-    queryset = models.BGPRoutingInstance.objects.all()
-    filterset = filters.BGPRoutingInstanceFilterSet
-    table = tables.BGPRoutingInstanceTable
-    form = forms.BGPRoutingInstanceBulkEditForm
-
-
-class BGPRoutingInstanceBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple BGPRoutingInstances."""
-
-    queryset = models.BGPRoutingInstance.objects.all()
-    filterset = filters.BGPRoutingInstanceFilterSet
-    table = tables.BGPRoutingInstanceTable
-
-
-class PeeringRoleListView(generic.ObjectListView):
-    """List/table view of PeeringRole records."""
-
+    bulk_create_form_class = forms.PeeringRoleCSVForm
+    bulk_update_form_class = forms.PeeringRoleBulkEditForm
+    filterset_class = filters.PeeringRoleFilterSet
+    filterset_form_class = forms.PeeringRoleFilterForm
+    form_class = forms.PeeringRoleForm
     queryset = models.PeeringRole.objects.all()
-    table = tables.PeeringRoleTable
-    filterset = filters.PeeringRoleFilterSet
-    filterset_form = forms.PeeringRoleFilterForm
-    action_buttons = ("add",)
+    serializer_class = serializers.PeeringRoleSerializer
+    table_class = tables.PeeringRoleTable
 
 
-class PeeringRoleView(generic.ObjectView):
-    """Detail view of a single PeeringRole."""
+class PeerGroupUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerGroup model."""
 
-    queryset = models.PeeringRole.objects.all()
-
-
-class PeeringRoleEditView(generic.ObjectEditView):
-    """Create/edit view for a PeeringRole."""
-
-    queryset = models.PeeringRole.objects.all()
-    model_form = forms.PeeringRoleForm
-
-
-class PeeringRoleDeleteView(generic.ObjectDeleteView):
-    """Delete view for a PeeringRole."""
-
-    queryset = models.PeeringRole.objects.all()
-
-
-# class PeeringRoleBulkImportView(generic.BulkImportView):
-#     """Bulk-importing view for multiple PeeringRoles."""
-#
-#     queryset = models.PeeringRole.objects.all()
-#     model_form = forms.PeeringRoleCSVForm
-#     table = tables.PeeringRoleTable
-
-
-class PeeringRoleBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple PeeringRoles."""
-
-    queryset = models.PeeringRole.objects.all()
-    filterset = filters.PeeringRoleFilterSet
-    table = tables.PeeringRoleTable
-    form = forms.PeeringRoleBulkEditForm
-
-
-class PeeringRoleBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple PeeringRoles."""
-
-    queryset = models.PeeringRole.objects.all()
-    filterset = filters.PeeringRoleFilterSet
-    table = tables.PeeringRoleTable
-
-
-class PeerGroupListView(generic.ObjectListView):
-    """List/table view of PeerGroup records."""
-
+    bulk_create_form_class = forms.PeerGroupCSVForm
+    bulk_update_form_class = forms.PeerGroupBulkEditForm
+    filterset_class = filters.PeerGroupFilterSet
+    filterset_form_class = forms.PeerGroupFilterForm
+    form_class = forms.PeerGroupForm
+    lookup_field = "pk"
     queryset = models.PeerGroup.objects.all()
-    table = tables.PeerGroupTable
-    filterset = filters.PeerGroupFilterSet
-    filterset_form = forms.PeerGroupFilterForm
-    action_buttons = ("add",)
+    serializer_class = serializers.PeerGroupSerializer
+    table_class = tables.PeerGroupTable
 
 
-class PeerGroupView(generic.ObjectView):
-    """Detail view of a single PeerGroup."""
+class PeerGroupImportView(generic.BulkImportView):
+    """Workaround for #3809."""
 
-    queryset = models.PeerGroup.objects.all()
-
-    def get_extra_context(self, request, instance):
-        """Return any additional context data for the template."""
-        return {"object_fields": instance.get_fields(include_inherited=True)}
+    queryset = PeerGroupUIViewSet.queryset
+    model_form = PeerGroupUIViewSet.bulk_create_form_class
+    table = PeerGroupUIViewSet.table_class
 
 
-class PeerGroupEditView(generic.ObjectEditView):
-    """Create/edit view for a PeerGroup."""
+class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerGroupTemplate model."""
 
-    queryset = models.PeerGroup.objects.all()
-    model_form = forms.PeerGroupForm
-
-
-class PeerGroupDeleteView(generic.ObjectDeleteView):
-    """Delete view for a PeerGroup."""
-
-    queryset = models.PeerGroup.objects.all()
-
-
-class PeerGroupBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple PeerGroup."""
-
-    queryset = models.PeerGroup.objects.all()
-    filterset = filters.PeerGroupFilterSet
-    table = tables.PeerGroupTable
-    form = forms.PeerGroupBulkEditForm
-
-
-class PeerGroupBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple PeerGroup."""
-
-    queryset = models.PeerGroup.objects.all()
-    filterset = filters.PeerGroupFilterSet
-    table = tables.PeerGroupTable
-
-
-class PeerGroupTemplateView(generic.ObjectView):
-    """Detail view of a single PeerGroupTemplate."""
-
+    bulk_create_form_class = forms.PeerGroupTemplateCSVForm
+    bulk_update_form_class = forms.PeerGroupTemplateBulkEditForm
+    filterset_class = filters.PeerGroupTemplateFilterSet
+    filterset_form_class = forms.PeerGroupTemplateFilterForm
+    form_class = forms.PeerGroupTemplateForm
+    lookup_field = "pk"
     queryset = models.PeerGroupTemplate.objects.all()
-
-    # def get_extra_context(self, request, instance):
-    #     """Return any additional context data for the template."""
-    #     return {"object_fields": instance.get_fields(include_inherited=True)}
+    serializer_class = serializers.PeerGroupTemplateSerializer
+    table_class = tables.PeerGroupTemplateTable
 
 
-class PeerGroupTemplateListView(generic.ObjectListView):
-    """List/table view of PeerGroupTemplate records."""
+class PeerGroupTemplateImportView(generic.BulkImportView):
+    """Workaround for #3809."""
 
-    queryset = models.PeerGroupTemplate.objects.all()
-    table = tables.PeerGroupTemplateTable
-    filterset = filters.PeerGroupTemplateFilterSet
-    filterset_form = forms.PeerGroupTemplateFilterForm
-    action_buttons = ("add",)
+    queryset = PeerGroupTemplateUIViewSet.queryset
+    model_form = PeerGroupTemplateUIViewSet.bulk_create_form_class
+    table = PeerGroupTemplateUIViewSet.table_class
 
 
-class PeerGroupTemplateEditView(generic.ObjectEditView):
-    """Create/edit view for a PeerGroupTemplate."""
+class PeerEndpointUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerEndpoint model."""
 
-    queryset = models.PeerGroupTemplate.objects.all()
-    model_form = forms.PeerGroupTemplateForm
-
-
-class PeerGroupTemplateDeleteView(generic.ObjectDeleteView):
-    """Delete view for a PeerGroup."""
-
-    queryset = models.PeerGroupTemplate.objects.all()
-
-
-class PeerGroupTemplateBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple PeerGroupTemplate."""
-
-    queryset = models.PeerGroupTemplate.objects.all()
-    filterset = filters.PeerGroupTemplateFilterSet
-    table = tables.PeerGroupTemplateTable
-    form = forms.PeerGroupTemplateBulkEditForm
-
-
-class PeerGroupTemplateBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple PeerGroupTemplate."""
-
-    queryset = models.PeerGroupTemplate.objects.all()
-    filterset = filters.PeerGroupTemplateFilterSet
-    table = tables.PeerGroupTemplateTable
-
-
-class PeerEndpointListView(generic.ObjectListView):
-    """List/table view of PeerEndpoint records."""
-
+    bulk_create_form_class = forms.PeerEndpointCSVForm
+    bulk_update_form_class = forms.PeerEndpointBulkEditForm
+    filterset_class = filters.PeerEndpointFilterSet
+    filterset_form_class = forms.PeerEndpointFilterForm
+    form_class = forms.PeerEndpointForm
+    lookup_field = "pk"
     queryset = models.PeerEndpoint.objects.all()
-    table = tables.PeerEndpointTable
-    filterset = filters.PeerEndpointFilterSet
-    action_buttons = ("add",)
+    serializer_class = serializers.PeerEndpointSerializer
+    table_class = tables.PeerEndpointTable
 
 
-class PeerEndpointView(generic.ObjectView):
-    """Detail view of a single PeerEndpoint."""
+class PeeringUIViewSet(  # pylint: disable=abstract-method
+    mixins.ObjectDestroyViewMixin,
+    mixins.ObjectBulkDestroyViewMixin,
+    mixins.ObjectEditViewMixin,
+    mixins.ObjectListViewMixin,
+    mixins.ObjectDetailViewMixin,
+    mixins.ObjectChangeLogViewMixin,
+    mixins.ObjectNotesViewMixin,
+):
+    """UIViewset for Peering model."""
 
-    queryset = models.PeerEndpoint.objects.all()
-
-    def get_extra_context(self, request, instance):
-        """Return any additional context data for the template."""
-        return {"object_fields": instance.get_fields(include_inherited=True)}
-
-
-class PeerEndpointEditView(generic.ObjectEditView):
-    """Create/edit view for a PeerEndpoint."""
-
-    queryset = models.PeerEndpoint.objects.all()
-    model_form = forms.PeerEndpointForm
-
-    def alter_obj(self, obj, request, url_args, url_kwargs):
-        """Inject peering object into form from url args."""
-        if "peering" in url_kwargs:
-            obj.peering = get_object_or_404(models.Peering, pk=url_kwargs["peering"])
-        return obj
-
-    def get_return_url(self, request, obj, *args, **kwargs):
-        """Return to main Peering page after edit."""
-        return obj.peering.get_absolute_url()
-
-
-class PeerEndpointDeleteView(generic.ObjectDeleteView):
-    """Delete view for a PeerEndpoint."""
-
-    queryset = models.PeerEndpoint.objects.all()
-
-
-class PeeringListView(generic.ObjectListView):
-    """List/table view of Peering records."""
-
+    filterset_class = filters.PeeringFilterSet
+    filterset_form_class = forms.PeeringFilterForm
+    form_class = forms.PeeringForm
+    lookup_field = "pk"
     queryset = models.Peering.objects.all()
-    table = tables.PeeringTable
-    filterset = filters.PeeringFilterSet
-    filterset_form = forms.PeeringFilterForm
-    action_buttons = ("add",)
+    serializer_class = serializers.PeeringSerializer
+    table_class = tables.PeeringTable
 
 
-class PeeringView(generic.ObjectView):
-    """Detail view of a single Peering."""
-
-    queryset = models.Peering.objects.all()
-
-
-class PeeringEditView(generic.ObjectEditView):
-    """Create/edit view for a Peering."""
-
-    queryset = models.Peering.objects.all()
-    model_form = forms.PeeringForm
-
-
+# TODO: This needs to be moved to the UIViewSet
 class PeeringAddView(generic.ObjectEditView):
-    """Create/edit view for a Peering."""
+    """Create view for a Peering."""
 
     queryset = models.Peering.objects.all()
-    template_name = "nautobot_bgp_models/peering_create.html"
+    template_name = "nautobot_bgp_models/peering_add.html"
 
     def post(self, request, *args, **kwargs):
         """Post Method."""
@@ -390,64 +193,26 @@ class PeeringAddView(generic.ObjectEditView):
         )
 
 
-class PeeringDeleteView(generic.ObjectDeleteView):
-    """Delete view for a Peering."""
+class AddressFamilyUIViewSet(NautobotUIViewSet):
+    """UIViewset for AddressFamily model."""
 
-    queryset = models.Peering.objects.all()
-
-
-class PeeringBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple Peering."""
-
-    queryset = models.Peering.objects.all()
-    filterset = filters.PeeringFilterSet
-    table = tables.PeeringTable
-
-
-class AddressFamilyListView(generic.ObjectListView):
-    """List/table view of AddressFamily records."""
-
+    bulk_create_form_class = forms.AddressFamilyCSVForm
+    bulk_update_form_class = forms.AddressFamilyBulkEditForm
+    filterset_class = filters.AddressFamilyFilterSet
+    filterset_form_class = forms.AddressFamilyFilterForm
+    form_class = forms.AddressFamilyForm
+    lookup_field = "pk"
     queryset = models.AddressFamily.objects.all()
-    table = tables.AddressFamilyTable
-    filterset = filters.AddressFamilyFilterSet
-    filterset_form = forms.AddressFamilyFilterForm
-    action_buttons = ("add",)
+    serializer_class = serializers.AddressFamilySerializer
+    table_class = tables.AddressFamilyTable
 
 
-class AddressFamilyView(generic.ObjectView):
-    """Detail view of a single AddressFamily."""
+class AddressFamilyImportView(generic.BulkImportView):
+    """Workaround for #3809."""
 
-    queryset = models.AddressFamily.objects.all()
-
-
-class AddressFamilyEditView(generic.ObjectEditView):
-    """Create/edit view for an AddressFamily."""
-
-    queryset = models.AddressFamily.objects.all()
-    model_form = forms.AddressFamilyForm
-
-
-class AddressFamilyDeleteView(generic.ObjectDeleteView):
-    """Delete view for an AddressFamily."""
-
-    queryset = models.AddressFamily.objects.all()
-
-
-class AddressFamilyBulkEditView(generic.BulkEditView):
-    """Bulk-editing view for multiple AddressFamily."""
-
-    queryset = models.AddressFamily.objects.all()
-    filterset = filters.AddressFamilyFilterSet
-    table = tables.AddressFamilyTable
-    form = forms.AddressFamilyBulkEditForm
-
-
-class AddressFamilyBulkDeleteView(generic.BulkDeleteView):
-    """Bulk-deleting view for multiple AddressFamily."""
-
-    queryset = models.AddressFamily.objects.all()
-    filterset = filters.AddressFamilyFilterSet
-    table = tables.AddressFamilyTable
+    queryset = AddressFamilyUIViewSet.queryset
+    model_form = AddressFamilyUIViewSet.bulk_create_form_class
+    table = AddressFamilyUIViewSet.table_class
 
 
 class BgpExtraAttributesView(View):
@@ -463,15 +228,7 @@ class BgpExtraAttributesView(View):
         else:
             obj = get_object_or_404(model, **kwargs)
 
-        # Default to using "<app>/<model>.html" as the template, if it exists. Otherwise,
-        # fall back to using base.html.
-        if self.base_template is None:
-            self.base_template = f"{model._meta.app_label}/{model._meta.model_name}.html"
-            # TODO: This can be removed once an object view has been established for every model.
-            try:
-                template.loader.get_template(self.base_template)
-            except template.TemplateDoesNotExist:
-                self.base_template = "base.html"
+        self.base_template = get_base_template(self.base_template, model)
 
         # Determine user's preferred output format
         if request.GET.get("format") in ["json", "yaml"]:

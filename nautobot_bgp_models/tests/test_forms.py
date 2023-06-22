@@ -79,6 +79,7 @@ class PeerGroupFormTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
     def test_valid_form(self):
@@ -181,6 +182,7 @@ class PeerEndpointFormTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
         # clustertype = ClusterType.objects.create(name="Cluster Type A", slug="cluster-type-a")
@@ -285,6 +287,7 @@ class AddressFamilyFormTestCase(TestCase):
             description="Hello World!",
             autonomous_system=cls.asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
     def test_valid_form(self):
