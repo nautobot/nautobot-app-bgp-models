@@ -228,11 +228,12 @@ class PeeringTable(StatusTableMixin, BaseTable):
     )
 
     endpoint_a = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None
+        verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None, orderable=False
+
     )
 
     endpoint_z = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_z.local_ip) if x.endpoint_z else None
+        verbose_name="Endpoint", text=lambda x: str(x.endpoint_z.local_ip) if x.endpoint_z else None, orderable=False
     )
     actions = ButtonsColumn(model=models.Peering)
 
