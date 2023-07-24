@@ -14,7 +14,7 @@ from nautobot.apps.forms import (
     TagsBulkEditFormMixin,
 )
 from nautobot.circuits.models import Provider
-from nautobot.dcim.models import Device, Interface
+from nautobot.dcim.models import Device, DeviceRole, Interface
 from nautobot.extras.forms import NautobotFilterForm
 from nautobot.extras.models import Tag, Secret
 from nautobot.ipam.models import VRF, IPAddress
@@ -593,15 +593,23 @@ class PeeringFilterForm(NautobotFilterForm):
     model = models.Peering
     field_order = [
         "q",
-        "role",
         "status",
         "device",
+        "device_role",
+        "peer_endpoint_role",
     ]
-    role = DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
-    )
 
     device = DynamicModelMultipleChoiceField(queryset=Device.objects.all(), to_field_name="name", required=False)
+
+    device_role = DynamicModelMultipleChoiceField(
+        queryset=DeviceRole.objects.all(),
+        to_field_name="name",
+        required=False,
+    )
+
+    peer_endpoint_role = DynamicModelMultipleChoiceField(
+        queryset=models.PeeringRole.objects.all(), to_field_name="name", required=False
+    )
 
 
 class AddressFamilyForm(NautobotModelForm):
