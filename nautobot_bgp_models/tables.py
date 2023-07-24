@@ -230,7 +230,6 @@ class PeeringTable(StatusTableMixin, BaseTable):
 
     endpoint_a = tables.LinkColumn(
         verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None, orderable=False
-
     )
 
     endpoint_z = tables.LinkColumn(
