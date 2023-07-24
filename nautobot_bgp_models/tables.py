@@ -225,6 +225,7 @@ class PeeringTable(StatusTableMixin, BaseTable):
         viewname="plugins:nautobot_bgp_models:peering",
         args=[A("pk")],
         text=str,
+        orderable=False,
     )
 
     endpoint_a = tables.LinkColumn(
