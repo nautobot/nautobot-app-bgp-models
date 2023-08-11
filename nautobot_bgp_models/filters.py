@@ -4,7 +4,7 @@ import django_filters
 
 from django.db.models import Q
 
-from nautobot.dcim.models import Device
+from nautobot.dcim.models import Device, DeviceRole
 from nautobot.extras.filters import StatusModelFilterSetMixin, CreatedUpdatedFilterSet, CustomFieldModelFilterSet
 from nautobot.ipam.models import VRF
 from nautobot.utilities.filters import BaseFilterSet, NameSlugSearchFilterSet, TagFilter
@@ -222,6 +222,20 @@ class PeeringFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelF
         queryset=Device.objects.all(),
         to_field_name="name",
         label="Device (name)",
+    )
+
+    device_role = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__routing_instance__device__device_role__name",
+        queryset=DeviceRole.objects.all(),
+        to_field_name="name",
+        label="Device Role (name)",
+    )
+
+    peer_endpoint_role = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__role__name",
+        queryset=models.PeeringRole.objects.all(),
+        to_field_name="name",
+        label="Peer Endpoint Role (name)",
     )
 
     class Meta:
