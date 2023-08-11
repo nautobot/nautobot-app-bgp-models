@@ -127,6 +127,7 @@ class BGPRoutingInstanceForm(NautobotModelForm):
         fields = (
             "device",
             "autonomous_system",
+            "status",
             "description",
             "router_id",
             "peergroup_template",
