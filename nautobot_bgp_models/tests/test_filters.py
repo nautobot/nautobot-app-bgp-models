@@ -314,25 +314,33 @@ class PeeringTestCase(TestCase):
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
         site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole_router = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        devicerole_switch = DeviceRole.objects.create(name="Switch", slug="switch", color="ff0000")
         device1 = Device.objects.create(
             device_type=devicetype,
-            device_role=devicerole,
+            device_role=devicerole_router,
             name="device1",
             site=site,
             status=status_active,
         )
-        # device2 = Device.objects.create(
-        #     device_type=devicetype,
-        #     device_role=devicerole,
-        #     name="device2",
-        #     site=site,
-        #     status=status_active
-        # )
+        device2 = Device.objects.create(
+            device_type=devicetype,
+            device_role=devicerole_switch,
+            name="device2",
+            site=site,
+            status=status_active,
+        )
         cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
-            description="Hello World!",
+            description="Device 1 RI",
             autonomous_system=asn1,
             device=device1,
+            status=status_active,
+        )
+
+        cls.bgp_routing_instance_device_2 = models.BGPRoutingInstance.objects.create(
+            description="Device 2 RI",
+            autonomous_system=asn1,
+            device=device2,
             status=status_active,
         )
 
@@ -341,11 +349,10 @@ class PeeringTestCase(TestCase):
             Interface.objects.create(device=device1, name="Loopback1"),
             Interface.objects.create(device=device1, name="Loopback2"),
         ]
-        # interfaces_device2 = [
-        #     Interface.objects.create(device=device2, name="Loopback0"),
-        #     Interface.objects.create(device=device2, name="Loopback1"),
-        #     Interface.objects.create(device=device2, name="Loopback2"),
-        # ]
+        interfaces_device2 = [
+            Interface.objects.create(device=device2, name="Loopback0"),
+            Interface.objects.create(device=device2, name="Loopback1"),
+        ]
 
         addresses = [
             IPAddress.objects.create(
@@ -375,47 +382,115 @@ class PeeringTestCase(TestCase):
                 address="10.1.1.6/24",
                 status=status_reserved,
             ),
+            IPAddress.objects.create(
+                address="10.1.1.7/24",
+                status=status_reserved,
+                assigned_object=interfaces_device2[0],
+            ),
+            IPAddress.objects.create(
+                address="10.1.1.8/24",
+                status=status_reserved,
+            ),
+            IPAddress.objects.create(
+                address="10.1.1.9/24",
+                status=status_reserved,
+                assigned_object=interfaces_device2[1],
+            ),
+            IPAddress.objects.create(
+                address="10.1.1.10/24",
+                status=status_reserved,
+            ),
         ]
 
-        # peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
-        # peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
+        peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
+        peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
 
         peerings = [
+            # Peering #0
             models.Peering.objects.create(status=status_active),
+            # Peering #1
             models.Peering.objects.create(status=status_active),
+            # Peering #2
             models.Peering.objects.create(status=status_reserved),
+            # Peering #3
+            models.Peering.objects.create(status=status_active),
+            # Peering #4
+            models.Peering.objects.create(status=status_active),
         ]
 
+        # Peering #0
         models.PeerEndpoint.objects.create(
             source_ip=addresses[0],
             peering=peerings[0],
             autonomous_system=asn1,
+            role=peeringrole_internal,
+            routing_instance=cls.bgp_routing_instance,
         )
         models.PeerEndpoint.objects.create(
             source_ip=addresses[1],
             peering=peerings[0],
             autonomous_system=asn1,
+            role=peeringrole_external,
         )
 
+        # Peering #1
         models.PeerEndpoint.objects.create(
             source_ip=addresses[2],
             peering=peerings[1],
             autonomous_system=asn1,
+            role=peeringrole_internal,
+            routing_instance=cls.bgp_routing_instance,
         )
         models.PeerEndpoint.objects.create(
             source_ip=addresses[3],
             peering=peerings[1],
             autonomous_system=asn2,
+            role=peeringrole_external,
         )
+
+        # Peering #2
         models.PeerEndpoint.objects.create(
             source_ip=addresses[4],
             peering=peerings[2],
             autonomous_system=asn1,
+            role=peeringrole_internal,
+            routing_instance=cls.bgp_routing_instance,
         )
         models.PeerEndpoint.objects.create(
             source_ip=addresses[5],
             peering=peerings[2],
             autonomous_system=asn3,
+            role=peeringrole_external,
+        )
+
+        # Peering #3
+        models.PeerEndpoint.objects.create(
+            source_ip=addresses[6],
+            peering=peerings[3],
+            autonomous_system=asn1,
+            role=peeringrole_internal,
+            routing_instance=cls.bgp_routing_instance_device_2,
+        )
+        models.PeerEndpoint.objects.create(
+            source_ip=addresses[7],
+            peering=peerings[3],
+            autonomous_system=asn3,
+            role=peeringrole_external,
+        )
+
+        # Peering #4
+        models.PeerEndpoint.objects.create(
+            source_ip=addresses[8],
+            peering=peerings[4],
+            autonomous_system=asn1,
+            role=peeringrole_internal,
+            routing_instance=cls.bgp_routing_instance_device_2,
+        )
+        models.PeerEndpoint.objects.create(
+            source_ip=addresses[9],
+            peering=peerings[4],
+            autonomous_system=asn3,
+            role=peeringrole_external,
         )
 
     def test_id(self):
@@ -423,26 +498,43 @@ class PeeringTestCase(TestCase):
         params = {"id": self.queryset.values_list("pk", flat=True)[:2]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
-    # def test_role(self):
-    #     """Test filtering by role."""
-    #     params = {"role": ["external"]}
-    #     self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
-
     def test_status(self):
         """Test filtering by status."""
         params = {"status": ["active"]}
-        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 4)
 
     def test_device(self):
         """Test filtering by device name."""
-        params = {"device": "device1"}
+        params = {"device": ["device1"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
 
-        # params = {"device": "device2"}
-        # self.assertEqual(self.filterset(params, self.queryset).qs.count(), 0)
+        params = {"device": ["device2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
         params = {"device": ["device1", "device2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 5)
+
+    def test_device_role(self):
+        """Test filtering by device role name."""
+        params = {"device_role": ["Router"]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 3)
+
+        params = {"device_role": ["Switch"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+
+        params = {"device_role": ["Router", "Switch"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 5)
+
+    def test_peer_endpoint_role(self):
+        """Test filtering by peer endpoint role name."""
+        params = {"peer_endpoint_role": ["internal"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 5)
+
+        params = {"peer_endpoint_role": ["external"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 5)
+
+        params = {"peer_endpoint_role": ["router", "switch"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 5)
 
     # def test_asn(self):
     #     """Test filtering by asn name."""
