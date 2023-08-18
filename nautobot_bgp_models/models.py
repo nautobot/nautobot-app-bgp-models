@@ -642,9 +642,9 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         if self.routing_instance:
             if local_ip_value not in IPAddress.objects.filter(interface__device_id=self.routing_instance.device.id):
                 raise ValidationError("Peer IP not associated with Routing Instance")
-        else:
-            if not asn_value.provider:
-                raise ValidationError("ASN requires a specified Provider")
+        # Enforce Routing Instance if local IP belongs to the Device
+        elif not self.routing_instance and local_ip_value.interface.exists():
+            raise ValidationError("Must specify Routing Instance for this IP Address")
 
 
 @extras_features(
