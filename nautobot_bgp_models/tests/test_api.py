@@ -652,18 +652,19 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             autonomous_system=cls.provider_asn,
             peering=cls.peering[0],
         )
+
+        # Peering #3
         models.PeerEndpoint.objects.create(
+            routing_instance=cls.bgp_routing_instance,
             source_ip=cls.addresses[2],
             autonomous_system=cls.provider_asn,
             peering=cls.peering[3],
         )
-        # models.PeerEndpoint.objects.create(
-        #     source_ip=cls.addresses[3],
-        #     autonomous_system=cls.provider_asn,
-        #     peering=cls.peering[3]
-        # )
-
-        # models.PeerEndpoint.objects.create(local_ip=cls.addresses[2], peer_group=peergroup, peering=cls.peering[1])
+        models.PeerEndpoint.objects.create(
+            source_ip=cls.addresses[3],
+            autonomous_system=cls.provider_asn,
+            peering=cls.peering[3],
+        )
 
         cls.create_data = [
             # Peering #1
@@ -676,12 +677,6 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             {
                 "source_ip": cls.addresses[4].pk,
                 "autonomous_system": cls.provider_asn.pk,
-                "peering": cls.peering[1].pk,
-            },
-            {
-                "source_ip": cls.addresses[2].pk,
-                "routing_instance": cls.bgp_routing_instance.pk,
-                "peer_group": peergroup.pk,
                 "peering": cls.peering[1].pk,
             },
         ]
