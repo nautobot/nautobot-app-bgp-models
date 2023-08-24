@@ -1,7 +1,8 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
 
-from unittest import skipIf
+from importlib import metadata
 from packaging import version
+from unittest import skipIf
 
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider
@@ -13,11 +14,6 @@ from nautobot.utilities.testing import ViewTestCases
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices
 
-try:
-    from importlib import metadata
-except ImportError:
-    # Running on pre-3.8 Python; use importlib-metadata package
-    import importlib_metadata as metadata
 
 _NAUTOBOT_VERSION = version.parse(metadata.version("nautobot"))
 # Related to this issue: https://github.com/nautobot/nautobot/issues/2948
