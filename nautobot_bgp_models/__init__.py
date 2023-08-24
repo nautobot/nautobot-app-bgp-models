@@ -1,16 +1,10 @@
 """Plugin declaration for nautobot_bgp_models."""
 
-try:
-    from importlib import metadata
-except ImportError:
-    # Running on pre-3.8 Python; use importlib-metadata package
-    import importlib_metadata as metadata
+from importlib import metadata
+from django.db.models.signals import post_migrate
+from nautobot.extras.plugins import PluginConfig
 
 __version__ = metadata.version(__name__)
-
-from django.db.models.signals import post_migrate
-
-from nautobot.extras.plugins import PluginConfig
 
 
 class NautobotBGPModelsConfig(PluginConfig):
