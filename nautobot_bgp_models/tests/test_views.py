@@ -1,8 +1,8 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
 
+from unittest import skipIf
 from importlib import metadata
 from packaging import version
-from unittest import skipIf
 
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider

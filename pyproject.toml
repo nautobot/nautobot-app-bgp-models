@@ -79,12 +79,10 @@ no-docstring-rgx="^(_|test_|Meta$)"
 good-names = '''_,i,j,k,pk'''
 
 [tool.pylint.messages_control]
-# bad-continuation: Pylint and Black disagree about how to format multi-line arrays; Black wins.
 # line-too-long: Line length is enforced by Black, so pylint doesn't need to check it.
 # too-few-public-methods: is just plain noise.
 # too-many-ancestors: is just a fact of life when dealing with Django and Nautobot inheritance hierarchies.
 disable = """,
-    bad-continuation,
     line-too-long,
     too-few-public-methods,
     too-many-ancestors,
