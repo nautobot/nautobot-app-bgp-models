@@ -5,16 +5,22 @@ import django_filters
 
 from django.db.models import Q
 
-from nautobot.dcim.models import Device, DeviceRole
-from nautobot.extras.filters import StatusModelFilterSetMixin, CreatedUpdatedFilterSet, CustomFieldModelFilterSet
+from nautobot.dcim.models import Device
+from nautobot.apps.filters import (
+    StatusModelFilterSetMixin,
+    CreatedUpdatedModelFilterSetMixin,
+    CustomFieldModelFilterSetMixin,
+)
+from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.ipam.models import VRF
-from nautobot.utilities.filters import BaseFilterSet, NameSlugSearchFilterSet, TagFilter
+from nautobot.apps.filters import BaseFilterSet
+from nautobot.extras.models import Role
 
 from . import choices, models
 
 
 class AutonomousSystemFilterSet(
-    BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, StatusModelFilterSetMixin
+    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin, StatusModelFilterSetMixin
 ):
     """Filtering of AutonomousSystem records."""
 
@@ -22,8 +28,6 @@ class AutonomousSystemFilterSet(
         method="search",
         label="Search",
     )
-
-    tag = TagFilter()
 
     def search(self, queryset, name, value):  # pylint: disable=unused-argument
         """Free-text search method implementation."""
@@ -33,11 +37,11 @@ class AutonomousSystemFilterSet(
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ["id", "asn", "status"]
+        fields = ["id", "asn", "status", "tags"]
 
 
 class BGPRoutingInstanceFilterSet(
-    BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, StatusModelFilterSetMixin
+    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin, StatusModelFilterSetMixin
 ):
     """Filtering of BGPRoutingInstance records."""
 
@@ -45,8 +49,6 @@ class BGPRoutingInstanceFilterSet(
         method="search",
         label="Search",
     )
-
-    tag = TagFilter()
 
     autonomous_system = django_filters.ModelMultipleChoiceFilter(
         field_name="autonomous_system__asn",
@@ -69,7 +71,7 @@ class BGPRoutingInstanceFilterSet(
 
     class Meta:
         model = models.BGPRoutingInstance
-        fields = ["id", "autonomous_system"]
+        fields = ["id", "autonomous_system", "tags"]
 
     def search(self, queryset, name, value):  # pylint: disable=unused-argument
         """Free-text search method implementation."""
@@ -78,28 +80,7 @@ class BGPRoutingInstanceFilterSet(
         return queryset.filter(Q(device__name__icontains=value)).distinct()
 
 
-class PeeringRoleFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, NameSlugSearchFilterSet):
-    """Filtering of PeeringRole records."""
-
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
-    )
-
-    class Meta:
-        model = models.PeeringRole
-        fields = ["id", "name", "slug", "color", "description"]
-
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) | Q(slug__icontains=value) | Q(description__icontains=value)
-        ).distinct()
-
-
-class PeerGroupFilterSet(BaseFilterSet):
+class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerGroup records."""
 
     q = django_filters.CharFilter(
@@ -121,13 +102,6 @@ class PeerGroupFilterSet(BaseFilterSet):
         label="BGP Routing Instance ID",
     )
 
-    role = django_filters.ModelMultipleChoiceFilter(
-        field_name="role__slug",
-        queryset=models.PeeringRole.objects.all(),
-        to_field_name="slug",
-        label="Peering role (slug)",
-    )
-
     class Meta:
         model = models.PeerGroup
         fields = ["id", "name", "enabled"]
@@ -139,7 +113,7 @@ class PeerGroupFilterSet(BaseFilterSet):
         return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
 
 
-class PeerGroupTemplateFilterSet(BaseFilterSet):
+class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerGroupTemplate records."""
 
     q = django_filters.CharFilter(
@@ -154,13 +128,6 @@ class PeerGroupTemplateFilterSet(BaseFilterSet):
         label="Autonomous System Number",
     )
 
-    role = django_filters.ModelMultipleChoiceFilter(
-        field_name="role__slug",
-        queryset=models.PeeringRole.objects.all(),
-        to_field_name="slug",
-        label="Peering role (slug)",
-    )
-
     class Meta:
         model = models.PeerGroupTemplate
         fields = ["id", "name", "enabled"]
@@ -172,7 +139,7 @@ class PeerGroupTemplateFilterSet(BaseFilterSet):
         return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
 
 
-class PeerEndpointFilterSet(BaseFilterSet):
+class PeerEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerEndpoint records."""
 
     q = django_filters.CharFilter(
@@ -212,7 +179,12 @@ class PeerEndpointFilterSet(BaseFilterSet):
         ).distinct()
 
 
-class PeeringFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet, StatusModelFilterSetMixin):
+class PeeringFilterSet(
+    BaseFilterSet,
+    CreatedUpdatedModelFilterSetMixin,
+    CustomFieldModelFilterSetMixin,
+    StatusModelFilterSetMixin,
+):
     """Filtering of Peering records."""
 
     # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
@@ -226,15 +198,15 @@ class PeeringFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelF
     )
 
     device_role = django_filters.ModelMultipleChoiceFilter(
-        field_name="endpoints__routing_instance__device__device_role__name",
-        queryset=DeviceRole.objects.all(),
+        field_name="endpoints__routing_instance__device__role__name",
+        queryset=Role.objects.all(),
         to_field_name="name",
         label="Device Role (name)",
     )
 
     peer_endpoint_role = django_filters.ModelMultipleChoiceFilter(
         field_name="endpoints__role__name",
-        queryset=models.PeeringRole.objects.all(),
+        queryset=Role.objects.all(),
         to_field_name="name",
         label="Peer Endpoint Role (name)",
     )
@@ -244,7 +216,7 @@ class PeeringFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelF
         fields = ["id"]
 
 
-class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
     """Filtering of AddressFamily records."""
 
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)

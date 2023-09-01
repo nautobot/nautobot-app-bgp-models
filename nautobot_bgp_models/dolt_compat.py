@@ -18,7 +18,6 @@ if DOLT_AVAILABLE:
             "nautobot_bgp_models": {
                 "bgproutinginstance": tables.BGPRoutingInstanceTable,
                 "autonomoussystem": tables.AutonomousSystemTable,
-                "peeringrole": tables.PeeringRoleTable,
                 "peergroup": tables.PeerGroupTable,
                 "peergrouptemplate": tables.PeerGroupTemplateTable,
                 "peerendpoint": tables.PeerEndpointTable,

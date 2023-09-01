@@ -38,6 +38,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <td>Role</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.role %}
+                        </td>
+                    </tr>
+                    <tr>
                         <td>Enabled</td>
                         <td>
                             {% include "nautobot_bgp_models/inc/native_property.html" with property=object.enabled %}
