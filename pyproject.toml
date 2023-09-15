@@ -20,7 +20,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-nautobot = "^2.0.0-rc.2"
+nautobot = ">=2.0.0rc1,<2.0.0rc99"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
