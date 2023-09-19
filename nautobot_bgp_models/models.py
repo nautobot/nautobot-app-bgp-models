@@ -1,3 +1,4 @@
+"""BGP data models."""
 import functools
 from collections import OrderedDict
 
@@ -839,6 +840,7 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
     ]
 
     def to_csv(self):
+        """Return a list of values for use in CSV export."""
         return (
             str(self.peer_group),
             self.afi_safi,
@@ -848,9 +850,11 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
         )
 
     def __str__(self):
+        """String representation."""
         return f"{self.afi_safi} AF - {self.peer_group}"
 
     def get_absolute_url(self):
+        """Absolute URL of a record."""
         return reverse("plugins:nautobot_bgp_models:peergroupaddressfamily", args=[self.pk])
 
 
@@ -957,6 +961,7 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
     ]
 
     def to_csv(self):
+        """Return a list of values for use in CSV export."""
         return (
             str(self.peer_endpoint),
             self.afi_safi,
@@ -966,7 +971,9 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
         )
 
     def __str__(self):
+        """String representation."""
         return f"{self.afi_safi} AF - {self.peer_endpoint}"
 
     def get_absolute_url(self):
+        """Absolute URL of a record."""
         return reverse("plugins:nautobot_bgp_models:peerendpointaddressfamily", args=[self.pk])

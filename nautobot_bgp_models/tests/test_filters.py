@@ -661,7 +661,6 @@ class PeerGroupAddressFamilyTestCase(TestCase):
         )
 
         cls.asn_1 = models.AutonomousSystem.objects.create(asn=4294967294, status=status_active)
-        asn_2 = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
 
         cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
         peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")

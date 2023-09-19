@@ -249,10 +249,6 @@ class PeeringRoleBulkEditForm(NautobotBulkEditForm):
 class PeerGroupForm(NautobotModelForm):
     """Form for creating/updating PeerGroup records."""
 
-    def __init__(self, *args, **kwargs):
-        """Init."""
-        super().__init__(*args, **kwargs)
-
     routing_instance = DynamicModelChoiceField(
         queryset=models.BGPRoutingInstance.objects.all(),
         required=True,

@@ -516,13 +516,10 @@ class PeerEndpointAddressFamilyTestCase(ViewTestCases.PrimaryObjectViewTestCase)
         )
 
         interface = Interface.objects.create(name="Loopback1", device=device)
-        interface_2 = Interface.objects.create(name="Loopback2", device=device)
         # vrf = VRF.objects.create(name="red")
 
         address_1 = IPAddress.objects.create(address="1.1.1.1/32", status=status_active, assigned_object=interface)
-        address_3 = IPAddress.objects.create(address="3.3.3.3/32", status=status_active)
         address_2 = IPAddress.objects.create(address="2.2.2.2/32", status=status_active)
-        address_4 = IPAddress.objects.create(address="4.4.4.4/32", status=status_active, assigned_object=interface_2)
 
         peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
 
@@ -536,9 +533,6 @@ class PeerEndpointAddressFamilyTestCase(ViewTestCases.PrimaryObjectViewTestCase)
             status=status_active,
         )
         peering2 = models.Peering.objects.create(
-            status=status_active,
-        )
-        peering3 = models.Peering.objects.create(
             status=status_active,
         )
 

@@ -1055,19 +1055,6 @@ class PeerGroupAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         device = Device.objects.create(
             device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
         )
-        interface = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
-
-        vrf = VRF.objects.create(name="Ark B")
-        address = IPAddress.objects.create(
-            address="10.1.1.1/24", status=status_active, vrf=vrf, assigned_object=interface
-        )
-
-        peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
-        external_peeringrole = models.PeeringRole.objects.create(name="External", slug="external", color="333334")
-
-        asn_15521 = models.AutonomousSystem.objects.create(
-            asn=15521, status=status_active, description="Hi ex Premium Internet AS!"
-        )
 
         asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
 
