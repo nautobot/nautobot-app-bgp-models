@@ -316,10 +316,10 @@ class PeerEndpointAddressFamilyTable(BaseTable):
     )
     peer_endpoint = tables.LinkColumn()
     afi_safi = tables.Column()
-    actions = ButtonsColumn(model=models.AddressFamily)
+    actions = ButtonsColumn(model=models.PeerEndpointAddressFamily)
 
     class Meta(BaseTable.Meta):
-        model = models.AddressFamily
+        model = models.PeerEndpointAddressFamily
         fields = (
             "pk",
             "peer_endpoint_address_family",

@@ -276,6 +276,11 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomField
 class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
     """Filtering of PeerGroupAddressFamily records."""
 
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
+
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
 
     peer_group = django_filters.ModelMultipleChoiceFilter(
@@ -291,9 +296,24 @@ class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, Cu
             "peer_group",
         ]
 
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(afi_safi__icontains=value)
+            | Q(peer_group__name__icontains=value)
+            | Q(peer_group__description__icontains=value)
+        ).distinct()
+
 
 class PeerEndpointAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
     """Filtering of PeerEndpointAddressFamily records."""
+
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
 
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
 
@@ -309,3 +329,13 @@ class PeerEndpointAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet,
             "afi_safi",
             "peer_endpoint",
         ]
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(afi_safi__icontains=value)
+            | Q(peer_endpoint__routing_instance__device__name__iexact=value)
+            | Q(peer_endpoint__description__icontains=value)
+        ).distinct()

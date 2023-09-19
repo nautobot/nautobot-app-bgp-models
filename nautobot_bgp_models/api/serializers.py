@@ -241,7 +241,7 @@ class PeeringSerializer(NautobotModelSerializer, StatusModelSerializerMixin):
         ]
 
 
-class AddressFamilySerializer(NautobotModelSerializer):
+class AddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for AddressFamily records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:addressfamily-detail")
@@ -258,10 +258,11 @@ class AddressFamilySerializer(NautobotModelSerializer):
             "afi_safi",
             "routing_instance",
             "vrf",
+            "extra_attributes",
         ]
 
 
-class PeerGroupAddressFamilySerializer(NautobotModelSerializer):
+class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for PeerGroupAddressFamily records."""
 
     url = serializers.HyperlinkedIdentityField(
@@ -280,10 +281,11 @@ class PeerGroupAddressFamilySerializer(NautobotModelSerializer):
             "import_policy",
             "export_policy",
             "multipath",
+            "extra_attributes",
         ]
 
 
-class PeerEndpointAddressFamilySerializer(NautobotModelSerializer):
+class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for PeerEndpointAddressFamily records."""
 
     url = serializers.HyperlinkedIdentityField(
@@ -302,4 +304,5 @@ class PeerEndpointAddressFamilySerializer(NautobotModelSerializer):
             "import_policy",
             "export_policy",
             "multipath",
+            "extra_attributes",
         ]

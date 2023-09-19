@@ -707,9 +707,12 @@ class PeerGroupAddressFamilyBulkEditForm(NautobotBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=models.PeerGroupAddressFamily.objects.all(), widget=forms.MultipleHiddenInput()
     )
+    import_policy = forms.CharField(max_length=100, required=False)
+    export_policy = forms.CharField(max_length=100, required=False)
+    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
 
     class Meta:
-        nullable_fields = []
+        nullable_fields = ["import_policy", "export_policy", "multipath"]
 
 
 class PeerGroupAddressFamilyFilterForm(NautobotFilterForm):
@@ -771,9 +774,12 @@ class PeerEndpointAddressFamilyBulkEditForm(NautobotBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=models.PeerEndpointAddressFamily.objects.all(), widget=forms.MultipleHiddenInput()
     )
+    import_policy = forms.CharField(max_length=100, required=False)
+    export_policy = forms.CharField(max_length=100, required=False)
+    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
 
     class Meta:
-        nullable_fields = []
+        nullable_fields = ["import_policy", "export_policy", "multipath"]
 
 
 class PeerEndpointAddressFamilyFilterForm(NautobotFilterForm):

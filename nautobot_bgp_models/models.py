@@ -695,6 +695,8 @@ class Peering(OrganizationalModel, StatusModel):
 class AddressFamily(OrganizationalModel, BGPExtraAttributesMixin):
     """Address-family (AFI-SAFI) model for the RoutingInstance and VRF levels of configuration."""
 
+    extra_attributes_inheritance = []
+
     afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
     vrf = models.ForeignKey(
