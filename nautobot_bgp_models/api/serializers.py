@@ -95,8 +95,6 @@ class PeerGroupTemplateSerializer(NautobotModelSerializer, ExtraAttributesSerial
             "description",
             "enabled",
             "autonomous_system",
-            "import_policy",
-            "export_policy",
             "extra_attributes",
             "secret",
         ]
@@ -137,8 +135,6 @@ class PeerGroupSerializer(
             "secret",
             "extra_attributes",
             "role",
-            "import_policy",
-            "export_policy",
         ]
 
 
@@ -171,8 +167,6 @@ class PeerEndpointSerializer(
             "autonomous_system",
             "peer_group",
             "peer",
-            "import_policy",
-            "export_policy",
             "peering",
             "secret",
             "tags",
@@ -264,6 +258,48 @@ class AddressFamilySerializer(NautobotModelSerializer):
             "afi_safi",
             "routing_instance",
             "vrf",
-            "export_policy",
+        ]
+
+
+class PeerGroupAddressFamilySerializer(NautobotModelSerializer):
+    """REST API serializer for PeerGroupAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
+    )
+
+    peer_group = NestedPeerGroupSerializer(required=True)
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = [
+            "id",
+            "url",
+            "afi_safi",
+            "peer_group",
             "import_policy",
+            "export_policy",
+            "multipath",
+        ]
+
+
+class PeerEndpointAddressFamilySerializer(NautobotModelSerializer):
+    """REST API serializer for PeerEndpointAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
+    )
+
+    peer_endpoint = NestedPeerEndpointSerializer(required=True)
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
+        fields = [
+            "id",
+            "url",
+            "afi_safi",
+            "peer_endpoint",
+            "import_policy",
+            "export_policy",
+            "multipath",
         ]

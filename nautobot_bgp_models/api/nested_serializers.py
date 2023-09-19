@@ -7,14 +7,16 @@ from nautobot.core.api import WritableNestedSerializer
 from nautobot_bgp_models import models
 
 __all__ = (
+    "NestedAddressFamilySerializer",
     "NestedAutonomousSystemSerializer",
+    "NestedBGPRoutingInstanceSerializer",
+    "NestedPeerEndpointAddressFamilySerializer",
+    "NestedPeerEndpointSerializer",
     "NestedPeeringRoleSerializer",
+    "NestedPeeringSerializer",
+    "NestedPeerGroupAddressFamilySerializer",
     "NestedPeerGroupSerializer",
     "NestedPeerGroupTemplateSerializer",
-    "NestedPeerEndpointSerializer",
-    "NestedPeeringSerializer",
-    "NestedAddressFamilySerializer",
-    "NestedBGPRoutingInstanceSerializer",
 )
 
 
@@ -98,3 +100,27 @@ class NestedAddressFamilySerializer(WritableNestedSerializer):
     class Meta:
         model = models.AddressFamily
         fields = ["id", "url", "afi_safi"]
+
+
+class NestedPeerGroupAddressFamilySerializer(WritableNestedSerializer):
+    """Nested/brief serializer for PeerGroupAddressFamily."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
+    )
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = ["id", "url"]
+
+
+class NestedPeerEndpointAddressFamilySerializer(WritableNestedSerializer):
+    """Nested/brief serializer for PeerEndpointAddressFamily."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
+    )
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
+        fields = ["id", "url"]

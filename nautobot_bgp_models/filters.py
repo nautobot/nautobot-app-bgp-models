@@ -271,3 +271,41 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomField
             "afi_safi",
             "vrf",
         ]
+
+
+class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+    """Filtering of PeerGroupAddressFamily records."""
+
+    afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
+
+    peer_group = django_filters.ModelMultipleChoiceFilter(
+        label="Peer Group (ID)",
+        queryset=models.PeerGroup.objects.all(),
+    )
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = [
+            "id",
+            "afi_safi",
+            "peer_group",
+        ]
+
+
+class PeerEndpointAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+    """Filtering of PeerEndpointAddressFamily records."""
+
+    afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
+
+    peer_endpoint = django_filters.ModelMultipleChoiceFilter(
+        label="Peer Endpoint (ID)",
+        queryset=models.PeerEndpoint.objects.all(),
+    )
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
+        fields = [
+            "id",
+            "afi_safi",
+            "peer_endpoint",
+        ]

@@ -215,6 +215,34 @@ class AddressFamilyImportView(generic.BulkImportView):
     table = AddressFamilyUIViewSet.table_class
 
 
+class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerGroupAddressFamily model."""
+
+    bulk_create_form_class = forms.PeerGroupAddressFamilyCSVForm
+    bulk_update_form_class = forms.PeerGroupAddressFamilyBulkEditForm
+    filterset_class = filters.PeerGroupAddressFamilyFilterSet
+    filterset_form_class = forms.PeerGroupAddressFamilyFilterForm
+    form_class = forms.PeerGroupAddressFamilyForm
+    lookup_field = "pk"
+    queryset = models.PeerGroupAddressFamily.objects.all()
+    serializer_class = serializers.PeerGroupAddressFamilySerializer
+    table_class = tables.PeerGroupAddressFamilyTable
+
+
+class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerEndpointAddressFamily model."""
+
+    bulk_create_form_class = forms.PeerEndpointAddressFamilyCSVForm
+    bulk_update_form_class = forms.PeerEndpointAddressFamilyBulkEditForm
+    filterset_class = filters.PeerEndpointAddressFamilyFilterSet
+    filterset_form_class = forms.PeerEndpointAddressFamilyFilterForm
+    form_class = forms.PeerEndpointAddressFamilyForm
+    lookup_field = "pk"
+    queryset = models.PeerEndpointAddressFamily.objects.all()
+    serializer_class = serializers.PeerEndpointAddressFamilySerializer
+    table_class = tables.PeerEndpointAddressFamilyTable
+
+
 class BgpExtraAttributesView(View):
     """BGP Extra Attributes View."""
 
