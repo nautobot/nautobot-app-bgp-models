@@ -269,7 +269,7 @@ class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesS
         view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
     )
 
-    peer_group = NestedPeerGroupSerializer(required=True)
+    peer_group = NestedPeerGroupSerializer(required=True)  # noqa: F405
 
     class Meta:
         model = models.PeerGroupAddressFamily
@@ -292,7 +292,7 @@ class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttribut
         view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
     )
 
-    peer_endpoint = NestedPeerEndpointSerializer(required=True)
+    peer_endpoint = NestedPeerEndpointSerializer(required=True)  # noqa: F405
 
     class Meta:
         model = models.PeerEndpointAddressFamily
