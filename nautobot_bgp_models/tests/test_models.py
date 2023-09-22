@@ -143,7 +143,7 @@ class PeerGroupTestCase(TestCase):
         """Test CSV representation of a PeerGroup."""
         self.assertEqual(
             self.peergroup.to_csv(),
-            ("Peer Group A", self.bgp_routing_instance.pk, None, None, None, None, True, None),
+            ("Peer Group A", self.bgp_routing_instance.pk, None, None, None, None, None, True, None),
         )
 
     # def test_vrf_fixup_from_router_id(self):

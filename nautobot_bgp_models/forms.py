@@ -256,11 +256,20 @@ class PeerGroupForm(NautobotModelForm):
         help_text="Specify related Routing Instance (Device)",
     )
 
+    vrf = DynamicModelChoiceField(
+        queryset=VRF.objects.all(),
+        required=False,
+        label="VRF",
+    )
+
     source_ip = DynamicModelChoiceField(
         queryset=IPAddress.objects.all(),
         required=False,
         label="Source IP Address",
-        query_params={"nautobot_bgp_models_ips_bgp_routing_instance": "$routing_instance"},
+        query_params={
+            "nautobot_bgp_models_ips_bgp_routing_instance": "$routing_instance",
+            "vrf": "$vrf",
+        },
     )
 
     source_interface = DynamicModelChoiceField(
@@ -287,6 +296,7 @@ class PeerGroupForm(NautobotModelForm):
         fields = (
             "routing_instance",
             "name",
+            "vrf",
             "peergroup_template",
             "description",
             "enabled",
@@ -371,6 +381,8 @@ class PeerGroupFilterForm(NautobotFilterForm):
         queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
     )
 
+    vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
+
 
 class PeerGroupTemplateFilterForm(NautobotFilterForm):
     """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
@@ -421,6 +433,12 @@ class PeerGroupCSVForm(CustomFieldModelCSVForm):
         queryset=models.PeerGroupTemplate.objects.all(),
         to_field_name="name",
         help_text="Assigned peering group template name",
+        required=False,
+    )
+
+    vrf = CSVModelChoiceField(
+        queryset=VRF.objects.all(),
+        to_field_name="name",
         required=False,
     )
 

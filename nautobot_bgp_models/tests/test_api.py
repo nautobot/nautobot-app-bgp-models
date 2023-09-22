@@ -354,6 +354,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
                 "description": "Telephone sanitizers",
                 "enabled": True,
                 "source_ip": address.pk,
+                "vrf": vrf.pk,
             },
             {
                 "name": "Group B",
@@ -377,6 +378,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             "autonomous_system": asn_8545.pk,
             "source_ip": None,
             "source_interface": interface.pk,
+            "vrf": vrf.pk,
             "extra_attributes": '{"key1": "value1", "key2": {"nested_key2": "nested_value2"}}',
         }
         pgt1 = models.PeerGroupTemplate.objects.create(

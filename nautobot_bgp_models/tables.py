@@ -86,6 +86,7 @@ class PeerGroupTable(BaseTable):
     name = tables.LinkColumn()
     peergroup_template = tables.LinkColumn()
     routing_instance = tables.LinkColumn()
+    vrf = tables.LinkColumn()
     enabled = BooleanColumn()
     role = ColoredLabelColumn()
     autonomous_system = tables.LinkColumn()
@@ -102,6 +103,7 @@ class PeerGroupTable(BaseTable):
             "name",
             "peergroup_template",
             "routing_instance",
+            "vrf",
             "enabled",
             "role",
             "autonomous_system",
@@ -114,6 +116,7 @@ class PeerGroupTable(BaseTable):
             "name",
             "peergroup_template",
             "routing_instance",
+            "vrf",
             "enabled",
             "role",
             "autonomous_system",

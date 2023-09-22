@@ -354,6 +354,15 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True
     )
 
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        related_name="peer_groups",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
+
     description = models.CharField(max_length=200, blank=True)
 
     enabled = models.BooleanField(default=True)
@@ -403,6 +412,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "name",
         "routing_instance",
         "autonomous_system",
+        "vrf",
         "source_interface",
         "source_ip",
         "peergroup_template",
@@ -416,6 +426,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             self.name,
             self.routing_instance.pk,
             self.autonomous_system.asn if self.autonomous_system else None,
+            self.vrf.name if self.vrf else None,
             self.source_interface.name if self.source_interface else None,
             self.source_ip.address if self.source_ip else None,
             self.peergroup_template.name if self.peergroup_template else None,
@@ -425,6 +436,8 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     def __str__(self):
         """String."""
+        if self.vrf:
+            return f"{self.name} (VRF {self.vrf}) - {self.routing_instance.device}"
         return f"{self.name} - {self.routing_instance.device}"
 
     def get_absolute_url(self):
@@ -432,7 +445,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
 
     class Meta:
-        unique_together = [("name", "routing_instance")]
+        unique_together = [("name", "routing_instance", "vrf")]
         verbose_name = "BGP Peer Group"
 
     def clean(self):
@@ -441,14 +454,43 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         if self.source_ip and self.source_interface:
             raise ValidationError("Can not set both IP and Update source options")
 
-        # Ensure source_interface interface has 1 IP Address assigned
-        if self.source_interface and self.source_interface.ip_addresses.count() != 1:
-            raise ValidationError("Source Interface must have only 1 IP Address assigned.")
+        if self.source_interface:
+            # Ensure source_interface interface has 1 IP Address assigned
+            if self.source_interface.ip_addresses.count() != 1:
+                raise ValidationError("Source Interface must have only 1 IP Address assigned.")
+            # Ensure VRF membership
+            if self.source_interface.ip_addresses.first().vrf != self.vrf:
+                raise ValidationError(
+                    f"VRF mismatch between PeerGroup VRF ({self.vrf}) "
+                    f"and selected source interface VRF ({self.source_interface.ip_addresses.first().vrf})"
+                )
 
-        # Ensure IP related to the routing instance
-        if self.routing_instance and self.source_ip:
+        if self.source_ip:
+            # Ensure IP related to the routing instance
             if self.source_ip not in IPAddress.objects.filter(interface__device_id=self.routing_instance.device.id):
                 raise ValidationError("Group IP not associated with Routing Instance")
+            # Ensure VRF membership
+            if self.source_ip.vrf != self.vrf:
+                raise ValidationError(
+                    f"VRF mismatch between PeerGroup VRF ({self.vrf}) and selected source IP VRF ({self.source_ip.vrf})"
+                )
+
+        if self.present_in_database:
+            original = self.__class__.objects.get(id=self.id)
+            if self.vrf != original.vrf and self.endpoints.exists():
+                raise ValidationError("Cannot change VRF of PeerGroup that has existing PeerEndpoints in this VRF.")
+
+    def validate_unique(self, exclude=None):
+        """Validate uniqueness, handling NULL != NULL for VRF foreign key."""
+        if (
+            self.vrf is None
+            and self.__class__.objects.exclude(id=self.id)
+            .filter(routing_instance=self.routing_instance, name=self.name, vrf__isnull=True)
+            .exists()
+        ):
+            raise ValidationError(f"Duplicate Peer Group name for {self.routing_instance}")
+
+        super().validate_unique(exclude)
 
 
 @extras_features(
@@ -624,6 +666,14 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         elif not self.routing_instance and local_ip_value.interface.exists():
             raise ValidationError("Must specify Routing Instance for this IP Address")
 
+        # Enforce peer group VRF membership
+        if self.peer_group is not None:
+            if local_ip_value.vrf != self.peer_group.vrf:
+                raise ValidationError(
+                    f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.vrf}) "
+                    f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
+                )
+
 
 @extras_features(
     "custom_fields",
@@ -703,6 +753,7 @@ class AddressFamily(OrganizationalModel, BGPExtraAttributesMixin):
     vrf = models.ForeignKey(
         to="ipam.VRF",
         verbose_name="VRF",
+        related_name="address_families",
         blank=True,
         null=True,
         on_delete=models.PROTECT,
@@ -786,8 +837,9 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
         Custom implementation as BGPExtraAttributesMixin.get_extra_attributes_paths isn't smart enough.
         """
         try:
-            # TODO: should peer-group and/or peer-group-address-family be VRF-aware?
-            parent_bgp_af = self.peer_group.routing_instance.address_families.get(vrf=None, afi_safi=self.afi_safi)
+            parent_bgp_af = self.peer_group.routing_instance.address_families.get(
+                vrf=self.peer_group.vrf, afi_safi=self.afi_safi
+            )
             return [parent_bgp_af.extra_attributes]
         except AddressFamily.DoesNotExist:
             return []
@@ -801,8 +853,9 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
             return field_value, False, None
 
         try:
-            # TODO: should probably be VRF-aware
-            parent_bgp_af = self.peer_group.routing_instance.address_families.get(vrf=None, afi_safi=self.afi_safi)
+            parent_bgp_af = self.peer_group.routing_instance.address_families.get(
+                vrf=self.peer_group.vrf, afi_safi=self.afi_safi
+            )
             field_value = getattr(parent_bgp_af, field_name, None)
             if field_value:
                 return field_value, True, parent_bgp_af
@@ -889,8 +942,9 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
             pass
 
         try:
-            # TODO: should probably be VRF-aware via self.local_ip.vrf?
-            parent_bgp_af = self.peer_endpoint.routing_instance.address_families.get(vrf=None, afi_safi=self.afi_safi)
+            parent_bgp_af = self.peer_endpoint.routing_instance.address_families.get(
+                vrf=self.peer_endpoint.local_ip.vrf, afi_safi=self.afi_safi
+            )
             inherited_extra_attributes.append(parent_bgp_af.extra_attributes)
         except AddressFamily.DoesNotExist:
             pass
@@ -922,8 +976,9 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
             pass
 
         try:
-            # TODO: should probably be VRF-aware
-            parent_bgp_af = self.peer_endpoint.routing_instance.address_families.get(vrf=None, afi_safi=self.afi_safi)
+            parent_bgp_af = self.peer_endpoint.routing_instance.address_families.get(
+                vrf=self.peer_endpoint.local_ip.vrf, afi_safi=self.afi_safi
+            )
             field_value = getattr(parent_bgp_af, field_name, None)
             if field_value:
                 return field_value, True, parent_bgp_af

@@ -1,6 +1,6 @@
 """REST API serializers for nautobot_bgp_models models."""
 
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from nautobot.dcim.api.serializers import NestedDeviceSerializer, NestedInterfaceSerializer
 from nautobot.ipam.api.serializers import NestedVRFSerializer, NestedIPAddressSerializer
@@ -115,6 +115,8 @@ class PeerGroupSerializer(
 
     autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)  # noqa: F405
 
+    vrf = NestedVRFSerializer(required=False, allow_null=True)
+
     peergroup_template = NestedPeerGroupTemplateSerializer(required=False, allow_null=True)  # noqa: F405
 
     secret = NestedSecretSerializer(required=False, allow_null=True)
@@ -131,11 +133,23 @@ class PeerGroupSerializer(
             "enabled",
             "autonomous_system",
             "routing_instance",
+            "vrf",
             "peergroup_template",
             "secret",
             "extra_attributes",
             "role",
         ]
+        validators = []
+
+    def validate(self, data):
+        if data.get("vrf"):
+            validator = validators.UniqueTogetherValidator(
+                queryset=models.PeerGroup.objects.all(), fields=("routing_instance", "name", "vrf")
+            )
+            validator(data, self)
+
+        super().validate(data)
+        return data
 
 
 class PeerEndpointSerializer(

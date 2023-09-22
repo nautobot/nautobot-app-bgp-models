@@ -10,6 +10,7 @@ import nautobot.extras.models.mixins
 
 class Migration(migrations.Migration):
     dependencies = [
+        ("ipam", "0008_prefix_vlan_vlangroup_location"),
         ("nautobot_bgp_models", "0002_viewsets_migration"),
     ]
 
@@ -54,6 +55,32 @@ class Migration(migrations.Migration):
             model_name="addressfamily",
             name="extra_attributes",
             field=models.JSONField(blank=True, encoder=django.core.serializers.json.DjangoJSONEncoder, null=True),
+        ),
+        migrations.AddField(
+            model_name="peergroup",
+            name="vrf",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="peer_groups",
+                to="ipam.vrf",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="addressfamily",
+            name="vrf",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="address_families",
+                to="ipam.vrf",
+            ),
+        ),
+        migrations.AlterUniqueTogether(
+            name="peergroup",
+            unique_together={("name", "routing_instance", "vrf")},
         ),
         migrations.CreateModel(
             name="PeerGroupAddressFamily",

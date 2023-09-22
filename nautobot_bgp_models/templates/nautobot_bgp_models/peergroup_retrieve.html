@@ -24,6 +24,14 @@
                         <td>Routing Instance</td>
                         <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.routing_instance.pk %}">{{ object.routing_instance }}</a></td>
                     </tr>
+                    <tr>
+                        <td>VRF</td>
+                        {% if object.vrf %}
+                            <td><a href="{% url 'ipam:vrf' pk=object.vrf.pk %}">{{ object.vrf }}</a></td>
+                        {% else %}
+                            <td><span class="text-muted">None</span></td>
+                        {% endif %}
+                    </tr>
                 </table>
             </div>
             <div class="panel panel-default">

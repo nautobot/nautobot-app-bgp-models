@@ -121,6 +121,13 @@ class PeerGroupFilterSet(BaseFilterSet):
         label="BGP Routing Instance ID",
     )
 
+    vrf = django_filters.ModelMultipleChoiceFilter(
+        field_name="vrf__name",
+        queryset=VRF.objects.all(),
+        to_field_name="name",
+        label="VRF (name)",
+    )
+
     role = django_filters.ModelMultipleChoiceFilter(
         field_name="role__slug",
         queryset=models.PeeringRole.objects.all(),
