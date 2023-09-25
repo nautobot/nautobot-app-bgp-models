@@ -124,6 +124,10 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
 ):
     """UIViewset for Peering model."""
 
+    action_buttons = (
+        "add",
+        "export",
+    )
     filterset_class = filters.PeeringFilterSet
     filterset_form_class = forms.PeeringFilterForm
     form_class = forms.PeeringForm

@@ -830,39 +830,18 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
     """Address-family (AFI-SAFI) model for PeerGroup-specific configuration."""
 
     @property
-    def get_extra_attributes_paths(self):
-        """
-        Get inheritable extra attributes.
-
-        Custom implementation as BGPExtraAttributesMixin.get_extra_attributes_paths isn't smart enough.
-        """
+    def parent_address_family(self):
+        """The routing-instance AddressFamily (if any) that this PeerGroupAddressFamily inherits from."""
         try:
-            parent_bgp_af = self.peer_group.routing_instance.address_families.get(
+            return self.peer_group.routing_instance.address_families.get(
                 vrf=self.peer_group.vrf, afi_safi=self.afi_safi
             )
-            return [parent_bgp_af.extra_attributes]
         except AddressFamily.DoesNotExist:
-            return []
+            return None
+
+    extra_attributes_inheritance = ["parent_address_family"]
 
     property_inheritance = {}  # no non-extra-attributes properties inherited from AddressFamily at this time
-
-    def get_inherited_field(self, field_name, inheritance_path=None):
-        """Returns (value, inheritance_indicator, inheritance_source)."""
-        field_value = getattr(self, field_name, None)
-        if field_value:
-            return field_value, False, None
-
-        try:
-            parent_bgp_af = self.peer_group.routing_instance.address_families.get(
-                vrf=self.peer_group.vrf, afi_safi=self.afi_safi
-            )
-            field_value = getattr(parent_bgp_af, field_name, None)
-            if field_value:
-                return field_value, True, parent_bgp_af
-        except AddressFamily.DoesNotExist:
-            pass
-
-        return None, False, None
 
     afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
@@ -924,68 +903,33 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
     """Address-family (AFI-SAFI) model for PeerEndpoint-specific configuration."""
 
     @property
-    def get_extra_attributes_paths(self):
-        """
-        Get inheritable extra attributes.
-
-        Custom implementation as BGPExtraAttributesMixin.get_extra_attributes_paths isn't smart enough.
-        """
-        inherited_extra_attributes = []
-
+    def parent_peer_group_address_family(self):
+        """The PeerGroupAddressFamily (if any) that this PeerEndpointAddressFamily inherits from."""
         try:
             parent_pg = self.peer_endpoint.peer_group
             if parent_pg is not None:
-                inherited_extra_attributes.append(
-                    parent_pg.address_families.get(afi_safi=self.afi_safi).extra_attributes
-                )
+                return parent_pg.address_families.get(afi_safi=self.afi_safi)
         except PeerGroupAddressFamily.DoesNotExist:
             pass
+        return None
 
+    @property
+    def parent_address_family(self):
+        """The routing-instance AddressFamily (if any) that this PeerEndpointAddressFamily inherits from."""
         try:
-            parent_bgp_af = self.peer_endpoint.routing_instance.address_families.get(
+            return self.peer_endpoint.routing_instance.address_families.get(
                 vrf=self.peer_endpoint.local_ip.vrf, afi_safi=self.afi_safi
             )
-            inherited_extra_attributes.append(parent_bgp_af.extra_attributes)
         except AddressFamily.DoesNotExist:
-            pass
+            return None
 
-        return inherited_extra_attributes
+    extra_attributes_inheritance = ["parent_peer_group_address_family", "parent_address_family"]
 
     property_inheritance = {
-        # Note that only the keys here are actually relevant, as we have a custom get_inherited_field() that ignores
-        # the inheritance_path arrays.
-        "import_policy": ["peer_group__address_families"],
-        "export_policy": ["peer_group__address_families"],
-        "multipath": ["peer_group__address_families"],
+        "import_policy": ["parent_peer_group_address_family"],
+        "export_policy": ["parent_peer_group_address_family"],
+        "multipath": ["parent_peer_group_address_family"],
     }
-
-    def get_inherited_field(self, field_name, inheritance_path=None):
-        """Returns (value, inheritance_indicator, inheritance_source)."""
-        field_value = getattr(self, field_name, None)
-        if field_value:
-            return field_value, False, None
-
-        try:
-            parent_pg = self.peer_endpoint.peer_group
-            if parent_pg is not None:
-                parent_pg_af = parent_pg.address_families.get(afi_safi=self.afi_safi)
-                field_value = getattr(parent_pg_af, field_name, None)
-                if field_value:
-                    return field_value, True, parent_pg_af
-        except PeerGroupAddressFamily.DoesNotExist:
-            pass
-
-        try:
-            parent_bgp_af = self.peer_endpoint.routing_instance.address_families.get(
-                vrf=self.peer_endpoint.local_ip.vrf, afi_safi=self.afi_safi
-            )
-            field_value = getattr(parent_bgp_af, field_name, None)
-            if field_value:
-                return field_value, True, parent_bgp_af
-        except AddressFamily.DoesNotExist:
-            pass
-
-        return None, False, None
 
     afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
