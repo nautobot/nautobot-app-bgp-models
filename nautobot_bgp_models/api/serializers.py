@@ -142,6 +142,7 @@ class PeerGroupSerializer(
         validators = []
 
     def validate(self, data):
+        """Custom validation logic to handle unique-together with a nullable field."""
         if data.get("vrf"):
             validator = validators.UniqueTogetherValidator(
                 queryset=models.PeerGroup.objects.all(), fields=("routing_instance", "name", "vrf")
