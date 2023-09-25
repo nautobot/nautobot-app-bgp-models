@@ -459,10 +459,10 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             if self.source_interface.ip_addresses.count() != 1:
                 raise ValidationError("Source Interface must have only 1 IP Address assigned.")
             # Ensure VRF membership
-            if self.source_interface.ip_addresses.first().vrf != self.vrf:
+            if self.source_interface.ip_addresses.all().first().vrf != self.vrf:
                 raise ValidationError(
                     f"VRF mismatch between PeerGroup VRF ({self.vrf}) "
-                    f"and selected source interface VRF ({self.source_interface.ip_addresses.first().vrf})"
+                    f"and selected source interface VRF ({self.source_interface.ip_addresses.all().first().vrf})"
                 )
 
         if self.source_ip:
