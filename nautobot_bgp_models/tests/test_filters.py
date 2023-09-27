@@ -638,3 +638,199 @@ class AddressFamilyTestCase(TestCase):
     # TODO filtering by device/virtualmachine
     def test_device(self):
         pass
+
+
+class PeerGroupAddressFamilyTestCase(TestCase):
+    """Test filtering of PeerGroupAddressFamily records."""
+
+    queryset = models.PeerGroupAddressFamily.objects.all()
+    filterset = filters.PeerGroupAddressFamilyFilterSet
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class setup."""
+        status_active = Status.objects.get(slug="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
+        site = Site.objects.create(name="Site 1", slug="site-1")
+        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        cls.device_1 = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+        )
+
+        cls.asn_1 = models.AutonomousSystem.objects.create(asn=4294967294, status=status_active)
+
+        cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        peeringrole_external = models.PeeringRole.objects.create(name="External", slug="external", color="ffffff")
+
+        cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+            description="Hello World!",
+            autonomous_system=cls.asn_1,
+            device=cls.device_1,
+            status=status_active,
+        )
+
+        cls.pg1 = models.PeerGroup.objects.create(
+            routing_instance=cls.bgp_routing_instance,
+            name="Group A",
+            role=cls.peeringrole_internal,
+            autonomous_system=cls.asn_1,
+            description="Internal Group",
+        )
+        cls.pg2 = models.PeerGroup.objects.create(
+            routing_instance=cls.bgp_routing_instance,
+            name="Group B",
+            role=peeringrole_external,
+            autonomous_system=cls.asn_1,
+            enabled=False,
+            description="External Group",
+        )
+
+        models.PeerGroupAddressFamily.objects.create(
+            peer_group=cls.pg1,
+            afi_safi="ipv4_unicast",
+        )
+        models.PeerGroupAddressFamily.objects.create(
+            peer_group=cls.pg1,
+            afi_safi="ipv6_unicast",
+        )
+        models.PeerGroupAddressFamily.objects.create(
+            peer_group=cls.pg2,
+            afi_safi="ipv4_unicast",
+        )
+
+    def test_search(self):
+        """Test text search."""
+        self.assertEqual(self.filterset({"q": "ipv4"}, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset({"q": self.pg1.name}, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset({"q": self.pg1.description}, self.queryset).qs.count(), 2)
+
+    def test_id(self):
+        """Test filtering by ID (primary key)."""
+        self.assertEqual(
+            self.filterset({"id": self.queryset.values_list("pk", flat=True)[:2]}, self.queryset).qs.count(),
+            2,
+        )
+
+    def test_afi_safi(self):
+        """Test filtering by afi_safi."""
+        self.assertEqual(self.filterset({"afi_safi": ["ipv4_unicast"]}, self.queryset).qs.count(), 2)
+
+    def test_peer_endpoint(self):
+        """Test filtering by peer_group."""
+        self.assertEqual(self.filterset({"peer_group": [self.pg1.pk]}, self.queryset).qs.count(), 2)
+
+
+class PeerEndpointAddressFamilyTestCase(TestCase):
+    """Test filtering of PeerEndpointAddressFamily records."""
+
+    queryset = models.PeerEndpointAddressFamily.objects.all()
+    filterset = filters.PeerEndpointAddressFamilyFilterSet
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class setup."""
+        status_active = Status.objects.get(slug="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        # provider = Provider.objects.create(name="Provider", slug="provider")
+
+        asn = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
+        # asn_15521 = models.AutonomousSystem.objects.create(asn=15521, status=status_active, provider=provider)
+
+        peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="ffffff")
+        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
+        cls.site = Site.objects.create(name="Site 1", slug="site-1")
+        cls.devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        device = Device.objects.create(
+            device_type=cls.devicetype,
+            device_role=cls.devicerole,
+            name="Device 1",
+            site=cls.site,
+            status=status_active,
+        )
+        interface = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
+
+        addresses = [
+            IPAddress.objects.create(address="1.1.1.1/32", status=status_active, assigned_object=interface),
+            IPAddress.objects.create(address="1.1.1.2/32", status=status_active, assigned_object=interface),
+            IPAddress.objects.create(address="1.1.1.3/32", status=status_active),
+        ]
+
+        cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+            description="Hello World!",
+            autonomous_system=asn,
+            device=device,
+            status=status_active,
+        )
+
+        cls.peergroup = models.PeerGroup.objects.create(
+            name="Group B",
+            role=peeringrole,
+            routing_instance=cls.bgp_routing_instance,
+        )
+
+        peering1 = models.Peering.objects.create(status=status_active)
+        peering2 = models.Peering.objects.create(status=status_active)
+        peering3 = models.Peering.objects.create(status=status_active)
+
+        cls.pe1 = models.PeerEndpoint.objects.create(
+            routing_instance=cls.bgp_routing_instance,
+            source_ip=addresses[0],
+            autonomous_system=asn,
+            peering=peering1,
+            description="I'm an endpoint!",
+        )
+        cls.pe2 = models.PeerEndpoint.objects.create(
+            routing_instance=cls.bgp_routing_instance,
+            source_ip=addresses[1],
+            autonomous_system=asn,
+            peer_group=cls.peergroup,
+            peering=peering2,
+        )
+        cls.pe3 = models.PeerEndpoint.objects.create(
+            source_ip=addresses[2],
+            peer_group=cls.peergroup,
+            enabled=False,
+            peering=peering3,
+        )
+
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pe1,
+            afi_safi="ipv4_unicast",
+        )
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pe1,
+            afi_safi="ipv6_unicast",
+        )
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pe2,
+            afi_safi="ipv4_unicast",
+        )
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pe3,
+            afi_safi="ipv4_unicast",
+        )
+
+    def test_search(self):
+        """Test text search."""
+        self.assertEqual(self.filterset({"q": "ipv4_unicast"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": self.pe1.description}, self.queryset).qs.count(), 2)
+
+    def test_id(self):
+        """Test filtering by ID (primary key)."""
+        self.assertEqual(
+            self.filterset({"id": self.queryset.values_list("pk", flat=True)[:2]}, self.queryset).qs.count(),
+            2,
+        )
+
+    def test_afi_safi(self):
+        """Test filtering by AFI-SAFI."""
+        self.assertEqual(self.filterset({"afi_safi": ["ipv4_unicast"]}, self.queryset).qs.count(), 3)
+
+    def test_peer_endpoint(self):
+        """Test filtering by peer_endpoint."""
+        self.assertEqual(self.filterset({"peer_endpoint": [self.pe1.pk, self.pe2.pk]}, self.queryset).qs.count(), 3)

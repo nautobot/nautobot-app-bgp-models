@@ -20,8 +20,10 @@ if DOLT_AVAILABLE:
                 "autonomoussystem": tables.AutonomousSystemTable,
                 "peeringrole": tables.PeeringRoleTable,
                 "peergroup": tables.PeerGroupTable,
+                "peergroupaddressfamily": tables.PeerGroupAddressFamilyTable,
                 "peergrouptemplate": tables.PeerGroupTemplateTable,
                 "peerendpoint": tables.PeerEndpointTable,
+                "peerendpointaddressfamily": tables.PeerEndpointAddressFamilyTable,
                 "peering": tables.PeeringTable,
                 "addressfamily": tables.AddressFamilyTable,
             }

@@ -1,6 +1,6 @@
 """REST API serializers for nautobot_bgp_models models."""
 
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from nautobot.dcim.api.serializers import NestedDeviceSerializer, NestedInterfaceSerializer
 from nautobot.ipam.api.serializers import NestedVRFSerializer, NestedIPAddressSerializer
@@ -95,8 +95,6 @@ class PeerGroupTemplateSerializer(NautobotModelSerializer, ExtraAttributesSerial
             "description",
             "enabled",
             "autonomous_system",
-            "import_policy",
-            "export_policy",
             "extra_attributes",
             "secret",
         ]
@@ -117,6 +115,8 @@ class PeerGroupSerializer(
 
     autonomous_system = NestedAutonomousSystemSerializer(required=False, allow_null=True)  # noqa: F405
 
+    vrf = NestedVRFSerializer(required=False, allow_null=True)
+
     peergroup_template = NestedPeerGroupTemplateSerializer(required=False, allow_null=True)  # noqa: F405
 
     secret = NestedSecretSerializer(required=False, allow_null=True)
@@ -133,13 +133,24 @@ class PeerGroupSerializer(
             "enabled",
             "autonomous_system",
             "routing_instance",
+            "vrf",
             "peergroup_template",
             "secret",
             "extra_attributes",
             "role",
-            "import_policy",
-            "export_policy",
         ]
+        validators = []
+
+    def validate(self, data):
+        """Custom validation logic to handle unique-together with a nullable field."""
+        if data.get("vrf"):
+            validator = validators.UniqueTogetherValidator(
+                queryset=models.PeerGroup.objects.all(), fields=("routing_instance", "name", "vrf")
+            )
+            validator(data, self)
+
+        super().validate(data)
+        return data
 
 
 class PeerEndpointSerializer(
@@ -171,8 +182,6 @@ class PeerEndpointSerializer(
             "autonomous_system",
             "peer_group",
             "peer",
-            "import_policy",
-            "export_policy",
             "peering",
             "secret",
             "tags",
@@ -247,7 +256,7 @@ class PeeringSerializer(NautobotModelSerializer, StatusModelSerializerMixin):
         ]
 
 
-class AddressFamilySerializer(NautobotModelSerializer):
+class AddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for AddressFamily records."""
 
     url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:addressfamily-detail")
@@ -264,6 +273,51 @@ class AddressFamilySerializer(NautobotModelSerializer):
             "afi_safi",
             "routing_instance",
             "vrf",
-            "export_policy",
+            "extra_attributes",
+        ]
+
+
+class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerGroupAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
+    )
+
+    peer_group = NestedPeerGroupSerializer(required=True)  # noqa: F405
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = [
+            "id",
+            "url",
+            "afi_safi",
+            "peer_group",
             "import_policy",
+            "export_policy",
+            "multipath",
+            "extra_attributes",
+        ]
+
+
+class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerEndpointAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
+    )
+
+    peer_endpoint = NestedPeerEndpointSerializer(required=True)  # noqa: F405
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
+        fields = [
+            "id",
+            "url",
+            "afi_safi",
+            "peer_endpoint",
+            "import_policy",
+            "export_policy",
+            "multipath",
+            "extra_attributes",
         ]

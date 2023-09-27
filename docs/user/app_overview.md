@@ -11,13 +11,15 @@ An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core 
 
 This application adds the following new data models into Nautobot:
 
-- **BGP Routing Instance**: device-specific BGP process
 - **Autonomous System**: network-wide description of a BGP autonomous system (AS)
+- **Peering Role**: describes the valid options for PeerGroup, PeerGroupTemplate, and/or Peering roles
+- **BGP Routing Instance**: device-specific BGP process
+- **Address Family**: device-specific configuration of a BGP address family (AFI-SAFI) with an optional VRF
 - **Peer Group Template**: network-wide template for Peer Group objects
 - **Peer Group**: device-specific configuration for a group of functionally related BGP peers
-- **Address Family**: device-specific configuration of a BGP address family (AFI-SAFI)
+- **Peer Group Address Family**: peer-group-specific configuration of a BGP address-family (AFI-SAFI)
 - **Peering and Peer Endpoints**: A BGP Peering is represented by a Peering object and two endpoints, each representing the configuration of one side of the BGP peering. A Peer Endpoint must be associated with a BGP Routing Instance.
-- **Peering Role**: describes the valid options for PeerGroup, PeerGroupTemplate, and/or Peering roles
+- **Peer Endpoint Address Family**: peer-specific configuration of a BGP address-family (AFI-SAFI)
 
 With these new models, it's now possible to populate the Source of Truth (SoT) with any BGP peerings, internal or external, regardless of whether both endpoints are fully defined in the Source of Truth.
 
@@ -37,13 +39,15 @@ Network Admins who need to model their BGP internal and external peerings inside
 This plugin adds the following data models to Nautobot:
 
 - AutonomousSystem
-- BGPRoutingInstance
-- PeerEndpoint
-- PeerGroup
-- PeerGroupTemplate
-- AddressFamily
-- Peering
 - PeeringRole
+- BGPRoutingInstance
+- AddressFamily
+- PeerGroupTemplate
+- PeerGroup
+- PeerGroupAddressFamily
+- PeerEndpoint
+- PeerEndpointAddressFamily
+- Peering
 
 The data models introduced by the BGP plugin support the following Nautobot features:
 

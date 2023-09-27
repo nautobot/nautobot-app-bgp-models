@@ -110,6 +110,7 @@ nav:
           - "admin/release_notes/index.md"
           - v0.7: "admin/release_notes/version_0.7.md"
           - v0.8: "admin/release_notes/version_0.8.md"
+          - v0.9: "admin/release_notes/version_0.9.md"
   - Developer Guide:
       - BGP Data Models: "dev/models.md"
       - Extending the App: "dev/extending.md"

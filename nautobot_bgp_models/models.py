@@ -1,5 +1,4 @@
-"""Django model definitions for nautobot_bgp_models."""
-
+"""BGP data models."""
 import functools
 from collections import OrderedDict
 
@@ -294,10 +293,6 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
         on_delete=models.PROTECT,
     )
 
-    import_policy = models.CharField(max_length=100, default="", blank=True)
-
-    export_policy = models.CharField(max_length=100, default="", blank=True)
-
     secret = models.ForeignKey(
         to="extras.Secret",
         on_delete=models.PROTECT,
@@ -305,14 +300,12 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
         blank=True,
         null=True,
     )
-    csv_headers = ["name", "import_policy", "export_policy", "autonomous_system", "enabled", "role"]
+    csv_headers = ["name", "autonomous_system", "enabled", "role"]
 
     def to_csv(self):
         """Render a PeerGroupTemplate record to CSV fields."""
         return (
             self.name,
-            self.import_policy,
-            self.export_policy,
             self.autonomous_system.asn if self.autonomous_system else None,
             self.enabled,
             self.role.name if self.role else None,
@@ -347,8 +340,6 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "autonomous_system": ["peergroup_template", "routing_instance"],
         "description": ["peergroup_template"],
         "enabled": ["peergroup_template"],
-        "export_policy": ["peergroup_template"],
-        "import_policy": ["peergroup_template"],
         "role": ["peergroup_template"],
     }
 
@@ -361,6 +352,15 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     role = models.ForeignKey(
         to=PeeringRole, on_delete=models.PROTECT, related_name="peer_groups", blank=True, null=True
+    )
+
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        related_name="peer_groups",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
 
     description = models.CharField(max_length=200, blank=True)
@@ -400,10 +400,6 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         verbose_name="Source Interface",
     )
 
-    import_policy = models.CharField(max_length=100, default="", blank=True)
-
-    export_policy = models.CharField(max_length=100, default="", blank=True)
-
     secret = models.ForeignKey(
         to="extras.Secret",
         on_delete=models.PROTECT,
@@ -416,8 +412,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "name",
         "routing_instance",
         "autonomous_system",
-        "import_policy",
-        "export_policy",
+        "vrf",
         "source_interface",
         "source_ip",
         "peergroup_template",
@@ -431,8 +426,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             self.name,
             self.routing_instance.pk,
             self.autonomous_system.asn if self.autonomous_system else None,
-            self.import_policy,
-            self.export_policy,
+            self.vrf.name if self.vrf else None,
             self.source_interface.name if self.source_interface else None,
             self.source_ip.address if self.source_ip else None,
             self.peergroup_template.name if self.peergroup_template else None,
@@ -442,14 +436,16 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     def __str__(self):
         """String."""
-        return f"{self.name}"
+        if self.vrf:
+            return f"{self.name} (VRF {self.vrf}) - {self.routing_instance.device}"
+        return f"{self.name} - {self.routing_instance.device}"
 
     def get_absolute_url(self):
         """Get the URL for detailed view of a single PeerGroup."""
         return reverse("plugins:nautobot_bgp_models:peergroup", args=[self.pk])
 
     class Meta:
-        unique_together = [("name", "routing_instance")]
+        unique_together = [("name", "routing_instance", "vrf")]
         verbose_name = "BGP Peer Group"
 
     def clean(self):
@@ -458,14 +454,43 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         if self.source_ip and self.source_interface:
             raise ValidationError("Can not set both IP and Update source options")
 
-        # Ensure source_interface interface has 1 IP Address assigned
-        if self.source_interface and self.source_interface.ip_addresses.count() != 1:
-            raise ValidationError("Source Interface must have only 1 IP Address assigned.")
+        if self.source_interface:
+            # Ensure source_interface interface has 1 IP Address assigned
+            if self.source_interface.ip_addresses.count() != 1:
+                raise ValidationError("Source Interface must have only 1 IP Address assigned.")
+            # Ensure VRF membership
+            if self.source_interface.ip_addresses.all().first().vrf != self.vrf:
+                raise ValidationError(
+                    f"VRF mismatch between PeerGroup VRF ({self.vrf}) "
+                    f"and selected source interface VRF ({self.source_interface.ip_addresses.all().first().vrf})"
+                )
 
-        # Ensure IP related to the routing instance
-        if self.routing_instance and self.source_ip:
+        if self.source_ip:
+            # Ensure IP related to the routing instance
             if self.source_ip not in IPAddress.objects.filter(interface__device_id=self.routing_instance.device.id):
                 raise ValidationError("Group IP not associated with Routing Instance")
+            # Ensure VRF membership
+            if self.source_ip.vrf != self.vrf:
+                raise ValidationError(
+                    f"VRF mismatch between PeerGroup VRF ({self.vrf}) and selected source IP VRF ({self.source_ip.vrf})"
+                )
+
+        if self.present_in_database:
+            original = self.__class__.objects.get(id=self.id)
+            if self.vrf != original.vrf and self.endpoints.exists():
+                raise ValidationError("Cannot change VRF of PeerGroup that has existing PeerEndpoints in this VRF.")
+
+    def validate_unique(self, exclude=None):
+        """Validate uniqueness, handling NULL != NULL for VRF foreign key."""
+        if (
+            self.vrf is None
+            and self.__class__.objects.exclude(id=self.id)
+            .filter(routing_instance=self.routing_instance, name=self.name, vrf__isnull=True)
+            .exists()
+        ):
+            raise ValidationError(f"Duplicate Peer Group name for {self.routing_instance}")
+
+        super().validate_unique(exclude)
 
 
 @extras_features(
@@ -485,8 +510,6 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "autonomous_system": ["peer_group", "peer_group.peergroup_template", "routing_instance"],
         "description": ["peer_group", "peer_group.peergroup_template"],
         "enabled": ["peer_group", "peer_group.peergroup_template"],
-        "export_policy": ["peer_group", "peer_group.peergroup_template"],
-        "import_policy": ["peer_group", "peer_group.peergroup_template"],
         "source_ip": ["peer_group"],
         "source_interface": ["peer_group"],
         "role": ["peer_group.role", "peer_group.peergroup_template.role"],
@@ -589,10 +612,6 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         return None
 
-    import_policy = models.CharField(max_length=100, default="", blank=True)
-
-    export_policy = models.CharField(max_length=100, default="", blank=True)
-
     secret = models.ForeignKey(
         to="extras.Secret",
         on_delete=models.PROTECT,
@@ -603,10 +622,11 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     def __str__(self):
         """String."""
+        asn, _, _ = self.get_inherited_field(field_name="autonomous_system")
         if self.routing_instance and self.routing_instance.device:
-            return f"{self.routing_instance.device}"
+            return f"{self.routing_instance.device} {self.local_ip} ({asn})"
 
-        return f"{self.local_ip} ({self.autonomous_system})"
+        return f"{self.local_ip} ({asn})"
 
     def get_absolute_url(self):
         """Get the URL for detailed view of a single PeerEndpoint."""
@@ -645,6 +665,14 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         # Enforce Routing Instance if local IP belongs to the Device
         elif not self.routing_instance and local_ip_value.interface.exists():
             raise ValidationError("Must specify Routing Instance for this IP Address")
+
+        # Enforce peer group VRF membership
+        if self.peer_group is not None:
+            if local_ip_value.vrf != self.peer_group.vrf:
+                raise ValidationError(
+                    f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.vrf}) "
+                    f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
+                )
 
 
 @extras_features(
@@ -715,14 +743,17 @@ class Peering(OrganizationalModel, StatusModel):
     "relationships",
     "webhooks",
 )
-class AddressFamily(OrganizationalModel):
-    """Address-family (AFI-SAFI) model."""
+class AddressFamily(OrganizationalModel, BGPExtraAttributesMixin):
+    """Address-family (AFI-SAFI) model for the RoutingInstance and VRF levels of configuration."""
+
+    extra_attributes_inheritance = []
 
     afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
 
     vrf = models.ForeignKey(
         to="ipam.VRF",
         verbose_name="VRF",
+        related_name="address_families",
         blank=True,
         null=True,
         on_delete=models.PROTECT,
@@ -735,12 +766,6 @@ class AddressFamily(OrganizationalModel):
         verbose_name="BGP Routing Instance",
     )
 
-    import_policy = models.CharField(max_length=100, default="", blank=True)
-
-    export_policy = models.CharField(max_length=100, default="", blank=True)
-
-    multipath = models.BooleanField(blank=True, null=True)
-
     class Meta:
         ordering = ["-routing_instance", "-vrf"]
         verbose_name = "BGP address family"
@@ -750,9 +775,6 @@ class AddressFamily(OrganizationalModel):
         "routing_instance",
         "vrf",
         "afi_safi",
-        "import_policy",
-        "export_policy",
-        "multipath",
     ]
 
     def to_csv(self):
@@ -761,9 +783,6 @@ class AddressFamily(OrganizationalModel):
             self.routing_instance.pk,
             self.vrf.name if self.vrf else None,
             self.afi_safi,
-            self.import_policy,
-            self.export_policy,
-            self.multipath,
         )
 
     def __str__(self):
@@ -796,3 +815,164 @@ class AddressFamily(OrganizationalModel):
             raise ValidationError("Duplicate Address Family")
 
         super().validate_unique(exclude)
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttributesMixin):
+    """Address-family (AFI-SAFI) model for PeerGroup-specific configuration."""
+
+    @property
+    def parent_address_family(self):
+        """The routing-instance AddressFamily (if any) that this PeerGroupAddressFamily inherits from."""
+        try:
+            return self.peer_group.routing_instance.address_families.get(
+                vrf=self.peer_group.vrf, afi_safi=self.afi_safi
+            )
+        except AddressFamily.DoesNotExist:
+            return None
+
+    extra_attributes_inheritance = ["parent_address_family"]
+
+    property_inheritance = {}  # no non-extra-attributes properties inherited from AddressFamily at this time
+
+    afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
+
+    peer_group = models.ForeignKey(
+        to=PeerGroup,
+        on_delete=models.CASCADE,
+        related_name="address_families",
+    )
+
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+
+    multipath = models.BooleanField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-peer_group"]
+        unique_together = ["peer_group", "afi_safi"]
+        verbose_name = "BGP peer-group address family"
+        verbose_name_plural = "BGP Peer-Group Address Families"
+
+    csv_headers = [
+        "peer_group",
+        "afi_safi",
+        "import_policy",
+        "export_policy",
+        "multipath",
+    ]
+
+    def to_csv(self):
+        """Return a list of values for use in CSV export."""
+        return (
+            str(self.peer_group),
+            self.afi_safi,
+            self.import_policy,
+            self.export_policy,
+            str(self.multipath),
+        )
+
+    def __str__(self):
+        """String representation."""
+        return f"{self.afi_safi} AF - {self.peer_group}"
+
+    def get_absolute_url(self):
+        """Absolute URL of a record."""
+        return reverse("plugins:nautobot_bgp_models:peergroupaddressfamily", args=[self.pk])
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttributesMixin):
+    """Address-family (AFI-SAFI) model for PeerEndpoint-specific configuration."""
+
+    @property
+    def parent_peer_group_address_family(self):
+        """The PeerGroupAddressFamily (if any) that this PeerEndpointAddressFamily inherits from."""
+        try:
+            parent_pg = self.peer_endpoint.peer_group
+            if parent_pg is not None:
+                return parent_pg.address_families.get(afi_safi=self.afi_safi)
+        except PeerGroupAddressFamily.DoesNotExist:
+            pass
+        return None
+
+    @property
+    def parent_address_family(self):
+        """The routing-instance AddressFamily (if any) that this PeerEndpointAddressFamily inherits from."""
+        try:
+            return self.peer_endpoint.routing_instance.address_families.get(
+                vrf=self.peer_endpoint.local_ip.vrf, afi_safi=self.afi_safi
+            )
+        except AddressFamily.DoesNotExist:
+            return None
+
+    extra_attributes_inheritance = ["parent_peer_group_address_family", "parent_address_family"]
+
+    property_inheritance = {
+        "import_policy": ["parent_peer_group_address_family"],
+        "export_policy": ["parent_peer_group_address_family"],
+        "multipath": ["parent_peer_group_address_family"],
+    }
+
+    afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
+
+    peer_endpoint = models.ForeignKey(
+        to=PeerEndpoint,
+        on_delete=models.CASCADE,
+        related_name="address_families",
+    )
+
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+
+    multipath = models.BooleanField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-peer_endpoint"]
+        unique_together = ["peer_endpoint", "afi_safi"]
+        verbose_name = "BGP peer-endpoint address family"
+        verbose_name_plural = "BGP Peer-Endpoint Address Families"
+
+    csv_headers = [
+        "peer_endpoint",
+        "afi_safi",
+        "import_policy",
+        "export_policy",
+        "multipath",
+    ]
+
+    def to_csv(self):
+        """Return a list of values for use in CSV export."""
+        return (
+            str(self.peer_endpoint),
+            self.afi_safi,
+            self.import_policy,
+            self.export_policy,
+            str(self.multipath),
+        )
+
+    def __str__(self):
+        """String representation."""
+        return f"{self.afi_safi} AF - {self.peer_endpoint}"
+
+    def get_absolute_url(self):
+        """Absolute URL of a record."""
+        return reverse("plugins:nautobot_bgp_models:peerendpointaddressfamily", args=[self.pk])
