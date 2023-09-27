@@ -12,7 +12,6 @@ else:
 
 # Only do this if Dolt is available (aka "version control").
 if DOLT_AVAILABLE:
-
     # Tables used to display diffs
     dolt.register_diff_tables(
         {
@@ -21,8 +20,10 @@ if DOLT_AVAILABLE:
                 "autonomoussystem": tables.AutonomousSystemTable,
                 "peeringrole": tables.PeeringRoleTable,
                 "peergroup": tables.PeerGroupTable,
+                "peergroupaddressfamily": tables.PeerGroupAddressFamilyTable,
                 "peergrouptemplate": tables.PeerGroupTemplateTable,
                 "peerendpoint": tables.PeerEndpointTable,
+                "peerendpointaddressfamily": tables.PeerEndpointAddressFamilyTable,
                 "peering": tables.PeeringTable,
                 "addressfamily": tables.AddressFamilyTable,
             }

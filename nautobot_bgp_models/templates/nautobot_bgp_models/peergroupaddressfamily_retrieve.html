@@ -4,21 +4,29 @@
 {% block content_left_page %}
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <strong>BGP Address-Family</strong>
+                    <strong>BGP Peer-Group Address-Family</strong>
                 </div>
                 <table class="table table-hover panel-body attr-table">
                     <tr>
                         <td>Device</td>
-                        {% if object.routing_instance and object.routing_instance.device %}
-                            <td><a href="{% url 'dcim:device' pk=object.routing_instance.device.pk %}">{{ object.routing_instance.device }}</a></td>
+                        {% if object.peer_group.routing_instance and object.peer_group.routing_instance.device %}
+                            <td><a href="{% url 'dcim:device' pk=object.peer_group.routing_instance.device.pk %}">{{ object.peer_group.routing_instance.device }}</a></td>
                         {% else %}
                             <td><span class="text-muted">None</span></td>
                         {% endif %}
                     </tr>
                     <tr>
                         <td>Routing Instance</td>
-                        <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.routing_instance.pk %}">{{ object.routing_instance }}</a></td>
+                        <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.peer_group.routing_instance.pk %}">{{ object.peer_group.routing_instance }}</a></td>
                     </tr>
+                    <tr>
+                        <td>Peer Group</td>
+                        <td>
+                            <a href="{% url 'plugins:nautobot_bgp_models:peergroup' pk=object.peer_group.pk %}">
+                                {{ object.peer_group }}
+                            </a>
+                        </td>
+                    </td>
                 </table>
             </div>
             <div class="panel panel-default">
@@ -31,18 +39,8 @@
                         <td>{{ object.afi_safi }}</td>
                     </tr>
                     <tr>
-                        <td>VRF</td>
-                        {% if object.vrf %}
-                            <td><a href="{% url 'ipam:vrf' pk=object.vrf.pk %}">{{ object.vrf }}</a></td>
-                        {% else %}
-                            <td><span class="text-muted">None</span></td>
-                        {% endif %}
-                    </tr>
-                    <tr>
                         <td>Multipath</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.multipath %}
-                        </td>
+                        <td>{{ object.multipath | placeholder }}</td>
                     </tr>
                 </table>
             </div>
@@ -53,16 +51,18 @@
                 <table class="table table-hover panel-body attr-table">
                     <tr>
                         <td>Import Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.import_policy %}
-                        </td>
+                        <td>{{ object.import_policy | placeholder }}</td>
                     </tr>
                     <tr>
                         <td>Export Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.export_policy %}
-                        </td>
+                        <td>{{ object.export_policy | placeholder }}</td>
                     </tr>
                 </table>
             </div>
 {% endblock content_right_page %}
+
+{% block extra_nav_tabs %}
+        <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>
+            <a href="{% url 'plugins:nautobot_bgp_models:peergroupaddressfamily_extraattributes' pk=object.pk %}">Extra Attributes</a>
+        </li>
+{% endblock extra_nav_tabs %}

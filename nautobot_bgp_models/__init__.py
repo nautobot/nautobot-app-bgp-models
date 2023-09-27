@@ -1,16 +1,10 @@
 """Plugin declaration for nautobot_bgp_models."""
 
-try:
-    from importlib import metadata
-except ImportError:
-    # Running on pre-3.8 Python; use importlib-metadata package
-    import importlib_metadata as metadata
+from importlib import metadata
+from django.db.models.signals import post_migrate
+from nautobot.extras.plugins import PluginConfig
 
 __version__ = metadata.version(__name__)
-
-from django.db.models.signals import post_migrate
-
-from nautobot.extras.plugins import PluginConfig
 
 
 class NautobotBGPModelsConfig(PluginConfig):
@@ -23,11 +17,12 @@ class NautobotBGPModelsConfig(PluginConfig):
     description = "Nautobot BGP Models Plugin."
     base_url = "bgp"
     required_settings = []
-    min_version = "1.3.0"
+    min_version = "1.5.4"
     max_version = "1.999"
     default_settings = {
         "default_statuses": {
             "AutonomousSystem": ["active", "available", "planned"],
+            "BGPRoutingInstance": ["planned", "active", "decommissioned"],
             "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
         }
     }

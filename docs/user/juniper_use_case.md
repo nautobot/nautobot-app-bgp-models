@@ -22,10 +22,17 @@ query ($device_id: ID!) {
             peer_groups {
                 name
                 extra_attributes
-                template {
+                peergroup_template {
                     autonomous_system {
                         asn
                     }
+                    role {
+                        slug
+                    }
+                    extra_attributes
+                }
+                address_families {
+                    afi_safi
                     import_policy
                     export_policy
                     extra_attributes
@@ -85,33 +92,45 @@ An example data returned from Nautobot is presented below.
             {
               "name": "EDGE-to-LEAF",
               "extra_attributes": null,
-              "template": {
+              "peergroup_template": {
                 "autonomous_system": null,
-                "import_policy": "BGP-LEAF-IN",
-                "export_policy": "BGP-LEAF-OUT",
-                "extra_attributes": {
-                  "next-hop-self": true,
-                  "send-community": true
-                },
                 "role": {
                   "slug": "peer"
                 }
-              }
+                "extra_attributes": {}
+              },
+              "address_families": [
+                {
+                  "afi_safi": "IPV4_UNICAST",
+                  "import_policy": "BGP-LEAF-IN",
+                  "export_policy": "BGP-LEAF-OUT",
+                  "extra_attributes": {
+                    "next-hop-self": true,
+                    "send-community": true
+                  }
+                }
+              ]
             },
             {
               "name": "EDGE-to-TRANSIT",
               "extra_attributes": null,
-              "template": {
+              "peergroup_template": {
                 "autonomous_system": null,
-                "import_policy": "BGP-TRANSIT-IN",
-                "export_policy": "BGP-TRANSIT-OUT",
                 "extra_attributes": {
                   "ttl_security_hops": 1
                 },
                 "role": {
                   "slug": "customer"
                 }
-              }
+              },
+              "address_families": [
+                {
+                  "afi_safi": "IPV4_UNICAST",
+                  "import_policy": "BGP-TRANSIT-IN",
+                  "export_policy": "BGP-TRANSIT-OUT",
+                  "extra_attributes": {}
+                }
+              ]
             }
           ],
           "endpoints": [
@@ -309,7 +328,7 @@ An example data returned from Nautobot is presented below.
 }
 ```
 
-## Creating Juniper Jinja2 BGP Configuration Template
+## Creating a Juniper Jinja2 BGP Configuration Template
 
 Following snippet represents an example Juniper BGP Configuration Template:
 
@@ -317,16 +336,16 @@ Following snippet represents an example Juniper BGP Configuration Template:
 # Set the ASN for Routing Instance
 set routing-options autonomous-system {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 
-# Configure Groups 
+# Configure Groups
 {%- for peer_group in data.device.bgp_routing_instances.0.peer_groups %}
-{%- if peer_group.template.role.slug == "peer" %}
+{%- if peer_group.peergroup_template.role.slug == "peer" %}
 set protocols bgp group {{ peer_group.name }} type internal
 {%- endif %}
-{%- if peer_group.template.role.slug == "customer" %}
+{%- if peer_group.peergroup_template.role.slug == "customer" %}
 set protocols bgp group {{ peer_group.name }} type external
 {%- endif %}
-set protocols bgp group {{ peer_group.name }} import {{ peer_group.template.import_policy }}
-set protocols bgp group {{ peer_group.name }} export {{ peer_group.template.export_policy }}
+set protocols bgp group {{ peer_group.name }} import {{ peer_group.address_families.0.import_policy }}
+set protocols bgp group {{ peer_group.name }} export {{ peer_group.address_families.0.export_policy }}
 {%- endfor %}
 
 # Configure Peers

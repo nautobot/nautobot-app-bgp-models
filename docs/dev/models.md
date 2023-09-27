@@ -1,15 +1,17 @@
-# Data Models
+# BGP Data Models
 
 This plugin adds the following data models to Nautobot:
 
 - AutonomousSystem
-- BGPRoutingInstance
-- PeerEndpoint
-- PeerGroup
-- PeerGroupTemplate
-- AddressFamily
-- Peering
 - PeeringRole
+- BGPRoutingInstance
+- AddressFamily
+- PeerGroupTemplate
+- PeerGroup
+- PeerGroupAddressFamily
+- PeerEndpoint
+- PeerEndpointAddressFamily
+- Peering
 
 A key motivation behind this design is the idea that the Source of Truth should take a network-wide view of the BGP configuration rather than a per-device view. This especially applies to the data models for autonomous systems (ASNs), BGP peerings, and network-wide templates (Peer Groups).
 
@@ -24,15 +26,20 @@ The data models introduced by the BGP plugin support the following Nautobot feat
 - Custom data validation logic
 - Webhooks
 
-> The data models defined in this plugin were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
+!!! note
+    The data models defined in this plugin were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
 
 ### AutonomousSystem
 
 This model represents a network-wide description of a BGP autonomous system (AS). It has fields including the actual AS number (ASN), a description field, foreign key (FK) to a Nautobot `Provider` object, and a FK to a Nautobot `Status` object.
 
+### PeeringRole
+
+This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the `Role` field used by `PeerGroup` and `Peering` records. Similar to those models, this model has fields including a unique name, unique slug, and HTML color code.
+
 ### BGPRoutingInstance
 
-This model represents a device specific BGP process. It has a mandatory FK to a Nautobot `Device`, mandatory FK to a `AutonomousSystem` and following fields: 
+This model represents a device specific BGP process. It has a mandatory FK to a Nautobot `Device`, mandatory FK to a `AutonomousSystem` and following fields:
 
 - Router ID (optional, FK to Nautobot `IPAddress`)
 - Description (optional, string)
@@ -52,14 +59,24 @@ Example of the extra attributes:
 
 Extra Attributes are available for following models:
 
-- `PeerEndpoint`
-- `PeerGroup`
-- `PeerGroupTemplate`
 - `BGPRoutingInstance`
+- `AddressFamily`
+- `PeerGroupTemplate`
+- `PeerGroup`
+- `PeerGroupAddressFamily`
+- `PeerEndpoint`
+- `PeerEndpointAddressFamily`
 
-### PeeringRole
+### AddressFamily
 
-This model operates similarly to Nautobot’s `Status` and `Tag` models, in that instances of this model describe various valid values for the `Role` field used by `PeerGroup` and `Peering` records. Similar to those models, this model has fields including a unique name, unique slug, and HTML color code.
+This model represents configuration of a BGP address-family (AFI-SAFI). AddressFamily aims to represent a device specific Address Family instance.
+
+It has a locally unique AFI (address family identifier) field, optional VRF field (FK to Nautobot `VRF`) and following fields:
+
+- Import Policy (optional, string)
+- Export Policy (optional, string)
+
+(*) The network-wide modeling of AddressFamilies will be implemented in the future with `AddressFamilyTemplate` model similar to the `PeerGroupTemplate`.
 
 ### PeerGroupTemplate
 
@@ -69,8 +86,6 @@ This model represents a network-wide configuration for `PeerGroups`. `PeerGroupT
 - Role (optional, FK to `PeeringRole`)
 - Description (string)
 - Enabled (bool)
-- Import Policy (optional, string)
-- Export Policy (optional, string)
 - Secret (optional, FK to Nautobot `Secret`)
 - Extra Attributes (optional, JSON)
 
@@ -84,16 +99,22 @@ This model represents a common configuration for a group of functionally related
 - Role (optional, FK to `PeeringRole`)
 - Description (string)
 - Enabled (bool)
+- Secret (optional, FK to Nautobot `Secret`)
+- Extra Attributes (optional, JSON)
+
+### PeerGroupAddressFamily
+
+This model represents address-family-specific configuration of a PeerGroup. It has a mandatory FK to a `PeerGroup` and a mandatory `afi_safi` field, and additional fields including
+
 - Import Policy (optional, string)
 - Export Policy (optional, string)
-- Secret (optional, FK to Nautobot `Secret`)
 - Extra Attributes (optional, JSON)
 
 ### PeerEndpoint
 
 PeerEndpoint records are created when the Peering instance is created.
 
-This model represents the configuration of a single device for a single BGP peering. 
+This model represents the configuration of a single device for a single BGP peering.
 
 Note that in the case of an external peering (connection with an ISP or Transit Provider), there is no need to create and model the provider's `Device` object. However, as a minimum `PeerEndpoint` (representing the provider's side of `Peering`) created during `Peering` object creation, will have to store IP Address and ASN.
 
@@ -106,12 +127,8 @@ Note that in the case of an external peering (connection with an ISP or Transit 
 - Role (optional, FK to `PeeringRole`)
 - Description (string)
 - Enabled (bool)
-- Import Policy (optional, string)
-- Export Policy (optional, string)
 - Secret (optional, FK to Nautobot `Secret`)
 - Extra Attributes (optional, JSON)
-
-The device-specific `PeerEndpoint` custom modeling will be implemented in the future with `PeerEndpointContext` and `PeerGroupContext` models.
 
 #### PeerEndpoint Local-IP
 
@@ -126,16 +143,13 @@ As Source-IP and Source-Interface could be defined at multiple inheritance level
 3. `PeerEndpoint`'s `source_interface` attribute (if exists)
 4. `PeerGroup`'s `source_interface` attribute (if exists)
 
-### AddressFamily
+### PeerEndpointAddressFamily
 
-This model represents configuration of a BGP address-family (AFI-SAFI). AddressFamily aims to represent a device specific Address Family instance.
-
-It has a locally unique AFI (address family identifier) field, optional VRF field (FK to Nautobot `VRF`) and following fields:
+This model represents address-family-specific configuration of a device's PeerEndpoint. It has a mandatory FK to a `PeerEndpoint` and a mandatory `afi_safi` field, and additional keys including:
 
 - Import Policy (optional, string)
 - Export Policy (optional, string)
-
-(*) The network-wide modeling of AddressFamilies will be implemented in the future with `AddressFamilyTemplate` model similar to the `PeerGroupTemplate`.
+- Extra Attributes (optional, JSON)
 
 ### Peering
 
@@ -143,7 +157,8 @@ This model represents the shared configuration of a single BGP peer relationship
 
 - Status (FK to Nautobot `Status`)
 
-> The classification of a session as BGP "internal" or "external" is useful in the construction of queries and filters but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `Peering` model.
+!!! note
+    The classification of a session as BGP "internal" or "external" is useful in the construction of queries and filters but does not need to be stored as an actual database attribute (as it is implied by whether the ASNs of the two BGPPeerEndpoints involved are identical or different). It is implemented as a derived property of the `Peering` model.
 
 ### Inheritance between models
 
@@ -169,7 +184,8 @@ As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically
 
 The inherited values will be automatically displayed in the UI and can be retrieved from the REST API by adding `?include_inherited=true` parameter.
 
-(*) **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** See [GraphQL issue #43](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/43) for details.
+!!! warning
+    **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** See [GraphQL issue #43](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/43) for details.
 
 Following is the complete documentation of the field inheritance hierarchy. Models are ordered with the topmost having the highest priority. The first model with an assigned attribute value will be used as an inheritance source.
 
@@ -198,3 +214,18 @@ Following is the complete documentation of the field inheritance hierarchy. Mode
 | export_policy | PeerGroupTemplate |
 | import_policy | PeerGroupTemplate |
 | role | PeerGroupTemplate |
+
+**PeerGroupAddressFamily**:
+
+| **Attribute** | **Inheritance from model** |
+| ------------- | -------------------------- |
+| extra_attributes | AddressFamily (same `afi_safi` only) |
+
+**PeerEndpointAddressFamily**:
+
+| **Attribute** | **Inheritance from model** |
+| ------------- | -------------------------- |
+| extra_attributes | PeerGroupAddressFamily (same `afi_safi` only) &rarr; AddressFamily (same `afi_safi` only) |
+| import_policy | PeerGroupAddressFamily (same `afi_safi` only) |
+| export_policy | PeerGroupAddressFamily (same `afi_safi` only) |
+| multipath     | PeerGroupAddressFamily (same `afi_safi` only) |

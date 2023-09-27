@@ -46,6 +46,48 @@ class AutonomousSystemFormTestCase(TestCase):
         self.assertEqual("This field is required.", form.errors["status"][0])
 
 
+class BGPRoutingInstanceTestCase(TestCase):
+    """Test the BGPRoutingInstance create/edit form."""
+
+    form_class = forms.BGPRoutingInstanceForm
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up class-wide data for the test."""
+        cls.status_active = Status.objects.get(slug="active")
+        cls.status_active.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
+        cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
+        site = Site.objects.create(name="Site 1", slug="site-1")
+        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        cls.device = Device.objects.create(
+            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=cls.status_active
+        )
+        cls.asn = models.AutonomousSystem.objects.create(asn=4294967291, status=cls.status_active)
+
+    def test_valid_form(self):
+        """Add a device through form."""
+        data = {
+            "autonomous_system": self.asn,
+            "device": self.device,
+            "status": self.status_active,
+            "description": "RI for Device 1",
+        }
+        form = self.form_class(data)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(form.save())
+
+        routing_instance = models.BGPRoutingInstance.objects.get(device=self.device)
+        self.assertEqual(routing_instance.device, self.device)
+
+    def test_status_required(self):
+        data = {"autonomous_system": self.asn, "device": self.device}
+        form = self.form_class(data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual("This field is required.", form.errors["status"][0])
+
+
 class PeerGroupFormTestCase(TestCase):
     """Test the PeerGroup create/edit form."""
 
@@ -79,6 +121,7 @@ class PeerGroupFormTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
     def test_valid_form(self):
@@ -181,6 +224,7 @@ class PeerEndpointFormTestCase(TestCase):
             description="Hello World!",
             autonomous_system=asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
         # clustertype = ClusterType.objects.create(name="Cluster Type A", slug="cluster-type-a")
@@ -285,6 +329,7 @@ class AddressFamilyFormTestCase(TestCase):
             description="Hello World!",
             autonomous_system=cls.asn_1,
             device=cls.device_1,
+            status=status_active,
         )
 
     def test_valid_form(self):
