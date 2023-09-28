@@ -76,8 +76,6 @@ class PeerGroupSerializer(
         fields = "__all__"
         validators = []
 
-    # TODO(mzb): 0.9.0 sync
-    #
     def validate(self, data):
         """Custom validation logic to handle unique-together with a nullable field."""
         if data.get("vrf"):
@@ -145,8 +143,7 @@ class AddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializer
         model = models.AddressFamily
         fields = "__all__"
 
-# TODO(mzb): 0.9.0 sync
-#
+
 class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for PeerGroupAddressFamily records."""
 
@@ -154,20 +151,9 @@ class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesS
         view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
     )
 
-    peer_group = NestedPeerGroupSerializer(required=True)  # noqa: F405
-
     class Meta:
         model = models.PeerGroupAddressFamily
-        fields = [
-            "id",
-            "url",
-            "afi_safi",
-            "peer_group",
-            "import_policy",
-            "export_policy",
-            "multipath",
-            "extra_attributes",
-        ]
+        fields = "__all__"
 
 
 class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
@@ -177,17 +163,6 @@ class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttribut
         view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
     )
 
-    peer_endpoint = NestedPeerEndpointSerializer(required=True)  # noqa: F405
-
     class Meta:
         model = models.PeerEndpointAddressFamily
-        fields = [
-            "id",
-            "url",
-            "afi_safi",
-            "peer_endpoint",
-            "import_policy",
-            "export_policy",
-            "multipath",
-            "extra_attributes",
-        ]
+        fields = "__all__"

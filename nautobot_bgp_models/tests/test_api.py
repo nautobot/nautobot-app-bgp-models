@@ -335,7 +335,8 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
 
         namespace = Namespace.objects.first()
         prefix_status = Status.objects.get_for_model(Prefix).first()
-        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+        prefix = Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+        vrf.prefixes.add(prefix)  # TODO
 
         address = IPAddress.objects.create(address="10.1.1.1/24", status=status_active, namespace=namespace)
 
@@ -1082,24 +1083,22 @@ class PeerGroupAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerGroupAddressFamily
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = [
-        "display",
-        "id",
-        "url",
-    ]
     choices_fields = ["afi_safi"]
 
     @classmethod
     def setUpTestData(cls):  # pylint: disable=too-many-locals
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
         device = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
 
         asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
@@ -1169,20 +1168,20 @@ class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerEndpointAddressFamily
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = [
-        "display",
-        "id",
-        "url",
-    ]
     choices_fields = ["afi_safi"]
 
     @classmethod
     def setUpTestData(cls):
-        cls.status_active = Status.objects.get(slug="active")
+        cls.status_active = Status.objects.get(name__iexact="active")
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
 
-        cls.peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+
+        cls.peeringrole = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         cls.peering = (
             models.Peering.objects.create(
@@ -1193,18 +1192,27 @@ class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             ),
         )
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        cls.site = Site.objects.create(name="Site 1", slug="site-1")
-        cls.devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        cls.location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        cls.devicerole = Role.objects.create(name="Router", color="ff0000")
+
         device = Device.objects.create(
             device_type=cls.devicetype,
-            device_role=cls.devicerole,
+            role=cls.devicerole,
             name="Device 1",
-            site=cls.site,
+            location=cls.location,
             status=cls.status_active,
         )
-        interface = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
+        interface_status = Status.objects.get_for_model(Interface).first()
+        interface = Interface.objects.create(
+            device=device,
+            name="Loopback1",
+            type=InterfaceTypeChoices.TYPE_VIRTUAL,
+            status=interface_status,
+        )
 
         # cls.vrf = VRF.objects.create(name="Ark B")
 
@@ -1212,35 +1220,46 @@ class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             IPAddress.objects.create(
                 address="10.1.1.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.1.2.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.1.3.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.1.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.2.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.3.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
+        )
+
+        interface.add_ip_addresses(
+            [
+                cls.addresses[0],
+                cls.addresses[1],
+                cls.addresses[2],
+            ]
         )
 
         cls.asn = models.AutonomousSystem.objects.create(asn=4294967294, status=cls.status_active)
 
-        provider = Provider.objects.create(name="Provider", slug="provider")
+        provider = Provider.objects.create(name="Provider")
         cls.provider_asn = models.AutonomousSystem.objects.create(
             asn=15521,
             status=cls.status_active,

@@ -8,7 +8,7 @@ import nautobot.extras.models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("nautobot_bgp_models", "0002_viewsets_migration"),
+        ("nautobot_bgp_models", "0003_peergroupaddressfamily_peerendpointaddressfamily"),
         ("extras", "0061_role_and_alter_status"),
     ]
 

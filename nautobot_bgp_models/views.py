@@ -40,23 +40,9 @@ class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     table_class = tables.BGPRoutingInstanceTable
 
 
-class PeeringRoleUIViewSet(NautobotUIViewSet):
-    """UIViewset for PeeringRole model."""
-
-    bulk_create_form_class = forms.PeeringRoleCSVForm
-    bulk_update_form_class = forms.PeeringRoleBulkEditForm
-    filterset_class = filters.PeeringRoleFilterSet
-    filterset_form_class = forms.PeeringRoleFilterForm
-    form_class = forms.PeeringRoleForm
-    queryset = models.PeeringRole.objects.all()
-    serializer_class = serializers.PeeringRoleSerializer
-    table_class = tables.PeeringRoleTable
-
-
 class PeerGroupUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroup model."""
 
-    bulk_create_form_class = forms.PeerGroupCSVForm
     bulk_update_form_class = forms.PeerGroupBulkEditForm
     filterset_class = filters.PeerGroupFilterSet
     filterset_form_class = forms.PeerGroupFilterForm
@@ -77,7 +63,6 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
 class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroupTemplate model."""
 
-    bulk_create_form_class = forms.PeerGroupTemplateCSVForm
     bulk_update_form_class = forms.PeerGroupTemplateBulkEditForm
     filterset_class = filters.PeerGroupTemplateFilterSet
     filterset_form_class = forms.PeerGroupTemplateFilterForm
@@ -88,18 +73,9 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerGroupTemplateTable
 
 
-class PeerGroupTemplateImportView(generic.BulkImportView):
-    """Workaround for #3809."""
-
-    queryset = PeerGroupTemplateUIViewSet.queryset
-    model_form = PeerGroupTemplateUIViewSet.bulk_create_form_class
-    table = PeerGroupTemplateUIViewSet.table_class
-
-
 class PeerEndpointUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerEndpoint model."""
 
-    bulk_create_form_class = forms.PeerEndpointCSVForm
     bulk_update_form_class = forms.PeerEndpointBulkEditForm
     filterset_class = filters.PeerEndpointFilterSet
     filterset_form_class = forms.PeerEndpointFilterForm
@@ -204,7 +180,6 @@ class PeeringAddView(generic.ObjectEditView):
 class AddressFamilyUIViewSet(NautobotUIViewSet):
     """UIViewset for AddressFamily model."""
 
-    bulk_create_form_class = forms.AddressFamilyCSVForm
     bulk_update_form_class = forms.AddressFamilyBulkEditForm
     filterset_class = filters.AddressFamilyFilterSet
     filterset_form_class = forms.AddressFamilyFilterForm
@@ -280,4 +255,3 @@ class BgpExtraAttributesView(View):
                 "active_tab": "extraattributes",
             },
         )
-

@@ -92,7 +92,7 @@ class AddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
     filterset_class = filters.AddressFamilyFilterSet
 
 
-class PeerGroupAddressFamilyViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
+class PeerGroupAddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
     """REST API viewset for PeerGroupAddressFamily records."""
 
     queryset = models.PeerGroupAddressFamily.objects.all()
@@ -100,7 +100,7 @@ class PeerGroupAddressFamilyViewSet(InheritableFieldsViewSetMixin, PluginModelVi
     filterset_class = filters.PeerGroupAddressFamilyFilterSet
 
 
-class PeerEndpointAddressFamilyViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
+class PeerEndpointAddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
     """REST API viewset for PeerEndpointAddressFamily records."""
 
     queryset = models.PeerEndpointAddressFamily.objects.all()

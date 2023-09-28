@@ -263,7 +263,7 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
 
 # TODO(mzb): 0.9.0 sync
 #
-class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
     """Filtering of PeerGroupAddressFamily records."""
 
     q = django_filters.CharFilter(
@@ -297,7 +297,9 @@ class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, Cu
         ).distinct()
 
 
-class PeerEndpointAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+class PeerEndpointAddressFamilyFilterSet(
+    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin
+):
     """Filtering of PeerEndpointAddressFamily records."""
 
     q = django_filters.CharFilter(
