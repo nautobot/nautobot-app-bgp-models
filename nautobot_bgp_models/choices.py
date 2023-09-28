@@ -26,6 +26,8 @@ class AFISAFIChoices(ChoiceSet):
     AFI_L2_EVPN = "l2_evpn"
     AFI_L2_VPLS = "l2_vpls"
 
+    AFI_ROUTE_TARGET = "route_target"
+
     CHOICES = (
         (AFI_IPV4_UNICAST, "IPv4 Unicast"),
         (AFI_IPV4_LABELED_UNICAST, "IPv4 Labeled Unicast"),
@@ -41,4 +43,5 @@ class AFISAFIChoices(ChoiceSet):
         (AFI_VPNV6_MULTICAST, "VPNv6 Multicast"),
         (AFI_L2_EVPN, "L2 EVPN"),
         (AFI_L2_VPLS, "L2 VPLS"),
+        (AFI_ROUTE_TARGET, "Route Target"),
     )
