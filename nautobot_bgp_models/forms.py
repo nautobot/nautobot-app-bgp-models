@@ -501,8 +501,6 @@ class AddressFamilyFilterForm(NautobotFilterForm):
     vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
 
 
-# TODO(mzb): 0.9.0 sync
-#
 class PeerGroupAddressFamilyForm(NautobotModelForm):
     """Form for creating/updating PeerGroupAddressFamily records."""
 

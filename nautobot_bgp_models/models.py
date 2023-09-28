@@ -341,10 +341,10 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             if self.source_interface.ip_addresses.count() != 1:
                 raise ValidationError("Source Interface must have only 1 IP Address assigned.")
             # Ensure VRF membership
-            if self.source_interface.ip_addresses.all().first().vrf != self.vrf:
+            if self.vrf != self.source_interface.vrf:
                 raise ValidationError(
                     f"VRF mismatch between PeerGroup VRF ({self.vrf}) "
-                    f"and selected source interface VRF ({self.source_interface.ip_addresses.all().first().vrf})"
+                    f"and selected source interface VRF ({self.source_interface.vrf})"
                 )
 
         if self.source_ip:
@@ -352,9 +352,10 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             if self.source_ip not in IPAddress.objects.filter(interfaces__device_id=self.routing_instance.device.id):
                 raise ValidationError("Group IP not associated with Routing Instance")
             # Ensure VRF membership
-            if self.source_ip.vrf != self.vrf:
+            if self.vrf and (self.vrf not in self.source_ip.parent.vrfs.all()):  # PG's VRF in IPs' VRF
                 raise ValidationError(
-                    f"VRF mismatch between PeerGroup VRF ({self.vrf}) and selected source IP VRF ({self.source_ip.vrf})"
+                    f"VRF mismatch between PeerGroup VRF ({self.vrf}) and selected source IP VRF "
+                    f"({self.source_ip.parent.vrfs.all().first()})"
                 )
 
         if self.present_in_database:
@@ -539,9 +540,9 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         # Enforce peer group VRF membership
         if self.peer_group is not None:
-            if local_ip_value.vrf != self.peer_group.vrf:
+            if self.peer_group.vrf and (self.peer_group.vrf not in local_ip_value.parent.vrfs.all()):
                 raise ValidationError(
-                    f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.vrf}) "
+                    f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.parent.vrfs.all().first()}) "
                     f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
                 )
 
@@ -669,8 +670,7 @@ class AddressFamily(OrganizationalModel, BGPExtraAttributesMixin):
 
         super().validate_unique(exclude)
 
-# TODO(mzb): 0.9.0 sync
-#
+
 @extras_features(
     "custom_fields",
     "custom_links",
@@ -688,7 +688,8 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
         """The routing-instance AddressFamily (if any) that this PeerGroupAddressFamily inherits from."""
         try:
             return self.peer_group.routing_instance.address_families.get(
-                vrf=self.peer_group.vrf, afi_safi=self.afi_safi
+                vrf=self.peer_group.vrf,
+                afi_safi=self.afi_safi,
             )
         except AddressFamily.DoesNotExist:
             return None
@@ -739,10 +740,6 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
         """String representation."""
         return f"{self.afi_safi} AF - {self.peer_group}"
 
-    def get_absolute_url(self):
-        """Absolute URL of a record."""
-        return reverse("plugins:nautobot_bgp_models:peergroupaddressfamily", args=[self.pk])
-
 
 @extras_features(
     "custom_fields",
@@ -772,7 +769,8 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
         """The routing-instance AddressFamily (if any) that this PeerEndpointAddressFamily inherits from."""
         try:
             return self.peer_endpoint.routing_instance.address_families.get(
-                vrf=self.peer_endpoint.local_ip.vrf, afi_safi=self.afi_safi
+                vrf=self.peer_endpoint.local_ip.parent.vrfs.all().first(),  # TODO(mzb): If local IP has >1 vrfs ?
+                afi_safi=self.afi_safi,
             )
         except AddressFamily.DoesNotExist:
             return None
@@ -826,7 +824,3 @@ class PeerEndpointAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraA
     def __str__(self):
         """String representation."""
         return f"{self.afi_safi} AF - {self.peer_endpoint}"
-
-    def get_absolute_url(self):
-        """Absolute URL of a record."""
-        return reverse("plugins:nautobot_bgp_models:peerendpointaddressfamily", args=[self.pk])

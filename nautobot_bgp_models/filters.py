@@ -102,22 +102,6 @@ class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         label="BGP Routing Instance ID",
     )
 
-    # TODO(mzb): 0.9.0 sync
-    #
-    # vrf = django_filters.ModelMultipleChoiceFilter(
-    #     field_name="vrf__name",
-    #     queryset=VRF.objects.all(),
-    #     to_field_name="name",
-    #     label="VRF (name)",
-    # )
-    #
-    # role = django_filters.ModelMultipleChoiceFilter(
-    #     field_name="role__slug",
-    #     queryset=models.PeeringRole.objects.all(),
-    #     to_field_name="slug",
-    #     label="Peering role (slug)",
-    # )
-
     class Meta:
         model = models.PeerGroup
         fields = ["id", "name", "enabled"]
@@ -261,9 +245,7 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
         ]
 
 
-# TODO(mzb): 0.9.0 sync
-#
-class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
     """Filtering of PeerGroupAddressFamily records."""
 
     q = django_filters.CharFilter(
@@ -297,7 +279,9 @@ class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, Cu
         ).distinct()
 
 
-class PeerEndpointAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelFilterSet):
+class PeerEndpointAddressFamilyFilterSet(
+    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin
+):
     """Filtering of PeerEndpointAddressFamily records."""
 
     q = django_filters.CharFilter(
