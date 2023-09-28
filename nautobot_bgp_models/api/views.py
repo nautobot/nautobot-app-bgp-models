@@ -90,3 +90,19 @@ class AddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
     queryset = models.AddressFamily.objects.all()
     serializer_class = serializers.AddressFamilySerializer
     filterset_class = filters.AddressFamilyFilterSet
+
+
+class PeerGroupAddressFamilyViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
+    """REST API viewset for PeerGroupAddressFamily records."""
+
+    queryset = models.PeerGroupAddressFamily.objects.all()
+    serializer_class = serializers.PeerGroupAddressFamilySerializer
+    filterset_class = filters.PeerGroupAddressFamilyFilterSet
+
+
+class PeerEndpointAddressFamilyViewSet(InheritableFieldsViewSetMixin, PluginModelViewSet):
+    """REST API viewset for PeerEndpointAddressFamily records."""
+
+    queryset = models.PeerEndpointAddressFamily.objects.all()
+    serializer_class = serializers.PeerEndpointAddressFamilySerializer
+    filterset_class = filters.PeerEndpointAddressFamilyFilterSet

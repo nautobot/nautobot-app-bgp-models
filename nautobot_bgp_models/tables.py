@@ -66,6 +66,7 @@ class PeerGroupTable(BaseTable):
     name = tables.LinkColumn()
     peergroup_template = tables.LinkColumn()
     routing_instance = tables.LinkColumn()
+    vrf = tables.LinkColumn()
     enabled = BooleanColumn()
     role = ColoredLabelColumn()
     autonomous_system = tables.LinkColumn()
@@ -82,11 +83,10 @@ class PeerGroupTable(BaseTable):
             "name",
             "peergroup_template",
             "routing_instance",
+            "vrf",
             "enabled",
             "role",
             "autonomous_system",
-            "import_policy",
-            "export_policy",
             "source_ip",
             "source_interface",
             "secret",
@@ -96,11 +96,10 @@ class PeerGroupTable(BaseTable):
             "name",
             "peergroup_template",
             "routing_instance",
+            "vrf",
             "enabled",
             "role",
             "autonomous_system",
-            "import_policy",
-            "export_policy",
             "actions",
         )
 
@@ -124,8 +123,6 @@ class PeerGroupTemplateTable(BaseTable):
             "enabled",
             "role",
             "autonomous_system",
-            "import_policy",
-            "export_policy",
             "secret",
         )
         default_columns = (
@@ -134,8 +131,6 @@ class PeerGroupTemplateTable(BaseTable):
             "enabled",
             "role",
             "autonomous_system",
-            "import_policy",
-            "export_policy",
             "secret",
             # "actions",
         )
@@ -174,8 +169,6 @@ class PeerEndpointTable(BaseTable):
             "peering",
             "vrf",
             "peer_group",
-            "import_policy",
-            "export_policy",
         )
         default_columns = (
             "pk",
@@ -190,8 +183,6 @@ class PeerEndpointTable(BaseTable):
             "peering",
             "vrf",
             "peer_group",
-            "import_policy",
-            "export_policy",
         )
 
 
@@ -250,9 +241,6 @@ class AddressFamilyTable(BaseTable):
             "routing_instance",
             "afi_safi",
             "vrf",
-            "import_policy",
-            "export_policy",
-            "multipath",
         )
         default_columns = (
             "pk",
@@ -260,6 +248,75 @@ class AddressFamilyTable(BaseTable):
             "routing_instance",
             "afi_safi",
             "vrf",
+            "actions",
+        )
+
+
+class PeerGroupAddressFamilyTable(BaseTable):
+    """Table representation of PeerGroupAddressFamily records."""
+
+    pk = ToggleColumn()
+    peer_group_address_family = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:peergroupaddressfamily",
+        args=[A("pk")],
+        text=str,
+    )
+    peer_group = tables.LinkColumn()
+    afi_safi = tables.Column()
+    actions = ButtonsColumn(model=models.PeerGroupAddressFamily)
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerGroupAddressFamily
+        fields = (
+            "pk",
+            "peer_group_address_family",
+            "peer_group",
+            "afi_safi",
+            "import_policy",
+            "export_policy",
+            "multipath",
+        )
+        default_columns = (
+            "pk",
+            "peer_group_address_family",
+            "peer_group",
+            "afi_safi",
+            "import_policy",
+            "export_policy",
+            "multipath",
+            "actions",
+        )
+
+
+class PeerEndpointAddressFamilyTable(BaseTable):
+    """Table representation of PeerEndpointAddressFamily records."""
+
+    pk = ToggleColumn()
+    peer_endpoint_address_family = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:peerendpointaddressfamily",
+        args=[A("pk")],
+        text=str,
+    )
+    peer_endpoint = tables.LinkColumn()
+    afi_safi = tables.Column()
+    actions = ButtonsColumn(model=models.PeerEndpointAddressFamily)
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerEndpointAddressFamily
+        fields = (
+            "pk",
+            "peer_endpoint_address_family",
+            "peer_endpoint",
+            "afi_safi",
+            "import_policy",
+            "export_policy",
+            "multipath",
+        )
+        default_columns = (
+            "pk",
+            "peer_endpoint_address_family",
+            "peer_endpoint",
+            "afi_safi",
             "import_policy",
             "export_policy",
             "multipath",

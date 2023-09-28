@@ -58,27 +58,6 @@
                 </table>
             </div>
 {% endblock content_left_page %}
-{% block content_right_page %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <strong>Policy</strong>
-                </div>
-                <table class="table table-hover panel-body attr-table">
-                    <tr>
-                        <td>Import Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.import_policy %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Export Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.export_policy %}
-                        </td>
-                    </tr>
-                </table>
-            </div>
-{% endblock content_right_page %}
 
 {% block extra_nav_tabs %}
         <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>

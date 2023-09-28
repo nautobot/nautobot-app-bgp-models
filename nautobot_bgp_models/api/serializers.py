@@ -1,6 +1,6 @@
 """REST API serializers for nautobot_bgp_models models."""
 
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from nautobot.apps.api import (
     NautobotModelSerializer,
@@ -74,6 +74,20 @@ class PeerGroupSerializer(
     class Meta:
         model = models.PeerGroup
         fields = "__all__"
+        validators = []
+
+    # TODO(mzb): 0.9.0 sync
+    #
+    def validate(self, data):
+        """Custom validation logic to handle unique-together with a nullable field."""
+        if data.get("vrf"):
+            validator = validators.UniqueTogetherValidator(
+                queryset=models.PeerGroup.objects.all(), fields=("routing_instance", "name", "vrf")
+            )
+            validator(data, self)
+
+        super().validate(data)
+        return data
 
 
 class PeerEndpointSerializer(
@@ -124,9 +138,56 @@ class PeeringSerializer(NautobotModelSerializer):
         fields = "__all__"
 
 
-class AddressFamilySerializer(NautobotModelSerializer):
+class AddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for AddressFamily records."""
 
     class Meta:
         model = models.AddressFamily
         fields = "__all__"
+
+# TODO(mzb): 0.9.0 sync
+#
+class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerGroupAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
+    )
+
+    peer_group = NestedPeerGroupSerializer(required=True)  # noqa: F405
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = [
+            "id",
+            "url",
+            "afi_safi",
+            "peer_group",
+            "import_policy",
+            "export_policy",
+            "multipath",
+            "extra_attributes",
+        ]
+
+
+class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerEndpointAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
+    )
+
+    peer_endpoint = NestedPeerEndpointSerializer(required=True)  # noqa: F405
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
+        fields = [
+            "id",
+            "url",
+            "afi_safi",
+            "peer_endpoint",
+            "import_policy",
+            "export_policy",
+            "multipath",
+            "extra_attributes",
+        ]

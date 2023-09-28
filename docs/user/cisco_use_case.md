@@ -22,13 +22,16 @@ query ($device_id: ID!) {
             peer_groups {
                 name
                 extra_attributes
-                template {
+                peergroup_template {
                     autonomous_system {
                         asn
                     }
+                    extra_attributes
+                }
+                address_families {
+                    afi_safi
                     import_policy
                     export_policy
-                    extra_attributes
                 }
             }
             endpoints {
@@ -85,23 +88,29 @@ An example data returned from Nautobot is presented below.
             {
               "name": "EDGE-to-LEAF",
               "extra_attributes": null,
-              "template": {
+              "peergroup_template": {
                 "autonomous_system": null,
-                "import_policy": "BGP-LEAF-IN",
-                "export_policy": "BGP-LEAF-OUT",
-                "extra_attributes": {
-                  "next-hop-self": true,
-                  "send-community": true
-                },
+                "extra_attributes": {},
                 "role": {
                   "slug": "peer"
                 }
-              }
+              },
+              "address_families": [
+                {
+                  "afi_safi": "IPV4_UNICAST",
+                  "import_policy": "BGP-LEAF-IN",
+                  "export_policy": "BGP-LEAF-OUT",
+                  "extra_attributes": {
+                    "next-hop-self": true,
+                    "send-community": true,
+                  }
+                }
+              ]
             },
             {
               "name": "EDGE-to-TRANSIT",
               "extra_attributes": null,
-              "template": {
+              "peergroup_template": {
                 "autonomous_system": null,
                 "import_policy": "BGP-TRANSIT-IN",
                 "export_policy": "BGP-TRANSIT-OUT",
@@ -111,7 +120,15 @@ An example data returned from Nautobot is presented below.
                 "role": {
                   "slug": "customer"
                 }
-              }
+              },
+              "address_families": [
+                {
+                  "afi_safi": "IPV4_UNICAST",
+                  "import_policy": "BGP-TRANSIT-IN",
+                  "export_policy": "BGP-TRANSIT-OUT",
+                  "extra_attributes": {}
+                }
+              ]
             }
           ],
           "endpoints": [
@@ -318,16 +335,16 @@ Following snippet represents an example Cisco BGP Configuration Template:
 router bgp {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 {%- for peer_group in data.device.bgp_routing_instances.0.peer_groups %}
  neighbor {{ peer_group.name }} peer-group
- neighbor {{ peer_group.name }} route-map {{ peer_group.template.import_policy }} in
- neighbor {{ peer_group.name }} route-map {{ peer_group.template.export_policy }} out
-{%- if "next-hop-self" in peer_group.template.extra_attributes %}
+ neighbor {{ peer_group.name }} route-map {{ peer_group.address_families.0.import_policy }} in
+ neighbor {{ peer_group.name }} route-map {{ peer_group.address_families.0.export_policy }} out
+{%- if "next-hop-self" in peer_group.address_families.0.extra_attributes %}
  neighbor {{ peer_group.name }} next-hop-self
 {%- endif %}
-{%- if "send-community" in peer_group.template.extra_attributes %}
+{%- if "send-community" in peer_group.address_families.0.extra_attributes %}
  neighbor {{ peer_group.name }} send-community
 {%- endif %}
-{%- if "ttl_security_hops" in peer_group.template.extra_attributes %}
- neighbor {{ peer_group.name }} ttl-security hops {{ peer_group.template.extra_attributes.ttl_security_hops }}
+{%- if "ttl_security_hops" in peer_group.peergroup_template.extra_attributes %}
+ neighbor {{ peer_group.name }} ttl-security hops {{ peer_group.peergroup_template.extra_attributes.ttl_security_hops }}
 {%- endif %}
 {%- endfor %}
 !
@@ -352,7 +369,7 @@ router bgp {{ data.device.bgp_routing_instances.0.autonomous_system.asn }}
 
 ## Rendering Cisco Jinja2 BGP Configuration Template with the data retrieved from GraphQL
 
-Following snippet represents an example Cisco BGP Renderer Configuration:
+Following snippet represents an example Cisco BGP rendered configuration:
 
 ```text
 !
