@@ -67,7 +67,7 @@ def reverse_create_roles(apps, schema_editor):  # pylint: disable=unused-argumen
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("nautobot_bgp_models", "0003_use_upstream_role_part1"),
+        ("nautobot_bgp_models", "0004_use_upstream_role_part1"),
     ]
 
     operations = [

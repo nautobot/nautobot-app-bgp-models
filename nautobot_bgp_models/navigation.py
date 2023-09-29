@@ -63,6 +63,21 @@ menu_items = (
                         ),
                     ),
                     NavMenuItem(
+                        link="plugins:nautobot_bgp_models:addressfamily_list",
+                        name="Address-families (AFI-SAFI)",
+                        permissions=["nautobot_bgp_models.view_addressfamily"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:addressfamily_add",
+                                permissions=["nautobot_bgp_models.add_addressfamily"],
+                            ),
+                            NavMenuImportButton(
+                                link="plugins:nautobot_bgp_models:addressfamily_import",
+                                permissions=["nautobot_bgp_models.add_addressfamily"],
+                            ),
+                        ),
+                    ),
+                    NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergroup_list",
                         name="Peer Groups",
                         permissions=["nautobot_bgp_models.view_peergroup"],
@@ -78,17 +93,17 @@ menu_items = (
                         ),
                     ),
                     NavMenuItem(
-                        link="plugins:nautobot_bgp_models:addressfamily_list",
-                        name="Address-families (AFI-SAFI)",
-                        permissions=["nautobot_bgp_models.view_addressfamily"],
+                        link="plugins:nautobot_bgp_models:peergroupaddressfamily_list",
+                        name="Peer Group Address-families (AFI-SAFI)",
+                        permissions=["nautobot_bgp_models.view_peergroupaddressfamily"],
                         buttons=(
                             NavMenuAddButton(
-                                link="plugins:nautobot_bgp_models:addressfamily_add",
-                                permissions=["nautobot_bgp_models.add_addressfamily"],
+                                link="plugins:nautobot_bgp_models:peergroupaddressfamily_add",
+                                permissions=["nautobot_bgp_models.add_peergroupaddressfamily"],
                             ),
                             NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:addressfamily_import",
-                                permissions=["nautobot_bgp_models.add_addressfamily"],
+                                link="plugins:nautobot_bgp_models:peergroupaddressfamily_import",
+                                permissions=["nautobot_bgp_models.add_peergroupaddressfamily"],
                             ),
                         ),
                     ),
@@ -106,6 +121,17 @@ menu_items = (
                             NavMenuAddButton(
                                 link="plugins:nautobot_bgp_models:peering_add",
                                 permissions=["nautobot_bgp_models.add_peering"],
+                            ),
+                        ),
+                    ),
+                    NavMenuItem(
+                        link="plugins:nautobot_bgp_models:peerendpointaddressfamily_list",
+                        name="Peer Endpoint Address-families (AFI-SAFI)",
+                        permissions=["nautobot_bgp_models.view_peerendpointaddressfamily"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:peerendpointaddressfamily_add",
+                                permissions=["nautobot_bgp_models.add_peerendpointaddressfamily"],
                             ),
                         ),
                     ),

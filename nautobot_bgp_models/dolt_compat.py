@@ -19,8 +19,10 @@ if DOLT_AVAILABLE:
                 "bgproutinginstance": tables.BGPRoutingInstanceTable,
                 "autonomoussystem": tables.AutonomousSystemTable,
                 "peergroup": tables.PeerGroupTable,
+                "peergroupaddressfamily": tables.PeerGroupAddressFamilyTable,
                 "peergrouptemplate": tables.PeerGroupTemplateTable,
                 "peerendpoint": tables.PeerEndpointTable,
+                "peerendpointaddressfamily": tables.PeerEndpointAddressFamilyTable,
                 "peering": tables.PeeringTable,
                 "addressfamily": tables.AddressFamilyTable,
             }

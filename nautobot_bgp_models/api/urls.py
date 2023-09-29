@@ -13,6 +13,8 @@ router.register("peer-group-templates", views.PeerGroupTemplateViewSet)
 router.register("peer-endpoints", views.PeerEndpointViewSet)
 router.register("peerings", views.PeeringViewSet)
 router.register("address-families", views.AddressFamilyViewSet)
+router.register("peer-group-address-families", views.PeerGroupAddressFamilyViewSet)
+router.register("peer-endpoint-address-families", views.PeerEndpointAddressFamilyViewSet)
 router.register("routing-instances", views.BGPRoutingInstanceViewSet)
 
 urlpatterns = router.urls

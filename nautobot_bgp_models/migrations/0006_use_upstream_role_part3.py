@@ -6,7 +6,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("nautobot_bgp_models", "0004_use_upstream_role_part2"),
+        ("nautobot_bgp_models", "0005_use_upstream_role_part2"),
     ]
 
     operations = [

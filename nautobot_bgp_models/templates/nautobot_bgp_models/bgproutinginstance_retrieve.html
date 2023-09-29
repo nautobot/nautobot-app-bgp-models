@@ -34,6 +34,44 @@
                 </table>
             </div>
 {% endblock content_left_page %}
+{% block content_right_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Address-Families</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    {% for af in object.address_families.all %}
+                    <tr>
+                        <td><a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div class="panel-footer text-right noprint">
+                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:addressfamily_add" %}?routing_instance={{ object.pk }}">
+                        <span class="mdi mdi-plus-thick" aria-hidden="true"></span>
+                        Add an AFI-SAFI
+                    </a>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Peer Groups</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    {% for pg in object.peer_groups.all %}
+                    <tr>
+                        <td><a href="{{ pg.get_absolute_url }}">{{ pg.name }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div class="panel-footer text-right noprint">
+                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peergroup_add" %}?routing_instance={{ object.pk }}">
+                        <span class="mdi mdi-plus-thick" aria-hidden="true"></span>
+                        Add a Peer Group
+                    </a>
+                </div>
+            </div>
+{% endblock content_right_page %}
 
 {% block extra_nav_tabs %}
         <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>

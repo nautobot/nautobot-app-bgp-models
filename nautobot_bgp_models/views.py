@@ -104,6 +104,10 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
 ):
     """UIViewset for Peering model."""
 
+    action_buttons = (
+        "add",
+        "export",
+    )
     filterset_class = filters.PeeringFilterSet
     filterset_form_class = forms.PeeringFilterForm
     form_class = forms.PeeringForm
@@ -184,6 +188,32 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
     queryset = models.AddressFamily.objects.all()
     serializer_class = serializers.AddressFamilySerializer
     table_class = tables.AddressFamilyTable
+
+
+class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerGroupAddressFamily model."""
+
+    bulk_update_form_class = forms.PeerGroupAddressFamilyBulkEditForm
+    filterset_class = filters.PeerGroupAddressFamilyFilterSet
+    filterset_form_class = forms.PeerGroupAddressFamilyFilterForm
+    form_class = forms.PeerGroupAddressFamilyForm
+    lookup_field = "pk"
+    queryset = models.PeerGroupAddressFamily.objects.all()
+    serializer_class = serializers.PeerGroupAddressFamilySerializer
+    table_class = tables.PeerGroupAddressFamilyTable
+
+
+class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerEndpointAddressFamily model."""
+
+    bulk_update_form_class = forms.PeerEndpointAddressFamilyBulkEditForm
+    filterset_class = filters.PeerEndpointAddressFamilyFilterSet
+    filterset_form_class = forms.PeerEndpointAddressFamilyFilterForm
+    form_class = forms.PeerEndpointAddressFamilyForm
+    lookup_field = "pk"
+    queryset = models.PeerEndpointAddressFamily.objects.all()
+    serializer_class = serializers.PeerEndpointAddressFamilySerializer
+    table_class = tables.PeerEndpointAddressFamilyTable
 
 
 class BgpExtraAttributesView(View):

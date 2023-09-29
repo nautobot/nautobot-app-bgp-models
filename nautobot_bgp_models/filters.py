@@ -243,3 +243,73 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
             "afi_safi",
             "vrf",
         ]
+
+
+class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
+    """Filtering of PeerGroupAddressFamily records."""
+
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
+
+    afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
+
+    peer_group = django_filters.ModelMultipleChoiceFilter(
+        label="Peer Group (ID)",
+        queryset=models.PeerGroup.objects.all(),
+    )
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = [
+            "id",
+            "afi_safi",
+            "peer_group",
+        ]
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(afi_safi__icontains=value)
+            | Q(peer_group__name__icontains=value)
+            | Q(peer_group__description__icontains=value)
+        ).distinct()
+
+
+class PeerEndpointAddressFamilyFilterSet(
+    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin
+):
+    """Filtering of PeerEndpointAddressFamily records."""
+
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
+
+    afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
+
+    peer_endpoint = django_filters.ModelMultipleChoiceFilter(
+        label="Peer Endpoint (ID)",
+        queryset=models.PeerEndpoint.objects.all(),
+    )
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
+        fields = [
+            "id",
+            "afi_safi",
+            "peer_endpoint",
+        ]
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(afi_safi__icontains=value)
+            | Q(peer_endpoint__routing_instance__device__name__iexact=value)
+            | Q(peer_endpoint__description__icontains=value)
+        ).distinct()

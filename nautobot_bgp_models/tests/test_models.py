@@ -69,7 +69,7 @@ class BGPRoutingInstanceTestCase(TestCase):
         )
 
     def test_str(self):
-        """Test string representation of a PeerGroup."""
+        """Test string representation of a BGPRoutingInstance."""
         self.assertEqual(str(self.bgp_routing_instance), f"{self.device_1} - {self.autonomous_system_8545}")
 
 
@@ -89,7 +89,7 @@ class PeerGroupTestCase(TestCase):
         devicerole = Role.objects.create(name="Router", color="ff0000")
         devicerole.content_types.add(ContentType.objects.get_for_model(Device))
 
-        device_1 = Device.objects.create(
+        cls.device_1 = Device.objects.create(
             device_type=devicetype,
             role=devicerole,
             name="Device 1",
@@ -104,7 +104,7 @@ class PeerGroupTestCase(TestCase):
         cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
             description="Hello World!",
             autonomous_system=autonomous_system_5616,
-            device=device_1,
+            device=cls.device_1,
             status=status_active,
         )
 
@@ -116,7 +116,7 @@ class PeerGroupTestCase(TestCase):
 
     def test_str(self):
         """Test string representation of a PeerGroup."""
-        self.assertEqual(str(self.peergroup), f"{self.peergroup.name}")
+        self.assertEqual(str(self.peergroup), f"{self.peergroup.name} - {self.device_1.name}")
 
     # def test_vrf_fixup_from_router_id(self):
     #     """If VRF is None, but the router-id references a VRF, use that."""
@@ -236,7 +236,7 @@ class PeerEndpointTestCase(TestCase):
 
     def test_str(self):
         """Test string representation of a PeerEndpoint."""
-        self.assertEqual(str(self.peerendpoint_1), "Device 1")
+        self.assertEqual(str(self.peerendpoint_1), "Device 1 1.1.1.1/32 (AS 12345)")
         self.assertEqual(str(self.peerendpoint_2), "1.1.1.2/32 (AS 23456)")
 
     # def test_vrf_fixup_from_local_ip(self):

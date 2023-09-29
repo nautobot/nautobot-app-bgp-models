@@ -88,8 +88,6 @@ class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
                 "role": peeringrole_int.pk,
                 "description": "Marek was here",
                 "autonomous_system": asn_5616.pk,
-                "import_policy": "bgp_policy_in",
-                "export_policy": "bgp_policy_out",
                 "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
             },
         ]
@@ -100,8 +98,6 @@ class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
             "role": peeringrole_ext.pk,
             "description": "Marek was here",
             "autonomous_system": asn_8545.pk,
-            "import_policy": "bgp_policy_in_2",
-            "export_policy": "bgp_policy_out_2",
             "extra_attributes": {"key1": 2},
         }
 
@@ -339,7 +335,8 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
 
         namespace = Namespace.objects.first()
         prefix_status = Status.objects.get_for_model(Prefix).first()
-        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+        prefix = Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+        vrf.prefixes.add(prefix)
 
         address = IPAddress.objects.create(address="10.1.1.1/24", status=status_active, namespace=namespace)
 
@@ -373,9 +370,8 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
                 "role": peeringrole.pk,
                 "description": "Telephone sanitizers",
                 "enabled": True,
-                "import_policy": "BGP-IN",
-                "export_policy": "BGP-OUT",
                 "source_ip": address.pk,
+                "vrf": vrf.pk,
             },
             {
                 "name": "Group B",
@@ -397,10 +393,9 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             "description": "Updated telephone sanitizers",
             "enabled": False,
             "autonomous_system": asn_8545.pk,
-            "import_policy": "BGP-IN-v2",
-            "export_policy": "BGP-OUT-v2",
             "source_ip": None,
             "source_interface": interface.pk,
+            "vrf": vrf.pk,
             "extra_attributes": '{"key1": "value1", "key2": {"nested_key2": "nested_value2"}}',
         }
         pgt1 = models.PeerGroupTemplate.objects.create(
@@ -1016,26 +1011,23 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         models.AddressFamily.objects.create(
             routing_instance=bgp_routing_instance,
             afi_safi=choices.AFISAFIChoices.AFI_IPV4_UNICAST,
-            export_policy="EXPORT_POLICY",
-            import_policy="IMPORT_POLICY",
         )
         models.AddressFamily.objects.create(
             routing_instance=bgp_routing_instance,
             afi_safi=choices.AFISAFIChoices.AFI_IPV6_UNICAST,
-            export_policy="EXPORT_POLICY",
-            import_policy="IMPORT_POLICY",
         )
         models.AddressFamily.objects.create(
             routing_instance=bgp_routing_instance,
             afi_safi=choices.AFISAFIChoices.AFI_IPV4_MULTICAST,
         )
 
+        vrf = VRF.objects.create(name="New VRF")
+
         cls.create_data = [
             {
                 "afi_safi": choices.AFISAFIChoices.AFI_IPV4_FLOWSPEC,
                 "routing_instance": bgp_routing_instance.pk,
-                "import_policy": "IMPORT_ALL",
-                "export_policy": "EXPORT_NONE",
+                "extra_attributes": {"key1": "value1"},
             },
             {
                 "afi_safi": choices.AFISAFIChoices.AFI_VPNV4_UNICAST,
@@ -1048,8 +1040,7 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
         ]
 
         cls.bulk_update_data = {
-            "import_policy": "IMPORT_V4",
-            "export_policy": "EXPORT_V4",
+            "vrf": vrf.pk,
         }
 
 
@@ -1072,21 +1063,288 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
 #         url = self._get_detail_url(instance)
 #         response = self.client.get(url, **self.header)
 #         self.assertHttpStatus(response, status.HTTP_200_OK)
-#         # Properties not set on the instance
-#         self.assertEqual("", response.data["import_policy"])
-#         self.assertEqual("", response.data["export_policy"])
+#         # TODO: Properties not set on the instance
 #
 #         # Retrieve with inheritance
 #         url = self._get_detail_url(instance)
 #         response = self.client.get(f"{url}?include_inherited", **self.header)
 #         self.assertHttpStatus(response, status.HTTP_200_OK)
-#         # Properties not set on the instance but inheritable from the parent address-families
-#         self.assertEqual("IMPORT_POLICY", response.data["import_policy"])
-#         self.assertEqual("EXPORT_POLICY", response.data["export_policy"])
+#         # TODO: Properties not set on the instance but inheritable from the parent address-families
 #
 #         # Retrieve with explictly excluded inheritance
 #         url = self._get_detail_url(instance)
 #         response = self.client.get(f"{url}?include_inherited=false", **self.header)
 #         self.assertHttpStatus(response, status.HTTP_200_OK)
-#         self.assertEqual("", response.data["import_policy"])
-#         self.assertEqual("", response.data["export_policy"])
+#         # TODO: Properties not set on the instance
+
+
+class PeerGroupAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
+    """Test the PeerGroupAddressFamily API."""
+
+    model = models.PeerGroupAddressFamily
+    view_namespace = "plugins-api:nautobot_bgp_models"
+    choices_fields = ["afi_safi"]
+
+    @classmethod
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
+        status_active = Status.objects.get(name__iexact="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        device = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
+        )
+
+        asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
+
+        bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+            description="Hello World!",
+            autonomous_system=asn_8545,
+            device=device,
+            extra_attributes={"ri_key": "ri_value", "ri_nk": {"ri_nk": "ri_nv", "ri_nk2": "ri_nv2"}},
+            status=status_active,
+        )
+
+        peer_group_1 = models.PeerGroup.objects.create(
+            name="Group A",
+            routing_instance=bgp_routing_instance,
+        )
+        peer_group_2 = models.PeerGroup.objects.create(
+            name="Group B",
+            routing_instance=bgp_routing_instance,
+        )
+
+        models.PeerGroupAddressFamily.objects.create(
+            peer_group=peer_group_2,
+            afi_safi="ipv4_unicast",
+            import_policy="IMPORT",
+            export_policy="EXPORT",
+            extra_attributes={"key1": 1},
+        )
+        models.PeerGroupAddressFamily.objects.create(
+            peer_group=peer_group_2,
+            afi_safi="ipv6_unicast",
+        )
+        models.PeerGroupAddressFamily.objects.create(
+            peer_group=peer_group_2,
+            afi_safi="vpnv4_unicast",
+        )
+
+        cls.create_data = [
+            {
+                "afi_safi": "ipv4_unicast",
+                "peer_group": peer_group_1.pk,
+                "import_policy": "IMPORT",
+                "export_policy": "EXPORT",
+                "multipath": True,
+                "extra_attributes": {"key1": 1},
+            },
+            {
+                "afi_safi": "ipv6_labeled_unicast",
+                "peer_group": peer_group_1.pk,
+            },
+            {
+                "afi_safi": "vpnv4_unicast",
+                "peer_group": peer_group_1.pk,
+            },
+        ]
+
+        cls.update_data = {
+            "import_policy": "IMPORT_V2",
+            "export_policy": "EXPORT_V2",
+            "multipath": False,
+            "extra_attributes": {"key2": 2},
+        }
+
+
+class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
+    """Test the PeerEndpointAddressFamily API."""
+
+    model = models.PeerEndpointAddressFamily
+    view_namespace = "plugins-api:nautobot_bgp_models"
+    choices_fields = ["afi_safi"]
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.status_active = Status.objects.get(name__iexact="active")
+        cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+        cls.status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
+
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+
+        cls.peeringrole = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
+
+        cls.peering = (
+            models.Peering.objects.create(
+                status=cls.status_active,
+            ),
+            models.Peering.objects.create(
+                status=cls.status_active,
+            ),
+        )
+
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        cls.location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        cls.devicerole = Role.objects.create(name="Router", color="ff0000")
+
+        device = Device.objects.create(
+            device_type=cls.devicetype,
+            role=cls.devicerole,
+            name="Device 1",
+            location=cls.location,
+            status=cls.status_active,
+        )
+        interface_status = Status.objects.get_for_model(Interface).first()
+        interface = Interface.objects.create(
+            device=device,
+            name="Loopback1",
+            type=InterfaceTypeChoices.TYPE_VIRTUAL,
+            status=interface_status,
+        )
+
+        # cls.vrf = VRF.objects.create(name="Ark B")
+
+        cls.addresses = (
+            IPAddress.objects.create(
+                address="10.1.1.1/24",
+                status=cls.status_active,
+                namespace=namespace,
+            ),
+            IPAddress.objects.create(
+                address="10.1.2.1/24",
+                status=cls.status_active,
+                namespace=namespace,
+            ),
+            IPAddress.objects.create(
+                address="10.1.3.1/24",
+                status=cls.status_active,
+                namespace=namespace,
+            ),
+            IPAddress.objects.create(
+                address="10.10.1.1/24",
+                status=cls.status_active,
+                namespace=namespace,
+            ),
+            IPAddress.objects.create(
+                address="10.10.2.1/24",
+                status=cls.status_active,
+                namespace=namespace,
+            ),
+            IPAddress.objects.create(
+                address="10.10.3.1/24",
+                status=cls.status_active,
+                namespace=namespace,
+            ),
+        )
+
+        interface.add_ip_addresses(
+            [
+                cls.addresses[0],
+                cls.addresses[1],
+                cls.addresses[2],
+            ]
+        )
+
+        cls.asn = models.AutonomousSystem.objects.create(asn=4294967294, status=cls.status_active)
+
+        provider = Provider.objects.create(name="Provider")
+        cls.provider_asn = models.AutonomousSystem.objects.create(
+            asn=15521,
+            status=cls.status_active,
+            provider=provider,
+        )
+
+        cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+            description="Hello World!",
+            autonomous_system=cls.asn,
+            device=device,
+            status=cls.status_active,
+        )
+
+        cls.pgt1 = models.PeerGroupTemplate.objects.create(
+            name="PGT1",
+            extra_attributes={"pgt_key": "pgt_value"},
+        )
+
+        peergroup = models.PeerGroup.objects.create(
+            name="Group 1",
+            role=cls.peeringrole,
+            routing_instance=cls.bgp_routing_instance,
+            peergroup_template=cls.pgt1,
+            extra_attributes={"pg_key": "pg_value"},
+            # vrf=cls.vrf,
+            # router_id=cls.addresses[3],
+            # autonomous_system=cls.asn,
+        )
+
+        cls.pes = [
+            # Peering #0
+            models.PeerEndpoint.objects.create(
+                routing_instance=cls.bgp_routing_instance,
+                source_ip=cls.addresses[0],
+                peer_group=peergroup,
+                peering=cls.peering[0],
+                extra_attributes={"pe_key": "pe_value"},
+            ),
+            models.PeerEndpoint.objects.create(
+                source_ip=cls.addresses[3],
+                autonomous_system=cls.provider_asn,
+                peering=cls.peering[0],
+            ),
+            # Peering #1
+            models.PeerEndpoint.objects.create(
+                routing_instance=cls.bgp_routing_instance,
+                source_ip=cls.addresses[2],
+                autonomous_system=cls.provider_asn,
+                peering=cls.peering[1],
+            ),
+            models.PeerEndpoint.objects.create(
+                source_ip=cls.addresses[3],
+                autonomous_system=cls.provider_asn,
+                peering=cls.peering[1],
+            ),
+        ]
+
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pes[0],
+            afi_safi="ipv4_unicast",
+        )
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pes[0],
+            afi_safi="ipv6_unicast",
+            import_policy="IMPORT",
+            export_policy="EXPORT",
+            multipath=True,
+            extra_attributes={"key": "value"},
+        )
+        models.PeerEndpointAddressFamily.objects.create(
+            peer_endpoint=cls.pes[2],
+            afi_safi="ipv4_unicast",
+        )
+
+        cls.create_data = [
+            {
+                "peer_endpoint": cls.pes[0].pk,
+                "afi_safi": "vpnv4_unicast",
+                "import_policy": "IMPORT",
+                "export_policy": "EXPORT",
+                "multipath": False,
+                "extra_attributes": {"KEY": "VALUE"},
+            },
+            {
+                "peer_endpoint": cls.pes[1].pk,
+                "afi_safi": "vpnv4_unicast",
+            },
+        ]

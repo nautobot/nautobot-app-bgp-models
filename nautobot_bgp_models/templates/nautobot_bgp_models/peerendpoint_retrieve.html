@@ -59,37 +59,55 @@
                     <tr>
                         <td>Source IP Address</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.source_ip %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.source_ip %}
                         </td>
                     </tr>
                     <tr>
                         <td>Source Interface</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.source_interface %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.source_interface %}
                         </td>
                     </tr>
                     <tr>
                         <td>Description</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.description %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.description %}
                         </td>
                     </tr>
                     <tr>
                         <td>Enabled</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.enabled %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.enabled %}
                         </td>
                     </tr>
                     <tr>
                         <td>Autonomous System</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.autonomous_system %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.autonomous_system %}
                         </td>
                     </tr>
                 </table>
             </div>
 {% endblock content_left_page %}
 {% block content_right_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Peer Endpoint Address-Families</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    {% for af in object.address_families.all %}
+                    <tr>
+                        <td><a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div class="panel-footer text-right noprint">
+                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peerendpointaddressfamily_add" %}?peer_endpoint={{ object.pk }}">
+                        <span class="mdi mdi-plus-thick" aria-hidden="true"></span>
+                        Add an AFI-SAFI
+                    </a>
+                </div>
+            </div>
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <strong>Remote Peer Information</strong>
@@ -103,25 +121,6 @@
                             {% else %}
                                 <span class="text-muted">None</span>
                             {% endif %}
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <strong>Policy</strong>
-                </div>
-                <table class="table table-hover panel-body attr-table">
-                    <tr>
-                        <td>Import Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.import_policy %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Export Policy</td>
-                        <td>
-                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object_fields.export_policy %}
                         </td>
                     </tr>
                 </table>

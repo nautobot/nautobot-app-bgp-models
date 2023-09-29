@@ -1,6 +1,6 @@
 """REST API serializers for nautobot_bgp_models models."""
 
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from nautobot.apps.api import (
     NautobotModelSerializer,
@@ -74,6 +74,18 @@ class PeerGroupSerializer(
     class Meta:
         model = models.PeerGroup
         fields = "__all__"
+        validators = []
+
+    def validate(self, data):
+        """Custom validation logic to handle unique-together with a nullable field."""
+        if data.get("vrf"):
+            validator = validators.UniqueTogetherValidator(
+                queryset=models.PeerGroup.objects.all(), fields=("routing_instance", "name", "vrf")
+            )
+            validator(data, self)
+
+        super().validate(data)
+        return data
 
 
 class PeerEndpointSerializer(
@@ -124,9 +136,33 @@ class PeeringSerializer(NautobotModelSerializer):
         fields = "__all__"
 
 
-class AddressFamilySerializer(NautobotModelSerializer):
+class AddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
     """REST API serializer for AddressFamily records."""
 
     class Meta:
         model = models.AddressFamily
+        fields = "__all__"
+
+
+class PeerGroupAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerGroupAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peergroupaddressfamily-detail"
+    )
+
+    class Meta:
+        model = models.PeerGroupAddressFamily
+        fields = "__all__"
+
+
+class PeerEndpointAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerEndpointAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peerendpointaddressfamily-detail"
+    )
+
+    class Meta:
+        model = models.PeerEndpointAddressFamily
         fields = "__all__"
