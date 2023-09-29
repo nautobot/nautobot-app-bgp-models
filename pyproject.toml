@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "0.20.0rc1"
+version = "0.20.0"
 description = "Nautobot BGP Models Plugin"
 authors = ["Network to Code, LLC <info@networktocode.com>"]
 
@@ -20,7 +20,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-nautobot = ">=2.0.0rc1,<2.0.0rc99"
+nautobot = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
