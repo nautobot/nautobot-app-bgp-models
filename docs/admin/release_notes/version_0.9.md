@@ -7,6 +7,8 @@ This version introduces `PeerGroupAddressFamily` and `PeerEndpointAddressFamily`
 !!! warning
     This version **removes** the `import_policy`, `export_policy`, and `multipath` attributes from the `PeerGroupTemplate`, `PeerGroup`, and `PeerEndpoint` models, as these are generally address-family-specific configuration attributes and are modeled as such now. No data migration is provided at this time (as there is no way to identify **which** AFI-SAFI any existing policy/multipath configs should be migrated to), and upgrading to this version will therefore necessarily result in data loss if you had previously populated these model fields. Back up your configuration or record this data in some other format before upgrading if appropriate.
 
+## v0.9.0 - 2023-09-27
+
 ### Added
 
 - [#26](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/26) - Adds `PeerGroupAddressFamily` and `PeerEndpointAddressFamily` data models.
@@ -19,3 +21,9 @@ This version introduces `PeerGroupAddressFamily` and `PeerEndpointAddressFamily`
 ### Dependencies
 
 - [#126](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/126) - Updated development dependencies `mkdocstrings` and `mkdocstrings-python` to `0.22` and `1.4.0` respectively to address CI failures.
+
+## v0.9.1 - 2023-MM-DD
+
+### Added
+
+- Additional `device` and `device_id` filterset fields for PeerGroup, Peering, and PeerEndpoint.
