@@ -15,3 +15,7 @@ This version introduces `PeerGroupAddressFamily` and `PeerEndpointAddressFamily`
 ### Removed
 
 - [#132](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/132) - Removes `import_policy`, `export_policy`, and `multipath` attributes from `PeerGroupTemplate`, `PeerGroup`, and `PeerEndpoint` models. Use the equivalent fields on `PeerGroupAddressFamily` and `PeerEndpointAddressFamily` instead.
+
+### Dependencies
+
+- [#126](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/126) - Updated development dependencies `mkdocstrings` and `mkdocstrings-python` to `0.22` and `1.4.0` respectively to address CI failures.
