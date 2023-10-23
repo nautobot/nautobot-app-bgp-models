@@ -450,14 +450,12 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     def clean(self):
         """Clean."""
-        # Ensure IP & Update source mutually exclusive:
-        if self.source_ip and self.source_interface:
-            raise ValidationError("Can not set both IP and Update source options")
+        # If source IP and source-interface, ensure source-ip is defined on source-interface:
+        if (self.source_ip and self.source_interface) and (
+                 not self.source_interface.ip_addresses.filter(pk=self.source_ip.pk)):
+            raise ValidationError("Selected source IP is not assigned to the selected source interface")
 
         if self.source_interface:
-            # Ensure source_interface interface has 1 IP Address assigned
-            if self.source_interface.ip_addresses.count() != 1:
-                raise ValidationError("Source Interface must have only 1 IP Address assigned.")
             # Ensure VRF membership
             if self.source_interface.ip_addresses.all().first().vrf != self.vrf:
                 raise ValidationError(
@@ -479,6 +477,17 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             original = self.__class__.objects.get(id=self.id)
             if self.vrf != original.vrf and self.endpoints.exists():
                 raise ValidationError("Cannot change VRF of PeerGroup that has existing PeerEndpoints in this VRF.")
+
+        """
+        Validate all endpoints have IP.
+        This will catch potential issues before saving object and raise for the following scenarios:
+          - PeerGroup has existing endpoints
+            PeerGroup was donor for source_ip or source_interface
+            PeerEndpoints belonging to this group would become invalid (missing local-IP)
+        """
+        for endpoint in self.endpoints.all():
+            if not endpoint.local_ip:
+                raise ValidationError(f"Peer endpoint does not have a local IP")
 
     def validate_unique(self, exclude=None):
         """Validate uniqueness, handling NULL != NULL for VRF foreign key."""
@@ -565,7 +574,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         blank=True,
         null=True,
         related_name="bgp_peer_endpoints",
-        verbose_name="BGP Peer IP",
+        verbose_name="BGP Peer Source IP",
     )
 
     source_interface = models.ForeignKey(  # update source
@@ -589,28 +598,66 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             self.peer,
         )
 
+    ip = models.ForeignKey(  # Computed IP
+        to="ipam.IPAddress",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="bgp_peer_endpoints",
+        verbose_name="BGP Peer IP",
+    )
+
+    def save(self, *args, **kwargs):
+
+        local_ip_value = self.local_ip
+
+        if self.ip != local_ip_value:
+            self.ip = local_ip_value
+
+        super().save(*args, **kwargs)
+
     @property
     def local_ip(self):
         """Compute effective peering endpoint IP address.
 
         Peering endpoint IP address value can be sourced from:
          1. Endpoint's `source_ip` attribute
-         2. Peer Groups' `source_ip` attribute
-         3. Endpoint's `source_interface` attribute
+         2. Endpoint's `source_interface` attribute
+         3. Peer Groups' `source_ip` attribute
          4. Peer Groups' `source_interface` attribute
 
         The effective IP Address of an endpoint is based on the above order.
         """
-        inherited_source_ip, _, _ = self.get_inherited_field(field_name="source_ip")
-        inherited_source_interface, _, _ = self.get_inherited_field(field_name="source_interface")
+        def get_bgp_ip(interface):
+            # Case 1: Return IP address if only one assigned on the interface
+            if interface.ip_address_count == 1:
+                return interface.ip_addresses.first()
 
-        if inherited_source_ip:
-            return inherited_source_ip
+            # Case 2: Lookup for `is_primary` flag on the assignment
+            if (interface.ip_address_count > 1 and
+                    interface.ip_address_assignments.filter(is_primary=True).count() == 1):
+                return interface.ip_address_assignments.first().ip_address
 
-        if inherited_source_interface and inherited_source_interface.ip_addresses.count() == 1:
-            return inherited_source_interface.ip_addresses.first()
+        source_ip, inherited_source_ip, _ = self.get_inherited_field(field_name="source_ip")
 
-        return None
+        # Priority 1: Source IP defined directly on the endpoint
+        if source_ip and not inherited_source_ip:
+            return source_ip
+
+        source_interface, inherited_source_interface, _ = self.get_inherited_field(field_name="source_interface")
+
+        # Priority 2: Source IP defined through source-interface on the endpoint
+        interface_source_ip = get_bgp_ip(interface=source_interface)
+        if interface_source_ip and not inherited_source_interface:
+            return interface_source_ip
+
+        # Priority 3: Source IP defined through source-ip on the PeerGroup
+        if source_ip and inherited_source_ip:
+            return source_ip
+
+        # Priority 4: Source IP defined through source-interface on the PeerGroup
+        if interface_source_ip and inherited_source_interface:
+            return interface_source_ip
 
     secret = models.ForeignKey(
         to="extras.Secret",
@@ -645,18 +692,15 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         if not asn_value:
             raise ValidationError(f"ASN not found at any inheritance level for {self}.")
 
-        # Ensure IP & Update source mutually exclusive:
-        if self.source_ip and self.source_interface:
-            raise ValidationError("Can not set both IP and Update source options")
-
-        # Ensure source_interface interface has 1 IP Address assigned
-        if self.source_interface and self.source_interface.ip_addresses.count() != 1:
-            raise ValidationError("Source Interface must have only 1 IP Address assigned.")
-
         # Ensure IP
         local_ip_value = self.local_ip
         if not local_ip_value:
             raise ValidationError("Endpoint IP not found at any inheritance level .")
+
+        # If source IP and source-interface, ensure source-ip is defined on source-interface:
+        if (self.source_ip and self.source_interface) and (
+                 not self.source_interface.ip_addresses.filter(pk=self.source_ip.pk)):
+            raise ValidationError("Selected source IP is not assigned to the selected source interface")
 
         # Ensure IP related to the routing instance
         if self.routing_instance:
