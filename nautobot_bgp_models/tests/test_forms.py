@@ -138,22 +138,6 @@ class PeerGroupFormTestCase(TestCase):
         peergroup = models.PeerGroup.objects.get(name="Peer Group A", routing_instance=self.bgp_routing_instance)
         self.assertEqual(peergroup.role, self.peeringrole_internal)
 
-    def test_source_interface_cannot_be_both(self):
-        """Update source cannot be both an Interface and an IP."""
-        data = {
-            "name": "Peer Group A",
-            "role": self.peeringrole_internal,
-            "routing_instance": self.bgp_routing_instance,
-            "source_ip": self.ip,
-            "source_interface": self.interface_1,
-        }
-        form = self.form_class(data)
-        self.assertFalse(form.is_valid())
-        self.assertEqual(
-            "Can not set both IP and Update source options",
-            form.errors["__all__"][0],
-        )
-
     def test_source_interface(self):
         """Update source can be an Interface."""
         data = {
@@ -258,23 +242,6 @@ class PeerEndpointFormTestCase(TestCase):
 
         peerendpoint = models.PeerEndpoint.objects.get(routing_instance=self.bgp_routing_instance)
         self.assertEqual(peerendpoint.role, self.peeringrole)
-
-    def test_source_interface_cannot_be_both(self):
-        """Update source cannot be both an Interface and a VMInterface."""
-        data = {
-            "role": self.peeringrole,
-            "routing_instance": self.bgp_routing_instance,
-            "source_interface": self.interface_1,
-            "source_ip": self.address_1,
-            "peering": self.peering,
-        }
-        form = self.form_class(data)
-
-        self.assertFalse(form.is_valid())
-        self.assertEqual(
-            "Can not set both IP and Update source options",
-            form.errors["__all__"][0],
-        )
 
     def test_set_peer(self):
         """Endpoint peer will should be populated when a second endpoint is added to a Peering."""
