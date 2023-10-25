@@ -121,6 +121,20 @@ class PeerGroupFilterSet(BaseFilterSet):
         label="BGP Routing Instance ID",
     )
 
+    device = django_filters.ModelMultipleChoiceFilter(
+        field_name="routing_instance__device__name",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name)",
+    )
+
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        field_name="routing_instance__device__id",
+        queryset=Device.objects.all(),
+        to_field_name="id",
+        label="Device (ID)",
+    )
+
     vrf = django_filters.ModelMultipleChoiceFilter(
         field_name="vrf__name",
         queryset=VRF.objects.all(),
@@ -194,6 +208,13 @@ class PeerEndpointFilterSet(BaseFilterSet):
         label="Device (name)",
     )
 
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        field_name="routing_instance__device__id",
+        queryset=Device.objects.all(),
+        to_field_name="id",
+        label="Device (ID)",
+    )
+
     autonomous_system = django_filters.ModelMultipleChoiceFilter(
         field_name="autonomous_system__asn",
         queryset=models.AutonomousSystem.objects.all(),
@@ -230,6 +251,13 @@ class PeeringFilterSet(BaseFilterSet, CreatedUpdatedFilterSet, CustomFieldModelF
         queryset=Device.objects.all(),
         to_field_name="name",
         label="Device (name)",
+    )
+
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__routing_instance__device__id",
+        queryset=Device.objects.all(),
+        to_field_name="id",
+        label="Device (ID)",
     )
 
     device_role = django_filters.ModelMultipleChoiceFilter(
