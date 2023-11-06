@@ -23,13 +23,13 @@ def create_roles(apps, schema_editor):  # pylint: disable=unused-argument
         nb_role.content_types.add(pg_ct)
         nb_role.content_types.add(pgt_ct)
         nb_role.content_types.add(pe_ct)
-    for group in PeerGroup.objects.exclude(role__isnull=True, role__name__exact=""):
+    for group in PeerGroup.objects.exclude(role__isnull=True).exclude(role__name__exact=""):
         group.role_new = NautobotRole.objects.get(name=group.role.name)
         group.save()
-    for group in PeerGroupTemplate.objects.exclude(role__isnull=True, role__name__exact=""):
+    for group in PeerGroupTemplate.objects.exclude(role__isnull=True).exclude(role__name__exact=""):
         group.role_new = NautobotRole.objects.get(name=group.role.name)
         group.save()
-    for peer in PeerEndpoint.objects.exclude(role__isnull=True, role__name__exact=""):
+    for peer in PeerEndpoint.objects.exclude(role__isnull=True).exclude(role__name__exact=""):
         peer.role_new = NautobotRole.objects.get(name=peer.role.name)
         peer.save()
 
@@ -39,29 +39,29 @@ def reverse_create_roles(apps, schema_editor):  # pylint: disable=unused-argumen
     PeerGroup = apps.get_model("nautobot_bgp_models.PeerGroup")  # pylint: disable=invalid-name
     PeerGroupTemplate = apps.get_model("nautobot_bgp_models.PeerGroupTemplate")  # pylint: disable=invalid-name
     PeerEndpoint = apps.get_model("nautobot_bgp_models.PeerEndpoint")  # pylint: disable=invalid-name
-    for group in PeerGroup.objects.exclude(role_new__isnull=True, role_new__name__exact=""):
+    for group in PeerGroup.objects.exclude(role_new__isnull=True).exclude(role_new__name__exact=""):
         group.role, _ = PeeringRole.objects.get_or_create(
             name=group.role_new.name,
             # slug=group.role_new.slug,
             color=group.role_new.color,
             description=group.role_new.description,
-        )[0]
+        )
         group.save()
-    for group in PeerGroupTemplate.objects.exclude(role_new__isnull=True, role_new__name__exact=""):
+    for group in PeerGroupTemplate.objects.exclude(role_new__isnull=True).exclude(role_new__name__exact=""):
         group.role, _ = PeeringRole.objects.get_or_create(
             name=group.role_new.name,
             # slug=group.role_new.slug,
             color=group.role_new.color,
             description=group.role_new.description,
-        )[0]
+        )
         group.save()
-    for peer in PeerEndpoint.objects.exclude(role_new__isnull=True, role_new__name__exact=""):
+    for peer in PeerEndpoint.objects.exclude(role_new__isnull=True).exclude(role_new__name__exact=""):
         peer.role, _ = PeeringRole.objects.get_or_create(
             name=peer.role_new.name,
             # slug=peer.role_new.slug,
             color=peer.role_new.color,
             description=peer.role_new.description,
-        )[0]
+        )
         peer.save()
 
 
