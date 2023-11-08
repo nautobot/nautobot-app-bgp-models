@@ -332,14 +332,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     def clean(self):
         """Clean."""
-        # Ensure IP & Update source mutually exclusive:
-        if self.source_ip and self.source_interface:
-            raise ValidationError("Can not set both IP and Update source options")
-
         if self.source_interface:
-            # Ensure source_interface interface has 1 IP Address assigned
-            if self.source_interface.ip_addresses.count() != 1:
-                raise ValidationError("Source Interface must have only 1 IP Address assigned.")
             # Ensure VRF membership
             if self.vrf != self.source_interface.vrf:
                 raise ValidationError(
@@ -516,14 +509,6 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         asn_value, _, _ = self.get_inherited_field(field_name="autonomous_system")
         if not asn_value:
             raise ValidationError(f"ASN not found at any inheritance level for {self}.")
-
-        # Ensure IP & Update source mutually exclusive:
-        if self.source_ip and self.source_interface:
-            raise ValidationError("Can not set both IP and Update source options")
-
-        # Ensure source_interface interface has 1 IP Address assigned
-        if self.source_interface and self.source_interface.ip_addresses.count() != 1:
-            raise ValidationError("Source Interface must have only 1 IP Address assigned.")
 
         # Ensure IP
         local_ip_value = self.local_ip
