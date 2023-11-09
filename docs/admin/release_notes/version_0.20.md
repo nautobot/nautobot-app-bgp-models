@@ -18,3 +18,7 @@ This version introduces support for Nautobot 2.0
 ### Changed
 
 - [#150](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/150) - Relaxed model validation of PeerEndpoint and PeerGroup to allow simultaneously setting `source_ip` and `source_interface` attributes.
+
+### Fixed
+
+- [#156](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/156) - Fixes a migration error when upgrading from Nautobot 1.x
