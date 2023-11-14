@@ -83,7 +83,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.11"]
-        nautobot-version: ["2.0.0"]
+        nautobot-version: ["2.0.3"]
     env:
       INVOKE_NAUTOBOT_BGP_MODELS_PYTHON_VER: "${{ matrix.python-version }}"
       INVOKE_NAUTOBOT_BGP_MODELS_NAUTOBOT_VER: "${{ matrix.nautobot-version }}"
@@ -121,11 +121,11 @@ jobs:
       matrix:
         python-version: ["3.8"]
         db-backend: ["postgresql", "mysql"]
-        nautobot-version: ["2.0.0"]
+        nautobot-version: ["2.0.3"]
         include:
           - python-version: "3.11"
             db-backend: "postgresql"
-            nautobot-version: "2.0.0"
+            nautobot-version: "2.0.3"
           - python-version: "3.11"
             db-backend: "postgresql"
             nautobot-version: "stable"
