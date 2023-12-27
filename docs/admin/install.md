@@ -15,7 +15,7 @@ Here you will find detailed instructions on how to **install** and **configure**
 ## Install Guide
 
 !!! note
-    Plugins can be installed manually or using Python's `pip`. See the [nautobot documentation](https://docs.nautobot.com/projects/core/en/stable/plugins/#install-the-package) for more details. The pip package name for this app is [`nautobot-bgp-models`](https://pypi.org/project/nautobot-bgp-models/).
+    Apps can be installed manually or using Python's `pip`. See the [nautobot documentation](https://docs.nautobot.com/projects/core/en/stable/plugins/#install-the-package) for more details. The pip package name for this app is [`nautobot-bgp-models`](https://pypi.org/project/nautobot-bgp-models/).
 
 The app is available as a Python package via PyPI and can be installed with `pip`:
 
