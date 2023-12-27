@@ -1,6 +1,6 @@
 # BGP Data Models
 
-This plugin adds the following data models to Nautobot:
+This app adds the following data models to Nautobot:
 
 - AutonomousSystem
 - PeeringRole
@@ -15,7 +15,7 @@ This plugin adds the following data models to Nautobot:
 
 A key motivation behind this design is the idea that the Source of Truth should take a network-wide view of the BGP configuration rather than a per-device view. This especially applies to the data models for autonomous systems (ASNs), BGP peerings, and network-wide templates (Peer Groups).
 
-The data models introduced by the BGP plugin support the following Nautobot features:
+The data models introduced by the BGP app support the following Nautobot features:
 
 - Rest API
 - GraphQL
@@ -27,7 +27,7 @@ The data models introduced by the BGP plugin support the following Nautobot feat
 - Webhooks
 
 !!! note
-    The data models defined in this plugin were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
+    The data models defined in this app were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
 
 ### AutonomousSystem
 
@@ -134,7 +134,7 @@ Note that in the case of an external peering (connection with an ISP or Transit 
 
 To ease the data presentation and consumption, `PeerEndpoint` provides a property named `local_ip`.
 
-The value of this property will be presented in the plugin's Graphical User Interface (GUI) and can be used to render configuration templates.
+The value of this property will be presented in the app's Graphical User Interface (GUI) and can be used to render configuration templates.
 
 As Source-IP and Source-Interface could be defined at multiple inheritance levels, each Peer Endpoint will have a `local_ip` determined based on the following order:
 
@@ -185,7 +185,7 @@ As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically
 The inherited values will be automatically displayed in the UI and can be retrieved from the REST API by adding `?include_inherited=true` parameter.
 
 !!! warning
-    **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** See [GraphQL issue #43](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/43) for details.
+    **BGP models Custom Fields and GraphQL currently does not offer support for BGP Field Inheritance.** See [GraphQL issue #43](https://github.com/nautobot/nautobot-app-bgp-models/issues/43) for details.
 
 Following is the complete documentation of the field inheritance hierarchy. Models are ordered with the topmost having the highest priority. The first model with an assigned attribute value will be used as an inheritance source.
 

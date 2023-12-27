@@ -1,4 +1,4 @@
-"""Filter Backeds in use by BGP models plugin."""
+"""Filter Backeds in use by BGP models app."""
 
 from django_filters.rest_framework.backends import DjangoFilterBackend
 

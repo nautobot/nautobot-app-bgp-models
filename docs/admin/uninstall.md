@@ -8,4 +8,4 @@ Remove the configuration you added in `nautobot_config.py` from `PLUGINS` & `PLU
 
 ## Database Cleanup
 
-Drop all tables from the plugin: `nautobot_plugin_bgp_models*`.
+Drop all tables from the app: `nautobot_bgp_models*`.
