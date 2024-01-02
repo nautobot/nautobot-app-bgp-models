@@ -27,7 +27,7 @@ The data models introduced by the BGP app support the following Nautobot feature
 - Webhooks
 
 !!! note
-    The data models defined in this app were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and the [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
+    The data models defined in this app were inspired by the [Openconfig BGP data model](https://yangcatalog.org/api/services/tree/openconfig-bgp@2021-06-16.yang) and [RFC 9234](https://datatracker.ietf.org/doc/rfc9234/).
 
 ### AutonomousSystem
 
