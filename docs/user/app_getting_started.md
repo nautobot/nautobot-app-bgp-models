@@ -12,7 +12,7 @@ We will now explore the workflows for the two most common BGP App use cases: mod
 
 ### Menu Item
 
-All of the "Add object" actions are available under BGP Models App Menu in the top navigation bar:
+All of the "Add object" actions are available under the Routing menu in the top navigation bar:
 
 ![Routing menu](../images/menu.png "Routing Menu")
 
