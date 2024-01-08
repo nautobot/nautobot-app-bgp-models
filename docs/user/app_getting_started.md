@@ -8,11 +8,11 @@ To install the App, please follow the instructions detailed in the [Installation
 
 ## First steps with the App
 
-We will now explore the workflows for the two most common BGP Plugin use cases: modeling internal and external peerings. We will showcase how to create each type of peering with the minimum number of steps and inputs required from users.
+We will now explore the workflows for the two most common BGP App use cases: modeling internal and external peerings. We will showcase how to create each type of peering with the minimum number of steps and inputs required from users.
 
 ### Menu Item
 
-All of the "Add object" actions are available under BGP Models Plugin Menu in the top navigation bar:
+All of the "Add object" actions are available under the Routing menu in the top navigation bar:
 
 ![Routing menu](../images/menu.png "Routing Menu")
 

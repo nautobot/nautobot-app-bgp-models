@@ -1,4 +1,4 @@
-"""Plugin declaration for nautobot_bgp_models."""
+"""App declaration for nautobot_bgp_models."""
 
 from importlib import metadata
 from django.db.models.signals import post_migrate
@@ -8,13 +8,13 @@ __version__ = metadata.version(__name__)
 
 
 class NautobotBGPModelsConfig(PluginConfig):
-    """Plugin configuration for the nautobot_bgp_models plugin."""
+    """App configuration for the nautobot_bgp_models app."""
 
     name = "nautobot_bgp_models"
     verbose_name = "BGP Models"
     version = __version__
     author = "Network to Code, LLC"
-    description = "Nautobot BGP Models Plugin."
+    description = "Nautobot BGP Models App."
     base_url = "bgp"
     required_settings = []
     min_version = "1.5.4"
@@ -29,7 +29,7 @@ class NautobotBGPModelsConfig(PluginConfig):
     caching_config = {}
 
     def ready(self):
-        """Callback invoked after the plugin is loaded."""
+        """Callback invoked after the app is loaded."""
         super().ready()
 
         # Attempt to register versioned models & tables with Dolt if it is
