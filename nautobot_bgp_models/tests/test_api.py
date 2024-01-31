@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider
 from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
-from nautobot.extras.models import Status
+from nautobot.extras.models import Status, Tag
 from nautobot.ipam.models import IPAddress, VRF
 from nautobot.utilities.testing.api import APIViewTestCases
 from nautobot.users.models import ObjectPermission
@@ -189,6 +189,8 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
         status_active = Status.objects.get(slug="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
         status_active.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
+        tag = Tag.objects.create(name="Gerasimos Tag")
+        tag.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
 
         manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
@@ -230,6 +232,7 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
                 "router_id": address.pk,
                 "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
                 "status": "active",
+                "tags": [tag.pk],
             },
         ]
 

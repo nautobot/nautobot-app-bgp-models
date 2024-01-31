@@ -43,7 +43,7 @@ class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
     device = tables.LinkColumn()
     autonomous_system = tables.LinkColumn()
     router_id = tables.LinkColumn()
-    tags = TagColumn(url_name="plugins:nautobot_bgp_models:BGPRoutingInstance_list")
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:bgproutinginstance_list")
     actions = ButtonsColumn(model=models.BGPRoutingInstance)
 
     class Meta(BaseTable.Meta):
@@ -93,6 +93,7 @@ class PeerGroupTable(BaseTable):
     secret = tables.LinkColumn()
     source_ip = tables.LinkColumn()
     source_interface = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:peergroup_list")
 
     actions = ButtonsColumn(model=models.PeerGroup)
 
@@ -110,6 +111,7 @@ class PeerGroupTable(BaseTable):
             "source_ip",
             "source_interface",
             "secret",
+            "tags",
         )
         default_columns = (
             "pk",
@@ -171,7 +173,7 @@ class PeerEndpointTable(BaseTable):
     peering = tables.LinkColumn()
     vrf = tables.LinkColumn()
     peer_group = tables.LinkColumn()
-
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:peerendpoint_list")
     # actions = ButtonsColumn(model=models.PeerEndpoint)
 
     class Meta(BaseTable.Meta):
@@ -189,6 +191,7 @@ class PeerEndpointTable(BaseTable):
             "peering",
             "vrf",
             "peer_group",
+            "tags",
         )
         default_columns = (
             "pk",
