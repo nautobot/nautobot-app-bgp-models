@@ -393,6 +393,8 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         "role": ["peer_group.role", "peer_group.peergroup_template.role"],
     }
 
+    label = models.PositiveIntegerField(default=0, editable=False, help_text="Label for sorting endpoints")
+
     description = models.CharField(max_length=200, blank=True)
 
     role = RoleField(blank=True, null=True)
@@ -487,6 +489,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
     )
 
     class Meta:
+        ordering = ["label"]
         verbose_name = "BGP Peer Endpoint"
 
     def __str__(self):
@@ -530,6 +533,13 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
                     f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.parent.vrfs.all().first()}) "
                     f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
                 )
+
+    def save(self, *args, **kwargs):
+        """Overwrite method to get latest label value and update PeerEndpoint object."""
+        if not self.label:  # TODO(mzb): Remove in #149, remove label attribute
+            latest_pe = PeerEndpoint.objects.all().order_by("-label").first()
+            self.label = (latest_pe.label if latest_pe else 0) + 1
+        super(PeerEndpoint, self).save(*args, **kwargs)  # pylint: disable=super-with-arguments
 
 
 @extras_features(

@@ -295,6 +295,11 @@ class PeerEndpointTestCase(TestCase):
             self.peerendpoint_1.refresh_from_db()
             self.peerendpoint_2.refresh_from_db()
 
+    def test_peerendpoint_labels(self):
+        """Verify created PeerEndpoints are with labels following creation order."""
+        for index, pe_object in enumerate(models.PeerEndpoint.objects.order_by("created"), start=1):
+            self.assertEqual(index, pe_object.label)
+
 
 class PeeringTestCase(TestCase):
     """Test the Peering model."""
