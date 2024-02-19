@@ -69,8 +69,8 @@ An example configuration is provided below:
 PLUGINS_CONFIG = {
     "nautobot_bgp_models": {
         "default_statuses": {
-            "AutonomousSystem": ["active", "available", "planned"],
-            "Peering": ["active", "decommissioned", "deprovisioning", "offline", "planned", "provisioning"],
+            "AutonomousSystem": ["Active", "Available", "Planned"],
+            "Peering": ["Active", "Decommissioned", "Deprovisioning", "Offline", "Planned", "Provisioning"],
         }
     }
 }
