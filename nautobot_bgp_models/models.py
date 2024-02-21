@@ -553,12 +553,12 @@ class Peering(OrganizationalModel, StatusModel):
     @property
     def endpoint_a(self):
         """Get the "first" endpoint associated with this Peering."""
-        return self.endpoints.all()[0] if self.endpoints.exists() else None
+        return self.endpoints.order_by("pk")[0] if self.endpoints.exists() else None
 
     @property
     def endpoint_z(self):
         """Get the "second" endpoint associated with this Peering."""
-        return self.endpoints.all()[1] if self.endpoints.count() > 1 else None
+        return self.endpoints.order_by("pk")[1] if self.endpoints.count() > 1 else None
 
     def __str__(self):
         """String representation of a single Peering."""
