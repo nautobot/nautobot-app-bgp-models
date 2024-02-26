@@ -12,10 +12,10 @@ from . import serializers
 
 
 class PluginModelViewSet(NautobotModelViewSet):
-    """Base class for all REST API viewsets in this plugin."""
+    """Base class for all REST API viewsets in this app."""
 
     def get_serializer_class(self):
-        """Override the default ModelViewSet implementation as it doesn't handle plugins correctly."""
+        """Override the default ModelViewSet implementation as it doesn't handle apps correctly."""
         app_label, model_name = self.queryset.model._meta.label.split(".")
         if self.brief:
             try:

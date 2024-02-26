@@ -11,19 +11,19 @@ This version introduces `PeerGroupAddressFamily` and `PeerEndpointAddressFamily`
 
 ### Added
 
-- [#26](https://github.com/nautobot/nautobot-plugin-bgp-models/issues/26) - Adds `PeerGroupAddressFamily` and `PeerEndpointAddressFamily` data models.
-- [#132](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/132) - Adds `extra_attributes` support to the `AddressFamily` model.
+- [#26](https://github.com/nautobot/nautobot-app-bgp-models/issues/26) - Adds `PeerGroupAddressFamily` and `PeerEndpointAddressFamily` data models.
+- [#132](https://github.com/nautobot/nautobot-app-bgp-models/pull/132) - Adds `extra_attributes` support to the `AddressFamily` model.
 
 ### Removed
 
-- [#132](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/132) - Removes `import_policy`, `export_policy`, and `multipath` attributes from `PeerGroupTemplate`, `PeerGroup`, and `PeerEndpoint` models. Use the equivalent fields on `PeerGroupAddressFamily` and `PeerEndpointAddressFamily` instead.
+- [#132](https://github.com/nautobot/nautobot-app-bgp-models/pull/132) - Removes `import_policy`, `export_policy`, and `multipath` attributes from `PeerGroupTemplate`, `PeerGroup`, and `PeerEndpoint` models. Use the equivalent fields on `PeerGroupAddressFamily` and `PeerEndpointAddressFamily` instead.
 
 ### Dependencies
 
-- [#126](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/126) - Updated development dependencies `mkdocstrings` and `mkdocstrings-python` to `0.22` and `1.4.0` respectively to address CI failures.
+- [#126](https://github.com/nautobot/nautobot-app-bgp-models/pull/126) - Updated development dependencies `mkdocstrings` and `mkdocstrings-python` to `0.22` and `1.4.0` respectively to address CI failures.
 
 ## Version 0.9.1
 
 ### Changed
 
-- [#150](https://github.com/nautobot/nautobot-plugin-bgp-models/pull/150) - Relaxed model validation of PeerEndpoint and PeerGroup to allow simultaneously setting `source_ip` and `source_interface` attributes.
+- [#150](https://github.com/nautobot/nautobot-app-bgp-models/pull/150) - Relaxed model validation of PeerEndpoint and PeerGroup to allow simultaneously setting `source_ip` and `source_interface` attributes.
