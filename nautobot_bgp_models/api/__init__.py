@@ -1,1 +1,1 @@
-"""REST API module for nautobot_bgp_models plugin."""
+"""REST API module for nautobot_bgp_models app."""

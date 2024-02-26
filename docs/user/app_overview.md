@@ -36,7 +36,7 @@ Network Admins who need to model their BGP internal and external peerings inside
 
 ## Nautobot Features Used
 
-This plugin adds the following data models to Nautobot:
+This app adds the following data models to Nautobot:
 
 - AutonomousSystem
 - PeeringRole
@@ -49,7 +49,7 @@ This plugin adds the following data models to Nautobot:
 - PeerEndpointAddressFamily
 - Peering
 
-The data models introduced by the BGP plugin support the following Nautobot features:
+The data models introduced by the BGP app support the following Nautobot features:
 
 - Rest API
 - GraphQL

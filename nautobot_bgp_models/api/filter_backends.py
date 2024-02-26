@@ -1,4 +1,4 @@
-"""Filter Backeds in use by BGP models plugin."""
+"""Filter Backends in use by BGP models app."""
 
 from nautobot.core.api.filter_backends import NautobotFilterBackend
 
