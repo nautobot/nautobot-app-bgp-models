@@ -1,6 +1,6 @@
-# Example use of BGP Models plugin - Juniper BGP Configuration
+# Example use of BGP Models app - Juniper BGP Configuration
 
-This document provides an example of generating a Juniper device's desired BGP configuration based on data stored in Nautobot using this plugin. A GraphQL query is used to retrieve the relevant data, which is then rendered through a Jinja2 template to produce the desired configuration.
+This document provides an example of generating a Juniper device's desired BGP configuration based on data stored in Nautobot using this app. A GraphQL query is used to retrieve the relevant data, which is then rendered through a Jinja2 template to produce the desired configuration.
 
 ## Querying for the data
 

@@ -1,1 +1,1 @@
-"""Unit tests for nautobot_bgp_models plugin."""
+"""Unit tests for nautobot_bgp_models app."""

@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
 version = "0.20.1"
-description = "Nautobot BGP Models Plugin"
+description = "Nautobot BGP Models App"
 authors = ["Network to Code, LLC <info@networktocode.com>"]
 
 license = "Apache-2.0"
 
 readme = "README.md"
-homepage = "https://github.com/nautobot/nautobot-plugin-bgp-models"
-repository = "https://github.com/nautobot/nautobot-plugin-bgp-models"
-keywords = ["nautobot", "nautobot-plugin"]
+homepage = "https://github.com/nautobot/nautobot-app-bgp-models"
+repository = "https://github.com/nautobot/nautobot-app-bgp-models"
+keywords = ["nautobot", "nautobot-plugin", "nautobot-app"]
 include = [
     "LICENSE",
     "README.md",
