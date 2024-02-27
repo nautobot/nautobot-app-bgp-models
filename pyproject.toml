@@ -21,10 +21,10 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 nautobot = "^2.0.3"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
-toml = "*"
 black = "*"
 django-debug-toolbar = "*"
 yamllint = "*"
