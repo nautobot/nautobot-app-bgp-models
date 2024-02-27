@@ -221,6 +221,7 @@ class PeerGroupForm(NautobotModelForm):
             "autonomous_system",
             "secret",
             "extra_attributes",
+            "tags",
         )
 
 
@@ -258,6 +259,7 @@ class PeerGroupTemplateForm(NautobotModelForm):
             "role",
             "autonomous_system",
             "extra_attributes",
+            "tags",
         )
 
 
@@ -381,6 +383,7 @@ class PeerEndpointForm(NautobotModelForm):
             "peer_group",
             "secret",
             "extra_attributes",
+            "tags",
         )
 
     def save(self, commit=True):
