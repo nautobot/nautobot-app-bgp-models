@@ -8,10 +8,10 @@ from django.contrib.contenttypes.models import ContentType
 
 from nautobot.circuits.models import Provider
 from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
-from nautobot.extras.models import Status
-from nautobot.ipam.models import IPAddress, VRF
-from nautobot.utilities.testing.api import APIViewTestCases
+from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Location, LocationType
+from nautobot.extras.models import Status, Role
+from nautobot.ipam.models import IPAddress, VRF, Prefix, Namespace
+from nautobot.apps.testing import APIViewTestCases
 from nautobot.users.models import ObjectPermission
 
 from nautobot_bgp_models import models
@@ -24,18 +24,17 @@ class AutonomousSystemAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.AutonomousSystem
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["asn", "display", "id", "url"]
     bulk_update_data = {
         "description": "Reserved for use in documentation/sample code",
     }
-    choices_fields = ["status"]
+    choices_fields = []
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     validation_excluded_fields = ["status"]
 
     @classmethod
     def setUpTestData(cls):
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
         models.AutonomousSystem.objects.create(
@@ -49,32 +48,10 @@ class AutonomousSystemAPITestCase(APIViewTestCases.APIViewTestCase):
         )
 
         cls.create_data = [
-            {"asn": 64496, "status": "active"},
-            {"asn": 65551, "status": "active"},
-            {"asn": 4294967294, "status": "active", "description": "Reserved for private use"},
+            {"asn": 64496, "status": status_active.pk},
+            {"asn": 65551, "status": status_active.pk},
+            {"asn": 4294967294, "status": status_active.pk, "description": "Reserved for private use"},
         ]
-
-
-class PeeringRoleAPITestCase(APIViewTestCases.APIViewTestCase):
-    """Test the PeeringRole API."""
-
-    model = models.PeeringRole
-    view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["color", "display", "id", "name", "slug", "url"]
-    create_data = [
-        {"name": "Role 1", "slug": "role-1", "color": "ff0000"},
-        {"name": "Role 2", "slug": "role-2", "color": "00ff00"},
-        {"name": "Role 3", "slug": "role-3", "color": "0000ff", "description": "The third role"},
-    ]
-    bulk_update_data = {
-        "color": "112233",
-    }
-
-    @classmethod
-    def setUpTestData(cls):
-        models.PeeringRole.objects.create(name="Alpha", slug="alpha", color="ff0000")
-        models.PeeringRole.objects.create(name="Beta", slug="beta", color="00ff00")
-        models.PeeringRole.objects.create(name="Gamma", slug="gamma", color="0000ff")
 
 
 class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
@@ -82,23 +59,27 @@ class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerGroupTemplate
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["display", "id", "name", "url"]
 
     # TODO(mzb): Fix bulk update via #96 - ViewSets migration
     # bulk_update_data = {
     # }
 
+    choices_fields = []
+
     @classmethod
     def setUpTestData(cls):
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
         # Marek's ex ASes
         asn_5616 = models.AutonomousSystem.objects.create(asn=5616, status=status_active, description="ex Mediatel AS!")
         asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
 
-        peeringrole_int = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
-        peeringrole_ext = models.PeeringRole.objects.create(name="External", slug="external", color="333334")
+        peeringrole_int = Role.objects.create(name="Internal", color="333333")
+        peeringrole_int.content_types.add(ContentType.objects.get_for_model(models.PeerGroupTemplate))
+
+        peeringrole_ext = Role.objects.create(name="External", color="333334")
+        peeringrole_ext.content_types.add(ContentType.objects.get_for_model(models.PeerGroupTemplate))
 
         cls.create_data = [
             {
@@ -174,44 +155,59 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.BGPRoutingInstance
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["display", "id", "url"]
     bulk_update_data = {
         "description": "Glenn was here.",
     }
 
-    choices_fields = ["status"]
+    choices_fields = []
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     validation_excluded_fields = ["status"]
 
     @classmethod
     def setUpTestData(cls):  # pylint: disable=too-many-locals
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
         status_active.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
         device_2 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 2", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 2", location=location, status=status_active
         )
         device_3 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 3", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 3", location=location, status=status_active
         )
         device_4 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 4", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 4", location=location, status=status_active
         )
-        interface = Interface.objects.create(device=device_1, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
 
         vrf = VRF.objects.create(name="Ark B")
-        address = IPAddress.objects.create(
-            address="10.1.1.1/24", status=status_active, vrf=vrf, assigned_object=interface
+
+        interface_status = Status.objects.get_for_model(Interface).first()
+        interface = Interface.objects.create(
+            device=device_1,
+            name="Loopback1",
+            type=InterfaceTypeChoices.TYPE_VIRTUAL,
+            status=interface_status,
+            vrf=vrf,
         )
+
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+
+        address = IPAddress.objects.create(address="10.1.1.1/24", status=status_active, namespace=namespace)
+
+        interface.add_ip_addresses(address)
 
         # Marek's ex ASes
         asn_5616 = models.AutonomousSystem.objects.create(asn=5616, status=status_active, description="ex Mediatel AS!")
@@ -229,7 +225,7 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
                 "device": device_1.pk,
                 "router_id": address.pk,
                 "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
-                "status": "active",
+                "status": status_active.pk,
             },
         ]
 
@@ -299,7 +295,6 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerGroup
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["display", "enabled", "id", "name", "role", "url"]
     bulk_update_data = {
         "description": "Glenn was here.",
         "enabled": True,
@@ -309,27 +304,49 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     validation_excluded_fields = ["status"]
 
+    choices_fields = []
+
     @classmethod
     def setUpTestData(cls):  # pylint: disable=too-many-locals
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         device = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
-        interface = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
 
         vrf = VRF.objects.create(name="Ark B")
-        address = IPAddress.objects.create(
-            address="10.1.1.1/24", status=status_active, vrf=vrf, assigned_object=interface
+
+        interface_status = Status.objects.get_for_model(Interface).first()
+        interface = Interface.objects.create(
+            device=device,
+            name="Loopback1",
+            type=InterfaceTypeChoices.TYPE_VIRTUAL,
+            status=interface_status,
+            vrf=vrf,
         )
 
-        peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
-        external_peeringrole = models.PeeringRole.objects.create(name="External", slug="external", color="333334")
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        prefix = Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+        vrf.prefixes.add(prefix)
+
+        address = IPAddress.objects.create(address="10.1.1.1/24", status=status_active, namespace=namespace)
+
+        interface.add_ip_addresses(address)
+
+        peeringrole = Role.objects.create(name="Internal", color="333333")
+        peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
+
+        external_peeringrole = Role.objects.create(name="External", color="333334")
+        external_peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         asn_15521 = models.AutonomousSystem.objects.create(
             asn=15521, status=status_active, description="Hi ex Premium Internet AS!"
@@ -513,17 +530,15 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerEndpoint
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = [
-        "display",
-        "id",
-        "url",
-    ]
+
     bulk_update_data = {
         "enabled": False,
     }
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     validation_excluded_fields = ["status"]
+
+    choices_fields = []
 
     @skip("PeerEndpoint updates two objects")
     def test_update_object(self):
@@ -533,13 +548,18 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
     def test_create_object(self):
         pass
 
+    @skip("PeerEndpoint creates two objects")
+    def test_recreate_object_csv(self):
+        pass
+
     @classmethod
     def setUpTestData(cls):
-        cls.status_active = Status.objects.get(slug="active")
+        cls.status_active = Status.objects.get(name__iexact="active")
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
 
-        cls.peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerEndpoint))
 
         cls.peering = (
             models.Peering.objects.create(
@@ -556,54 +576,72 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             ),
         )
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        cls.site = Site.objects.create(name="Site 1", slug="site-1")
-        cls.devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        cls.location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        cls.devicerole = Role.objects.create(name="Router", color="ff0000")
+        cls.devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         device = Device.objects.create(
             device_type=cls.devicetype,
-            device_role=cls.devicerole,
+            role=cls.devicerole,
             name="Device 1",
-            site=cls.site,
+            location=cls.location,
             status=cls.status_active,
         )
-        interface = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
+        interface_status = Status.objects.get_for_model(Interface).first()
+        interface = Interface.objects.create(
+            device=device,
+            name="Loopback1",
+            type=InterfaceTypeChoices.TYPE_VIRTUAL,
+            status=interface_status,
+        )
 
         # cls.vrf = VRF.objects.create(name="Ark B")
+
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
 
         cls.addresses = (
             IPAddress.objects.create(
                 address="10.1.1.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.1.2.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.1.3.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.1.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.2.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.3.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
         )
 
+        interface.add_ip_addresses([cls.addresses[0], cls.addresses[1], cls.addresses[2]])
+
         cls.asn = models.AutonomousSystem.objects.create(asn=4294967294, status=cls.status_active)
 
-        provider = Provider.objects.create(name="Provider", slug="provider")
+        provider = Provider.objects.create(name="Provider")
         cls.provider_asn = models.AutonomousSystem.objects.create(
             asn=15521,
             status=cls.status_active,
@@ -817,8 +855,7 @@ class PeeringAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.Peering
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = ["display", "id", "status", "url"]
-    choices_fields = ["status"]
+    choices_fields = []
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
     # Nautobot testing also doesn't correctly handle the reverse-relation that is "endpoints"
@@ -826,20 +863,24 @@ class PeeringAPITestCase(APIViewTestCases.APIViewTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
 
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+
         addresses = (
-            IPAddress.objects.create(address="10.1.1.1/24", status=status_active),
-            IPAddress.objects.create(address="10.1.1.2/24", status=status_active),
-            IPAddress.objects.create(address="10.1.2.2/24", status=status_active),
-            IPAddress.objects.create(address="10.1.2.3/24", status=status_active),
-            IPAddress.objects.create(address="10.1.3.3/24", status=status_active),
-            IPAddress.objects.create(address="10.1.3.4/24", status=status_active),
-            IPAddress.objects.create(address="10.1.1.100/24", status=status_active),
+            IPAddress.objects.create(address="10.1.1.1/24", status=status_active, namespace=namespace),
+            IPAddress.objects.create(address="10.1.1.2/24", status=status_active, namespace=namespace),
+            IPAddress.objects.create(address="10.1.2.2/24", status=status_active, namespace=namespace),
+            IPAddress.objects.create(address="10.1.2.3/24", status=status_active, namespace=namespace),
+            IPAddress.objects.create(address="10.1.3.3/24", status=status_active, namespace=namespace),
+            IPAddress.objects.create(address="10.1.3.4/24", status=status_active, namespace=namespace),
+            IPAddress.objects.create(address="10.1.1.100/24", status=status_active, namespace=namespace),
         )
 
-        provider = Provider.objects.create(name="Provider", slug="provider")
+        provider = Provider.objects.create(name="Provider")
         asn = models.AutonomousSystem.objects.create(asn=15521, status=status_active, provider=provider)
 
         # peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
@@ -874,18 +915,18 @@ class PeeringAPITestCase(APIViewTestCases.APIViewTestCase):
 
         cls.create_data = [
             {
-                "status": "active",
+                "status": status_active.pk,
             },
             {
-                "status": "active",
+                "status": status_active.pk,
             },
             {
-                "status": "active",
+                "status": status_active.pk,
             },
         ]
 
         cls.bulk_update_data = {
-            "status": "provisioning",
+            "status": status_active.pk,
         }
 
 
@@ -894,22 +935,26 @@ class AddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.AddressFamily
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = [
-        "afi_safi",
-        "display",
-        "id",
-        "url",
-    ]
+
     choices_fields = ["afi_safi"]
 
     @classmethod
     def setUpTestData(cls):  # pylint: disable=too-many-locals
-        status_active = Status.objects.get(slug="active")
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
-        device = Device.objects.create(device_type=devicetype, device_role=devicerole, name="Device 1", site=site)
+        status_active = Status.objects.get(name__iexact="active")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
+        device = Device.objects.create(
+            device_type=devicetype,
+            role=devicerole,
+            name="Device 1",
+            location=location,
+            status=status_active,
+        )
 
         asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
 
@@ -1038,24 +1083,22 @@ class PeerGroupAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerGroupAddressFamily
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = [
-        "display",
-        "id",
-        "url",
-    ]
     choices_fields = ["afi_safi"]
 
     @classmethod
     def setUpTestData(cls):  # pylint: disable=too-many-locals
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
         device = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
 
         asn_8545 = models.AutonomousSystem.objects.create(asn=8545, status=status_active, description="Hi ex PL-IX AS!")
@@ -1125,20 +1168,20 @@ class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
 
     model = models.PeerEndpointAddressFamily
     view_namespace = "plugins-api:nautobot_bgp_models"
-    brief_fields = [
-        "display",
-        "id",
-        "url",
-    ]
     choices_fields = ["afi_safi"]
 
     @classmethod
     def setUpTestData(cls):
-        cls.status_active = Status.objects.get(slug="active")
+        cls.status_active = Status.objects.get(name__iexact="active")
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
 
-        cls.peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=prefix_status)
+
+        cls.peeringrole = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         cls.peering = (
             models.Peering.objects.create(
@@ -1149,18 +1192,27 @@ class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             ),
         )
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        cls.site = Site.objects.create(name="Site 1", slug="site-1")
-        cls.devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        cls.location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        cls.devicerole = Role.objects.create(name="Router", color="ff0000")
+
         device = Device.objects.create(
             device_type=cls.devicetype,
-            device_role=cls.devicerole,
+            role=cls.devicerole,
             name="Device 1",
-            site=cls.site,
+            location=cls.location,
             status=cls.status_active,
         )
-        interface = Interface.objects.create(device=device, name="Loopback1", type=InterfaceTypeChoices.TYPE_VIRTUAL)
+        interface_status = Status.objects.get_for_model(Interface).first()
+        interface = Interface.objects.create(
+            device=device,
+            name="Loopback1",
+            type=InterfaceTypeChoices.TYPE_VIRTUAL,
+            status=interface_status,
+        )
 
         # cls.vrf = VRF.objects.create(name="Ark B")
 
@@ -1168,35 +1220,46 @@ class PeerEndpointAddressFamilyAPITestCase(APIViewTestCases.APIViewTestCase):
             IPAddress.objects.create(
                 address="10.1.1.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.1.2.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.1.3.1/24",
                 status=cls.status_active,
-                assigned_object=interface,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.1.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.2.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
             IPAddress.objects.create(
                 address="10.10.3.1/24",
                 status=cls.status_active,
+                namespace=namespace,
             ),
+        )
+
+        interface.add_ip_addresses(
+            [
+                cls.addresses[0],
+                cls.addresses[1],
+                cls.addresses[2],
+            ]
         )
 
         cls.asn = models.AutonomousSystem.objects.create(asn=4294967294, status=cls.status_active)
 
-        provider = Provider.objects.create(name="Provider", slug="provider")
+        provider = Provider.objects.create(name="Provider")
         cls.provider_asn = models.AutonomousSystem.objects.create(
             asn=15521,
             status=cls.status_active,

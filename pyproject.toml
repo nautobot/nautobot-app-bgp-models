@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "0.9.1"
+version = "0.20.1"
 description = "Nautobot BGP Models App"
 authors = ["Network to Code, LLC <info@networktocode.com>"]
 
@@ -19,11 +19,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-nautobot = "^1.5.4"
+python = ">=3.8,<3.12"
+nautobot = "^2.0.3"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
+toml = "*"
 black = "*"
 django-debug-toolbar = "*"
 yamllint = "*"

@@ -3,15 +3,14 @@
 import django_tables2 as tables
 from django_tables2.utils import A
 
-from nautobot.extras.tables import StatusTableMixin
-from nautobot.utilities.tables import (
+from nautobot.apps.tables import (
     BaseTable,
     BooleanColumn,
     ButtonsColumn,
-    ColorColumn,
     ColoredLabelColumn,
     TagColumn,
     ToggleColumn,
+    StatusTableMixin,
 )
 
 from . import models
@@ -57,25 +56,6 @@ class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
             "router_id",
             "actions",
             "status",
-        )
-
-
-class PeeringRoleTable(BaseTable):
-    """Table representation of PeeringRole records."""
-
-    pk = ToggleColumn()
-    name = tables.LinkColumn()
-    color = ColorColumn()
-    actions = ButtonsColumn(model=models.PeeringRole, pk_field="slug")
-
-    class Meta(BaseTable.Meta):
-        model = models.PeeringRole
-        fields = (
-            "pk",
-            "name",
-            "slug",
-            "color",
-            "description",
         )
 
 

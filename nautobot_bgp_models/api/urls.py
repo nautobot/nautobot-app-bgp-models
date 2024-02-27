@@ -1,6 +1,6 @@
 """REST API URL registration for nautobot_bgp_models."""
 
-from nautobot.core.api import OrderedDefaultRouter
+from nautobot.apps.api import OrderedDefaultRouter
 
 from . import views
 
@@ -8,7 +8,6 @@ from . import views
 router = OrderedDefaultRouter()
 
 router.register("autonomous-systems", views.AutonomousSystemViewSet)
-router.register("peering-roles", views.PeeringRoleViewSet)
 router.register("peer-groups", views.PeerGroupViewSet)
 router.register("peer-group-templates", views.PeerGroupTemplateViewSet)
 router.register("peer-endpoints", views.PeerEndpointViewSet)

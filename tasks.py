@@ -38,9 +38,9 @@ namespace = Collection("nautobot_bgp_models")
 namespace.configure(
     {
         "nautobot_bgp_models": {
-            "nautobot_ver": "1.5.4",
+            "nautobot_ver": "2.0.3",
             "project_name": "nautobot_bgp_models",
-            "python_ver": "3.8",
+            "python_ver": "3.11",
             "local": False,
             "compose_dir": os.path.join(os.path.dirname(__file__), "development"),
             "compose_files": [
