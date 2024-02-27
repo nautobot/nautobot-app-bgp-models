@@ -66,6 +66,7 @@ class PeerGroupTemplateSerializer(NautobotModelSerializer, ExtraAttributesSerial
 
 class PeerGroupSerializer(
     InheritableFieldsSerializerMixin,
+    TaggedModelSerializerMixin,
     NautobotModelSerializer,
     ExtraAttributesSerializerMixin,
 ):
@@ -120,7 +121,11 @@ class PeerEndpointSerializer(
         return result
 
 
-class BGPRoutingInstanceSerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+class BGPRoutingInstanceSerializer(
+    NautobotModelSerializer,
+    TaggedModelSerializerMixin,
+    ExtraAttributesSerializerMixin,
+):
     """REST API serializer for Peering records."""
 
     class Meta:
