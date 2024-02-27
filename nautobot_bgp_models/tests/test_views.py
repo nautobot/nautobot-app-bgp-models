@@ -1,4 +1,5 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
+
 import json
 
 from unittest import skipIf
