@@ -2,7 +2,10 @@
 
 from rest_framework import serializers, validators
 
-from nautobot.dcim.api.serializers import NestedDeviceSerializer, NestedInterfaceSerializer
+from nautobot.dcim.api.serializers import (
+    NestedDeviceSerializer,
+    NestedInterfaceSerializer,
+)
 from nautobot.ipam.api.serializers import NestedVRFSerializer, NestedIPAddressSerializer
 from nautobot.apps.api import (
     NautobotModelSerializer,
@@ -102,6 +105,7 @@ class PeerGroupTemplateSerializer(NautobotModelSerializer, ExtraAttributesSerial
 
 class PeerGroupSerializer(
     InheritableFieldsSerializerMixin,
+    TaggedModelSerializerMixin,
     NautobotModelSerializer,
     ExtraAttributesSerializerMixin,
 ):
@@ -138,6 +142,7 @@ class PeerGroupSerializer(
             "secret",
             "extra_attributes",
             "role",
+            "tags",
         ]
         validators = []
 
@@ -145,7 +150,8 @@ class PeerGroupSerializer(
         """Custom validation logic to handle unique-together with a nullable field."""
         if data.get("vrf"):
             validator = validators.UniqueTogetherValidator(
-                queryset=models.PeerGroup.objects.all(), fields=("routing_instance", "name", "vrf")
+                queryset=models.PeerGroup.objects.all(),
+                fields=("routing_instance", "name", "vrf"),
             )
             validator(data, self)
 
@@ -209,7 +215,12 @@ class PeerEndpointSerializer(
         return result
 
 
-class BGPRoutingInstanceSerializer(NautobotModelSerializer, StatusModelSerializerMixin, ExtraAttributesSerializerMixin):
+class BGPRoutingInstanceSerializer(
+    NautobotModelSerializer,
+    TaggedModelSerializerMixin,
+    StatusModelSerializerMixin,
+    ExtraAttributesSerializerMixin,
+):
     """REST API serializer for Peering records."""
 
     url = serializers.HyperlinkedIdentityField(
@@ -235,6 +246,7 @@ class BGPRoutingInstanceSerializer(NautobotModelSerializer, StatusModelSerialize
             "router_id",
             "autonomous_system",
             "endpoints",
+            "tags",
             "extra_attributes",
         ]
 

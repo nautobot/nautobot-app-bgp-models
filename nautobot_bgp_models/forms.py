@@ -291,6 +291,8 @@ class PeerGroupForm(NautobotModelForm):
 
     secret = DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
 
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+
     class Meta:
         model = models.PeerGroup
         fields = (
@@ -306,6 +308,7 @@ class PeerGroupForm(NautobotModelForm):
             "autonomous_system",
             "secret",
             "extra_attributes",
+            "tags",
         )
 
 
@@ -535,6 +538,8 @@ class PeerEndpointForm(NautobotModelForm):
         required=False,
     )
 
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+
     class Meta:
         model = models.PeerEndpoint
         fields = (
@@ -549,6 +554,7 @@ class PeerEndpointForm(NautobotModelForm):
             "peer_group",
             "secret",
             "extra_attributes",
+            "tags",
         )
 
     def save(self, commit=True):
