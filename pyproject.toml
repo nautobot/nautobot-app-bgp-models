@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "0.20.1"
+version = "2.0"
 description = "Nautobot BGP Models App"
 authors = ["Network to Code, LLC <info@networktocode.com>"]
 
