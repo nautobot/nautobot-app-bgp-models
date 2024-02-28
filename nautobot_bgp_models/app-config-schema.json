@@ -1,0 +1,36 @@
+{
+    "$id": "https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/nautobot_bgp_models/app-config-schema.json",
+    "$comment": "TBD: Update $id, replace `develop` with specific commit hash",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "default_statuses":{
+            "type": "object",
+            "properties": {
+                "AutonomousSystem": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": ["Active", "Available", "Planned"]
+                },
+                "BGPRoutingInstance": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": ["Planned", "Active", "Decommissioned"]
+                },
+                "Peering": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": ["Active", "Decommissioned", "Deprovisioning", "Offline", "Planned", "Provisioning"]
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}
