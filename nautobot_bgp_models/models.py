@@ -1,4 +1,5 @@
 """BGP data models."""
+
 import functools
 from collections import OrderedDict
 
