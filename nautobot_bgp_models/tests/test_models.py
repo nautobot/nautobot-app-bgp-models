@@ -31,6 +31,46 @@ class AutonomousSystemTestCase(TestCase):
         self.assertEqual(str(self.autonomous_system), "AS 15521")
 
 
+class AutonomousSystemRangeTestCase(TestCase):
+    """Test the AutonomousSystemRange model."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class data setup."""
+        status_active = Status.objects.get(name__iexact="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        cls.autonomous_system_100 = models.AutonomousSystem.objects.create(
+            asn=100, status=status_active, description="AS100"
+        )
+        cls.autonomous_system_101 = models.AutonomousSystem.objects.create(
+            asn=101, status=status_active, description="AS101"
+        )
+        cls.autonomous_system_120 = models.AutonomousSystem.objects.create(
+            asn=120, status=status_active, description="AS120"
+        )
+        cls.autonomous_system_150 = models.AutonomousSystem.objects.create(
+            asn=150, status=status_active, description="AS150"
+        )
+        cls.asn_range = models.AutonomousSystemRange.objects.create(
+            name="Test Range", asn_min=100, asn_max=125, description="Test Range"
+        )
+
+    def test_str(self):
+        """Test string representation of an AutonomousSystemRange."""
+        self.assertEqual(str(self.asn_range), "ASN Range 100-125")
+
+    def test_max_gt_min(self):
+        with self.assertRaises(ValidationError) as context:
+            self.asn_range.asn_min = 100
+            self.asn_range.asn_max = 90
+            self.asn_range.validated_save()
+        self.assertIn(
+            "asn_min value must be lower than asn_max value.",
+            context.exception.messages[0],
+        )
+
+
 class BGPRoutingInstanceTestCase(TestCase):
     """Test the BGPRoutingInstance model."""
 

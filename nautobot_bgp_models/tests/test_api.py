@@ -54,6 +54,35 @@ class AutonomousSystemAPITestCase(APIViewTestCases.APIViewTestCase):
         ]
 
 
+class AutonomousSystemRangeAPITestCase(APIViewTestCases.APIViewTestCase):
+    """Test the AutonomousSystemRange API."""
+
+    model = models.AutonomousSystemRange
+    view_namespace = "plugins-api:nautobot_bgp_models"
+    bulk_update_data = {
+        "description": "Reserved for use in documentation/sample code",
+    }
+    choices_fields = []
+
+    @classmethod
+    def setUpTestData(cls):
+        models.AutonomousSystemRange.objects.create(
+            name="Test 1", asn_min=100, asn_max=200, description="Test Description 1"
+        )
+        models.AutonomousSystemRange.objects.create(
+            name="Test 2", asn_min=201, asn_max=300, description="Test Description 2"
+        )
+        models.AutonomousSystemRange.objects.create(
+            name="Test 3", asn_min=301, asn_max=400, description="Test Description 3"
+        )
+
+        cls.create_data = [
+            {"name": "Test 4", "asn_min": 401, "asn_max": 500, "description": "Test 4"},
+            {"name": "Test 5", "asn_min": 501, "asn_max": 600, "description": "Test 5"},
+            {"name": "Test 6", "asn_min": 601, "asn_max": 700, "description": "Test 6"},
+        ]
+
+
 class PeerGroupTemplateAPITestCase(APIViewTestCases.APIViewTestCase):
     """Test the PeerGroupTemplate API."""
 

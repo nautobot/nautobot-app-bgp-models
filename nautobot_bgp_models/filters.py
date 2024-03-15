@@ -40,6 +40,32 @@ class AutonomousSystemFilterSet(
         fields = ["id", "asn", "status", "tags"]
 
 
+class AutonomousSystemRangeFilterSet(
+    BaseFilterSet,
+    CreatedUpdatedModelFilterSetMixin,
+    CustomFieldModelFilterSetMixin,
+):
+    """Filtering of AutonomousSystemRange records."""
+
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+
+        return queryset.filter(
+            Q(name=value) | Q(asn_max__icontains=value) | Q(asn_min__icontains=value) | Q(description__icontains=value)
+        ).distinct()
+
+    class Meta:
+        model = models.AutonomousSystemRange
+        fields = ["id", "name", "asn_min", "asn_max", "tags"]
+
+
 class BGPRoutingInstanceFilterSet(
     BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin, StatusModelFilterSetMixin
 ):

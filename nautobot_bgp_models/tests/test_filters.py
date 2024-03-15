@@ -57,6 +57,45 @@ class AutonomousSystemTestCase(TestCase):
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
 
+class AutonomousSystemRangeTestCase(TestCase):
+    """Test filtering of AutonomousSystemRange records."""
+
+    queryset = models.AutonomousSystemRange.objects.all()
+    filterset = filters.AutonomousSystemRangeFilterSet
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class setup to prepopulate required data for tests."""
+        cls.asn_range_1 = models.AutonomousSystemRange.objects.create(
+            name="Public asns", asn_min=100, asn_max=125, description="Test Range 1"
+        )
+
+        cls.asn_range_2 = models.AutonomousSystemRange.objects.create(
+            name="DC asns", asn_min=1000, asn_max=2000, description="asns for dc"
+        )
+
+        cls.asn_range_3 = models.AutonomousSystemRange.objects.create(
+            name="DC asns 2", asn_min=2001, asn_max=3000, description="asns for dc"
+        )
+
+    def test_id(self):
+        """Test filtering by ID."""
+        params = {"id": self.queryset.values_list("pk", flat=True)[:2]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+
+    def test_name(self):
+        """Test filtering by Name."""
+        params = {"name": ["DC asns", "DC asns 2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+
+    def test_min_max(self):
+        """Test filtering by ASN Min."""
+        params = {"asn_min": [1000]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+        params = {"asn_max": [3000]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+
 class PeerGroupTestCase(TestCase):
     """Test filtering of PeerGroup records."""
 

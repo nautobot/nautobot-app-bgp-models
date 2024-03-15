@@ -8,6 +8,7 @@ from . import models, views
 
 router = NautobotUIViewSetRouter()
 router.register("autonomous-systems", views.AutonomousSystemUIViewSet)
+router.register("autonomous-system-ranges", views.AutonomousSystemRangeUIViewSet)
 router.register("routing-instances", views.BGPRoutingInstanceUIViewSet)
 router.register("peer-groups", views.PeerGroupUIViewSet)
 router.register("peer-group-templates", views.PeerGroupTemplateUIViewSet)

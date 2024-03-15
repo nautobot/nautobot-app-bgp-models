@@ -27,6 +27,14 @@ class AutonomousSystemViewSet(NautobotModelViewSet):
     filterset_class = filters.AutonomousSystemFilterSet
 
 
+class AutonomousSystemRangeViewSet(NautobotModelViewSet):
+    """REST API viewset for AutonomousSystemRange records."""
+
+    queryset = models.AutonomousSystemRange.objects.all()
+    serializer_class = serializers.AutonomousSystemRangeSerializer
+    filterset_class = filters.AutonomousSystemRangeFilterSet
+
+
 include_inherited = OpenApiParameter(
     name="include_inherited",
     required=False,
