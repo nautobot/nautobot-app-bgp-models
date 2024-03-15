@@ -27,6 +27,19 @@ class AutonomousSystemUIViewSet(NautobotUIViewSet):
     table_class = tables.AutonomousSystemTable
 
 
+class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
+    """UIViewset for AutonomousSystemRange model."""
+
+    bulk_update_form_class = forms.AutonomousSystemRangeBulkEditForm
+    filterset_class = filters.AutonomousSystemRangeFilterSet
+    filterset_form_class = forms.AutonomousSystemRangeFilterForm
+    form_class = forms.AutonomousSystemRangeForm
+    lookup_field = "pk"
+    queryset = models.AutonomousSystemRange.objects.all()
+    serializer_class = serializers.AutonomousSystemRangeSerializer
+    table_class = tables.AutonomousSystemRangeTable
+
+
 class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     """UIViewset for BGPRoutingInstance model."""
 

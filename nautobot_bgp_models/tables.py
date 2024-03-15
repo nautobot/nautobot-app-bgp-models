@@ -30,6 +30,22 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
         fields = ("pk", "asn", "status", "provider", "description", "tags")
 
 
+class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):
+    """Table representation of AutonomousSystem records."""
+
+    pk = ToggleColumn()
+    name = tables.LinkColumn()
+    asn_min = tables.LinkColumn()
+    asn_max = tables.LinkColumn()
+    tenant = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystemrange_list")
+    actions = ButtonsColumn(model=models.AutonomousSystemRange)
+
+    class Meta(BaseTable.Meta):
+        model = models.AutonomousSystem
+        fields = ("pk", "name", "asn_min", "asn_max", "tenant", "description", "tags")
+
+
 class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
     """Table representation of BGPRoutingInstance records."""
 

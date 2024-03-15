@@ -13,6 +13,7 @@ from nautobot.extras.models import StatusModel, RoleField
 from nautobot.apps.models import extras_features
 from nautobot.ipam.models import IPAddress, IPAddressToInterface
 from nautobot.core.utils.data import deepmerge
+from nautobot.tenancy.models import Tenant
 
 from nautobot_bgp_models.choices import AFISAFIChoices
 
@@ -141,6 +142,38 @@ class AutonomousSystem(PrimaryModel, StatusModel):
     def __str__(self):
         """String representation of an AutonomousSystem."""
         return f"AS {self.asn}"
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class AutonomousSystemRange(PrimaryModel):
+    """Autonomous System Range information."""
+
+    name = models.CharField(max_length=100, unique=True, blank=False)
+    asn_min = ASNField(verbose_name="Start", help_text="Min value for 32-bit autonomous system number")
+    asn_max = ASNField(verbose_name="End", help_text="Max value for 32-bit autonomous system number")
+    description = models.CharField(max_length=200, blank=True)
+    tenant = models.ForeignKey(to=Tenant, on_delete=models.PROTECT, blank=True, null=True)
+
+    class Meta:
+        ordering = ["asn_min"]
+        verbose_name = "Autonomous System Range"
+
+    def __str__(self):
+        """String representation of an AutonomousSystemRange."""
+        return f"ASN Range {self.asn_min}-{self.asn_max}"
+
+    def clean(self):
+        """Clean."""
+        if self.asn_min >= self.asn_max:
+            raise ValidationError("asn_min must be lower than asn_max.")
 
 
 @extras_features(
