@@ -1,0 +1,35 @@
+{
+    "cookiecutter": {
+        "codeowner_github_usernames": "@glennmatthews @mzbroch",
+        "full_name": "Network to Code, LLC",
+        "email": "opensource@networktocode.com",
+        "github_org": "nautobot",
+        "app_name": "nautobot_bgp_models",
+        "verbose_name": "Nautobot BGP Models App",
+        "app_slug": "nautobot-bgp-models",
+        "project_slug": "nautobot-app-bgp-models",
+        "repo_url": "https://github.com/nautobot/nautobot-app-bgp-models",
+        "base_url": "bgp",
+        "min_nautobot_version": "2.0.0",
+        "max_nautobot_version": "2.9999",
+        "camel_name": "NautobotBGPModels",
+        "project_short_description": "Nautobot BGP Models App",
+        "model_class_name": "None",
+        "open_source_license": "Apache-2.0",
+        "docs_base_url": "https://docs.nautobot.com",
+        "docs_app_url": "https://docs.nautobot.com/projects/bgp-models/en/latest",
+        "_drift_manager": {
+            "template": "https://github.com/nautobot/cookiecutter-nautobot-app.git",
+            "template_dir": "nautobot-app",
+            "template_ref": "nautobot-app-v2.2.1",
+            "cookie_dir": "",
+            "branch_prefix": "drift-manager",
+            "pull_request_strategy": "create",
+            "post_actions": [
+                "black"
+            ],
+            "draft": true,
+            "baked_commit_ref": ""
+        }
+    }
+}
