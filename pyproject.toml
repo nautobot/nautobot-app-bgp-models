@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "0.1.0"
+version = "2.0"
 description = "Nautobot BGP Models App"
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 license = "Apache-2.0"
@@ -28,8 +28,8 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-# Used for local development
-nautobot = "^2.0.0"
+nautobot = "^2.0.3"
+toml = "^0.10.2"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "*"
@@ -96,10 +96,14 @@ ignore=".venv"
 no-docstring-rgx="^(_|test_|Meta$)"
 
 [tool.pylint.messages_control]
-# Line length is enforced by Black, so pylint doesn't need to check it.
-# Pylint and Black disagree about how to format multi-line arrays; Black wins.
+# line-too-long: Line length is enforced by Black, so pylint doesn't need to check it.
+# too-few-public-methods: is just plain noise.
+# too-many-ancestors: is just a fact of life when dealing with Django and Nautobot inheritance hierarchies.
 disable = """,
-    line-too-long
+    line-too-long,
+    too-few-public-methods,
+    too-many-ancestors,
+    consider-using-dict-items,
     """
 
 [tool.pylint.miscellaneous]
@@ -109,9 +113,12 @@ notes = """,
     XXX,
     """
 
+[tool.pylint.similarities]
+min-similarity-lines = 15
+
 [tool.pylint-nautobot]
 supported_nautobot_versions = [
-    "2.0.0"
+    "2.0.3"
 ]
 
 [tool.ruff]

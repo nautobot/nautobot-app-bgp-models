@@ -2,7 +2,7 @@
 dev_addr: "127.0.0.1:8001"
 edit_uri: "edit/main/nautobot-app-bgp-models/docs"
 site_dir: "nautobot_bgp_models/static/nautobot_bgp_models/docs"
-site_name: "Nautobot BGP Models App Documentation"
+site_name: "BGP Models Documentation"
 site_url: "https://docs.nautobot.com/projects/bgp-models/en/latest/"
 repo_url: "https://github.com/nautobot/nautobot-app-bgp-models"
 copyright: "Copyright &copy; The Authors"
@@ -106,8 +106,9 @@ nav:
       - App Overview: "user/app_overview.md"
       - Getting Started: "user/app_getting_started.md"
       - Using the App: "user/app_use_cases.md"
+      - Cisco Example Use Case: "user/cisco_use_case.md"
+      - Juniper Example Use Case: "user/juniper_use_case.md"
       - Frequently Asked Questions: "user/faq.md"
-      - External Interactions: "user/external_interactions.md"
   - Administrator Guide:
       - Install and Configure: "admin/install.md"
       - Upgrade: "admin/upgrade.md"
@@ -115,12 +116,14 @@ nav:
       - Compatibility Matrix: "admin/compatibility_matrix.md"
       - Release Notes:
           - "admin/release_notes/index.md"
-          - v1.0: "admin/release_notes/version_1.0.md"
+          - v0.7: "admin/release_notes/version_0.7.md"
+          - v0.8: "admin/release_notes/version_0.8.md"
+          - v0.9: "admin/release_notes/version_0.9.md"
   - Developer Guide:
+      - BGP Data Models: "dev/models.md"
       - Extending the App: "dev/extending.md"
       - Contributing to the App: "dev/contributing.md"
       - Development Environment: "dev/dev_environment.md"
-      - Architecture Decision Records: "dev/arch_decision.md"
       - Code Reference:
           - "dev/code_reference/index.md"
           - Package: "dev/code_reference/package.md"
