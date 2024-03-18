@@ -1,13 +1,8 @@
 # Compatibility Matrix
 
-| BGP Models Version | Nautobot First Support Version | Nautobot Last Support Version |
-|--------------------|--------------------------------|-------------------------------|
-| 0.7.0              | 1.3.0                          | 1.99.99                       |
-| 0.7.1              | 1.5.4                          | 1.99.99                       |
-| 0.8.0              | 1.5.4                          | 1.99.99                       |
-| 0.9.0              | 1.5.4                          | 1.99.99                       |
-| 0.9.1              | 1.5.4                          | 1.99.99                       |
-| 1.0.0              | 1.5.4                          | 1.99.99                       |
-| 0.20.0             | 2.0.0                          | 2.99.99                       |
-| 0.20.1             | 2.0.3                          | 2.99.99                       |
-| 2.0.0              | 2.0.3                          | 2.99.99                       |
+!!! warning "Developer Note - Remove Me!"
+    Explain how the release models of the app and of Nautobot work together, how releases are supported, how features and older releases are deprecated etc.
+
+| Nautobot BGP Models App Version | Nautobot First Support Version | Nautobot Last Support Version |
+| ------------- | -------------------- | ------------- |
+| 1.0.X         | 2.0.0                | 2.99.99        |

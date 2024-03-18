@@ -1,4 +1,4 @@
-# BGP Models API Package
+# Nautobot BGP Models App API Package
 
 ::: nautobot_bgp_models.api
     options:
