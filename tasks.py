@@ -48,7 +48,7 @@ namespace = Collection("nautobot_bgp_models")
 namespace.configure(
     {
         "nautobot_bgp_models": {
-            "nautobot_ver": "2.0.0",
+            "nautobot_ver": "2.0.3",
             "project_name": "nautobot-bgp-models",
             "python_ver": "3.11",
             "local": False,
@@ -633,7 +633,7 @@ def help_task(context):
 
 @task(
     help={
-        "version": "Version of Nautobot BGP Models App to generate the release notes for.",
+        "version": "Version of BGP Models to generate the release notes for.",
     }
 )
 def generate_release_notes(context, version=""):

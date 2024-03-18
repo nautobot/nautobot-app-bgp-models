@@ -2,7 +2,7 @@
 dev_addr: "127.0.0.1:8001"
 edit_uri: "edit/main/nautobot-app-bgp-models/docs"
 site_dir: "nautobot_bgp_models/static/nautobot_bgp_models/docs"
-site_name: "Nautobot BGP Models App Documentation"
+site_name: "BGP Models Documentation"
 site_url: "https://docs.nautobot.com/projects/bgp-models/en/latest/"
 repo_url: "https://github.com/nautobot/nautobot-app-bgp-models"
 copyright: "Copyright &copy; The Authors"

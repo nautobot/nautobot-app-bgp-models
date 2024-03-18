@@ -7,7 +7,7 @@ Here you will find detailed instructions on how to **install** and **configure**
 
 ## Prerequisites
 
-- The app is compatible with Nautobot 2.0.0 and higher.
+- The app is compatible with Nautobot 2.0.3 and higher.
 - Databases supported: PostgreSQL, MySQL
 
 !!! note
@@ -29,7 +29,7 @@ The app is available as a Python package via PyPI and can be installed with `pip
 pip install nautobot-bgp-models
 ```
 
-To ensure Nautobot BGP Models App is automatically re-installed during future upgrades, create a file named `local_requirements.txt` (if not already existing) in the Nautobot root directory (alongside `requirements.txt`) and list the `nautobot-bgp-models` package:
+To ensure BGP Models is automatically re-installed during future upgrades, create a file named `local_requirements.txt` (if not already existing) in the Nautobot root directory (alongside `requirements.txt`) and list the `nautobot-bgp-models` package:
 
 ```shell
 echo nautobot-bgp-models >> local_requirements.txt

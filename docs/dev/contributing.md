@@ -47,11 +47,11 @@ The branching policy includes the following tenets:
 - PRs intended to add new features should be sourced from the `develop` branch.
 - PRs intended to fix issues in the Nautobot LTM compatible release should be sourced from the latest `ltm-<major.minor>` branch instead of `develop`.
 
-Nautobot BGP Models App will observe semantic versioning, as of 1.0. This may result in a quick turnaround in minor versions to keep pace with an ever-growing feature set.
+BGP Models will observe semantic versioning, as of 1.0. This may result in a quick turnaround in minor versions to keep pace with an ever-growing feature set.
 
 ## Release Policy
 
-Nautobot BGP Models App has currently no intended scheduled release schedule, and will release new features in minor versions.
+BGP Models has currently no intended scheduled release schedule, and will release new features in minor versions.
 
 When a new release, from `develop` to `main`, is created the following should happen.
 

@@ -1,4 +1,4 @@
-# Nautobot BGP Models App
+# BGP Models
 
 <!--
 Developer Note - Remove Me!
