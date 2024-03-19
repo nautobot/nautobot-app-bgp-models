@@ -4,8 +4,8 @@ about: Report a reproducible bug in the current release of nautobot-bgp-models
 ---
 
 ### Environment
-* Python version:  <!-- Example: 3.7.7 -->
-* Nautobot version:  <!-- Example: 1.0.0 -->
+* Python version:  <!-- Example: 3.11.4 -->
+* Nautobot version:  <!-- Example: 2.0.3 -->
 * nautobot-bgp-models version:  <!-- Example: 1.0.0 -->
 
 <!-- What did you expect to happen? -->

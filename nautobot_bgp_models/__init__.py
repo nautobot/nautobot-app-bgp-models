@@ -1,15 +1,15 @@
 """App declaration for nautobot_bgp_models."""
 
+# Metadata is inherited from Nautobot. If not including Nautobot in the environment, this should be added
 from importlib import metadata
 
 from django.db.models.signals import post_migrate
-from nautobot.extras.plugins import PluginConfig
-
+from nautobot.apps import NautobotAppConfig
 
 __version__ = metadata.version(__name__)
 
 
-class NautobotBGPModelsConfig(PluginConfig):
+class NautobotBGPModelsConfig(NautobotAppConfig):
     """App configuration for the nautobot_bgp_models app."""
 
     name = "nautobot_bgp_models"
@@ -20,7 +20,7 @@ class NautobotBGPModelsConfig(PluginConfig):
     base_url = "bgp"
     required_settings = []
     min_version = "2.0.3"
-    max_version = "2.999.999"
+    max_version = "2.9999"
     default_settings = {
         "default_statuses": {
             "AutonomousSystem": ["Active", "Available", "Planned"],
