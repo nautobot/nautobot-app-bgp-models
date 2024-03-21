@@ -30,3 +30,7 @@
                 </table>
             </div>
 {% endblock content_left_page %}
+
+{% block content_right_page %}
+    {% include 'utilities/obj_table.html' with table=asn_range_table table_template='panel_table.html' heading='ASNs' %}
+{% endblock content_right_page %}

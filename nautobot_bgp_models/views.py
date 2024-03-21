@@ -39,6 +39,20 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AutonomousSystemRangeSerializer
     table_class = tables.AutonomousSystemRangeTable
 
+    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
+        """Return any additional context data for the template."""
+        context = super().get_extra_context(request, instance)
+        if self.action == "retrieve":
+            asns = (
+                models.AutonomousSystem.objects.restrict(request.user, "view")
+                .filter(asn__gte=instance.asn_min, asn__lte=instance.asn_max)
+            )
+            # vlans_count = vlans.count()
+            asn_table = tables.AutonomousSystemTable(asns)
+            context["asn_range_table"] = asn_table
+
+        return context
+
 
 class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     """UIViewset for BGPRoutingInstance model."""
