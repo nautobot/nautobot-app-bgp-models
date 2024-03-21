@@ -175,6 +175,16 @@ class AutonomousSystemRange(PrimaryModel):
         if self.asn_min >= self.asn_max:
             raise ValidationError("asn_min must be lower than asn_max.")
 
+    def get_next_available_asn(self):
+        """
+        Return the first available ASN number in the range.
+        """
+        asn_nums = AutonomousSystem.objects.filter(asn__gte=self.asn_min, asn__lte=self.asn_max).values_list("asn", flat=True)
+        for i in range(asn_min, asn_max+1):
+            if i not in asn_nums:
+                return i
+        return None
+
 
 @extras_features(
     "custom_fields",
