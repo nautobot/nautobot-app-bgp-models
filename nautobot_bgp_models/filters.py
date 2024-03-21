@@ -54,7 +54,13 @@ class AutonomousSystemRangeFilterSet(
         """Free-text search method implementation."""
         if not value.strip():
             return queryset
-        return queryset.filter(Q(asn__icontains=value) | Q(description__icontains=value)).distinct()
+
+        return queryset.filter(
+            Q(name=value) |
+            Q(asn_max__icontains=value) |
+            Q(asn_min__icontains=value) |
+            Q(description__icontains=value)
+        ).distinct()
 
     class Meta:
         model = models.AutonomousSystemRange

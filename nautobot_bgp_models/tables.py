@@ -42,7 +42,7 @@ class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):
     actions = ButtonsColumn(model=models.AutonomousSystemRange)
 
     class Meta(BaseTable.Meta):
-        model = models.AutonomousSystem
+        model = models.AutonomousSystemRange
         fields = ("pk", "name", "asn_min", "asn_max", "tenant", "description", "tags")
 
 

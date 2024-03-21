@@ -1,0 +1,32 @@
+{% extends 'generic/object_detail.html' %}
+{% load helpers %}
+
+{% block content_left_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>BGP Autonomous System Range</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    <tr>
+                        <td>Start ASN</td>
+                        <td>{{ object.asn_min }}</td>
+                    </tr>
+                    <tr>
+                        <td>End ASN</td>
+                        <td>{{ object.asn_max }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tenant</td>
+                        {% if object.tenant %}
+                        <td><a href="{% url 'tenancy:tenant' pk=object.tenant.pk %}">{{ object.tenant }}</a></td>
+                        {% else %}
+                        <td><span class="text-muted">None</span></td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ object.description }}</td>
+                    </tr>
+                </table>
+            </div>
+{% endblock content_left_page %}

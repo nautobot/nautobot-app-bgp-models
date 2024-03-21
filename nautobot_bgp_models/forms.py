@@ -69,7 +69,7 @@ class AutonomousSystemRangeFilterForm(NautobotFilterForm):
     """Form for filtering AutonomousSystem records in combination with AutonomousSystemFilterSet."""
 
     model = models.AutonomousSystemRange
-    # field_order = ["name", "asn_min", "asn_max""tag"]
+    field_order = ["name", "asn_min", "asn_max", "tenant", "tags"]
     tag = TagFilterField(model)
 
 
