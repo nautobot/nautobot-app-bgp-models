@@ -15,12 +15,25 @@ from nautobot.apps.tables import (
 
 from . import models
 
+ASN_LINK = """
+{% if record.present_in_database %}
+<a href="{{ record.get_absolute_url }}">{{ record.asn }}</a>
+{% elif perms.nautobot_bgp_models.autonomoussystem_add %}
+<a href="\
+{% url 'plugins:nautobot_bgp_models:autonomoussystem_add' %}\
+?asn={{ record.asn }}\
+" class="btn btn-xs btn-success">{{ record.available }} ASN{{ record.available|pluralize }} available</a>\
+{% else %}
+{{ record.available }} ASN{{ record.available|pluralize }} available
+{% endif %}
+"""
+
 
 class AutonomousSystemTable(StatusTableMixin, BaseTable):
     """Table representation of AutonomousSystem records."""
 
     pk = ToggleColumn()
-    asn = tables.LinkColumn()
+    asn = tables.TemplateColumn(template_code=ASN_LINK, verbose_name="ASN")
     provider = tables.LinkColumn()
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystem_list")
     actions = ButtonsColumn(model=models.AutonomousSystem)
@@ -28,6 +41,22 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
     class Meta(BaseTable.Meta):
         model = models.AutonomousSystem
         fields = ("pk", "asn", "status", "provider", "description", "tags")
+
+
+class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):
+    """Table representation of AutonomousSystem records."""
+
+    pk = ToggleColumn()
+    name = tables.LinkColumn()
+    asn_min = tables.LinkColumn()
+    asn_max = tables.LinkColumn()
+    tenant = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystemrange_list")
+    actions = ButtonsColumn(model=models.AutonomousSystemRange)
+
+    class Meta(BaseTable.Meta):
+        model = models.AutonomousSystemRange
+        fields = ("pk", "name", "asn_min", "asn_max", "tenant", "description", "tags")
 
 
 class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):

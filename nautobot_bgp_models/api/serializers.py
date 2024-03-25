@@ -24,6 +24,21 @@ class AutonomousSystemSerializer(
         fields = "__all__"
 
 
+class AutonomousSystemRangeSerializer(
+    NautobotModelSerializer,
+    TaggedModelSerializerMixin,
+):
+    """REST API serializer for AutonomousSystemRange records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:autonomoussystemrange-detail"
+    )
+
+    class Meta:
+        model = models.AutonomousSystemRange
+        fields = "__all__"
+
+
 class InheritableFieldsSerializerMixin:
     """Common mixin for Serializers that support an additional `include_inherited` query parameter."""
 

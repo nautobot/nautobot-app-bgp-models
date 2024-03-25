@@ -27,6 +27,21 @@ menu_items = (
                         ),
                     ),
                     NavMenuItem(
+                        link="plugins:nautobot_bgp_models:autonomoussystemrange_list",
+                        name="Autonomous System Ranges",
+                        permissions=["nautobot_bgp_models.view_autonomoussystemrange"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:autonomoussystemrange_add",
+                                permissions=["nautobot_bgp_models.add_autonomoussystemrange"],
+                            ),
+                            NavMenuImportButton(
+                                link="plugins:nautobot_bgp_models:autonomoussystemrange_import",
+                                permissions=["nautobot_bgp_models.add_autonomoussystemrange"],
+                            ),
+                        ),
+                    ),
+                    NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergrouptemplate_list",
                         name="Peer Group Templates",
                         permissions=["nautobot_bgp_models.view_peergrouptemplate"],
