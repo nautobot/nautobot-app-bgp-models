@@ -56,10 +56,7 @@ class AutonomousSystemRangeFilterSet(
             return queryset
 
         return queryset.filter(
-            Q(name=value) |
-            Q(asn_max__icontains=value) |
-            Q(asn_min__icontains=value) |
-            Q(description__icontains=value)
+            Q(name=value) | Q(asn_max__icontains=value) | Q(asn_min__icontains=value) | Q(description__icontains=value)
         ).distinct()
 
     class Meta:

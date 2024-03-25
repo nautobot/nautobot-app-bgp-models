@@ -4,11 +4,13 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import View
+from django_tables2 import RequestConfig
 
 from nautobot.apps.views import NautobotUIViewSet
 from nautobot.core.views import mixins
 from nautobot.core.views import generic
 from nautobot.extras.utils import get_base_template
+from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
 
 from . import filters, forms, models, tables
 from .api import serializers
@@ -43,12 +45,49 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
         """Return any additional context data for the template."""
         context = super().get_extra_context(request, instance)
         if self.action == "retrieve":
-            asns = (
-                models.AutonomousSystem.objects.restrict(request.user, "view")
-                .filter(asn__gte=instance.asn_min, asn__lte=instance.asn_max)
+
+            def add_available_asns(instance, asns):
+                """Create fake records for all gaps between used Autonomous Systems."""
+                if not asns:
+                    return [{"asn": instance.asn_min, "available": instance.asn_max - instance.asn_min + 1}]
+
+                prev_asn = instance.asn_max
+                new_asns = []
+                for asn in asns:
+                    if asn.asn - prev_asn > 1:
+                        new_asns.append({"asn": prev_asn + 1, "available": asn.asn - prev_asn - 1})
+                    prev_asn = asn.asn
+
+                if asns[0].asn > instance.asn_min:
+                    new_asns.append({"asn": instance.asn_min, "available": asns[0].asn - instance.asn_min})
+                if prev_asn < instance.asn_max:
+                    new_asns.append({"asn": prev_asn + 1, "available": instance.asn_max - prev_asn})
+
+                asns = list(asns) + new_asns
+                asns.sort(key=lambda a: a.asn if isinstance(a, models.AutonomousSystem) else a["asn"])
+
+                return asns
+
+            asns = models.AutonomousSystem.objects.restrict(request.user, "view").filter(
+                asn__gte=instance.asn_min, asn__lte=instance.asn_max
             )
-            # vlans_count = vlans.count()
+            asns = add_available_asns(instance, asns)
+
             asn_table = tables.AutonomousSystemTable(asns)
+            asn_table.columns.hide("actions")
+
+            if request.user.has_perm("nautobot_bgp_models.change_autonomoussystem") or request.user.has_perm(
+                "nautobot_bgp_models.delete_autonomoussystem"
+            ):
+                asn_table.columns.show("pk")
+
+            paginate = {
+                "paginator_class": EnhancedPaginator,
+                "per_page": get_paginate_count(request),
+            }
+
+            RequestConfig(request, paginate).configure(asn_table)
+
             context["asn_range_table"] = asn_table
 
         return context

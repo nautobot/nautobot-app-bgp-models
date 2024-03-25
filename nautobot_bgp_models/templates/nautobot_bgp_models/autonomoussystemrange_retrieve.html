@@ -32,5 +32,5 @@
 {% endblock content_left_page %}
 
 {% block content_right_page %}
-    {% include 'utilities/obj_table.html' with table=asn_range_table table_template='panel_table.html' heading='ASNs' %}
+    {% include 'utilities/obj_table.html' with table=asn_range_table table_template='panel_table.html' heading='ASNs' bulk_edit_url='plugins:nautobot_bgp_models:autonomoussystem_bulk_edit' bulk_delete_url='plugins:nautobot_bgp_models:autonomoussystem_bulk_delete' %}
 {% endblock content_right_page %}

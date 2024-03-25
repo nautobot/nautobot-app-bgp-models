@@ -30,7 +30,9 @@ class AutonomousSystemRangeSerializer(
 ):
     """REST API serializer for AutonomousSystemRange records."""
 
-    url = serializers.HyperlinkedIdentityField(view_name="plugins-api:nautobot_bgp_models-api:autonomoussystemrange-detail")
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:autonomoussystemrange-detail"
+    )
 
     class Meta:
         model = models.AutonomousSystemRange
