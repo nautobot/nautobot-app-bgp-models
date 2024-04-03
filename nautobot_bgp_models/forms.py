@@ -262,6 +262,7 @@ class PeerGroupTemplateForm(NautobotModelForm):
             "role",
             "autonomous_system",
             "extra_attributes",
+            "tags",
         )
 
 
