@@ -46,6 +46,34 @@ class AutonomousSystemFormTestCase(TestCase):
         self.assertEqual("This field is required.", form.errors["status"][0])
 
 
+class AutonomousSystemRangeFormTestCase(TestCase):
+    """Test the AutonomousSystemRange create/edit form."""
+
+    form_class = forms.AutonomousSystemRangeForm
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up class-wide data for the test."""
+
+    def test_valid_asnrange(self):
+        data = {"asn_min": 1, "asn_max": 10, "name": "test"}
+        form = self.form_class(data)
+        self.assertTrue(form.is_valid())
+        self.assertTrue(form.save())
+
+    def test_invalid_asn(self):
+        data = {"asn_min": 10, "asn_max": 1, "name": "test"}
+        form = self.form_class(data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual("asn_min value must be lower than asn_max value.", form.errors["__all__"][0])
+
+    def test_name_required(self):
+        data = {"asn_min": 1000, "asn_max": 2000}
+        form = self.form_class(data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual("This field is required.", form.errors["name"][0])
+
+
 class BGPRoutingInstanceTestCase(TestCase):
     """Test the BGPRoutingInstance create/edit form."""
 

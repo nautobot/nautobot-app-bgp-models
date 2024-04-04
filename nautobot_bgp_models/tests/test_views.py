@@ -77,6 +77,46 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
+class AutonomousSystemRangeTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test views related to the AutonomousSystemRange model."""
+
+    model = models.AutonomousSystemRange
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class data setup."""
+        models.AutonomousSystemRange.objects.create(
+            asn_min=1, asn_max=10, name="Private", description="Reserved for private use"
+        )
+        models.AutonomousSystemRange.objects.create(
+            asn_min=11, asn_max=20, name="Private 2", description="Also reserved for private use"
+        )
+        models.AutonomousSystemRange.objects.create(
+            asn_min=21, asn_max=30, name="Private 3", description="Another reserved for private use"
+        )
+
+        tags = cls.create_tags("Alpha", "Beta", "Gamma")
+
+        cls.form_data = {
+            "name": "Hello World",
+            "asn_min": 100,
+            "asn_max": 500,
+            "description": "Hello, world!",
+            "tags": [tag.pk for tag in tags],
+        }
+
+        cls.csv_data = (
+            "asn_min,asn_max,name,description",
+            "1000,2000,range1,range1 descr",
+            "2000,4000,range2,range2 descr",
+            "5000,9999,range3,range3 descr",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "New description",
+        }
+
+
 class PeerGroupTestCase(
     ViewTestCases.GetObjectViewTestCase,
     ViewTestCases.GetObjectChangelogViewTestCase,

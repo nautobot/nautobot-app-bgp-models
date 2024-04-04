@@ -8,6 +8,7 @@ from . import views
 router = OrderedDefaultRouter()
 
 router.register("autonomous-systems", views.AutonomousSystemViewSet)
+router.register("autonomous-system-ranges", views.AutonomousSystemRangeViewSet)
 router.register("peer-groups", views.PeerGroupViewSet)
 router.register("peer-group-templates", views.PeerGroupTemplateViewSet)
 router.register("peer-endpoints", views.PeerEndpointViewSet)

@@ -16,6 +16,7 @@ from nautobot.dcim.models import Device, Interface
 from nautobot.extras.forms import NautobotFilterForm, RoleModelFilterFormMixin
 from nautobot.extras.models import Tag, Secret, Role
 from nautobot.ipam.models import VRF, IPAddress
+from nautobot.tenancy.models import Tenant
 
 from . import choices, models
 
@@ -44,6 +45,39 @@ class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
 
     pk = forms.ModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    class Meta:
+        nullable_fields = [
+            "description",
+        ]
+
+
+class AutonomousSystemRangeForm(NautobotModelForm):
+    """Form for creating/updating AutonomousSystem records."""
+
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+    tenant = DynamicModelChoiceField(queryset=Tenant.objects.all(), required=False)
+
+    class Meta:
+        model = models.AutonomousSystemRange
+        fields = ("name", "asn_min", "asn_max", "description", "tenant", "tags")
+
+
+class AutonomousSystemRangeFilterForm(NautobotFilterForm):
+    """Form for filtering AutonomousSystem records in combination with AutonomousSystemFilterSet."""
+
+    model = models.AutonomousSystemRange
+    field_order = ["name", "asn_min", "asn_max", "tenant", "tags"]
+    tag = TagFilterField(model)
+
+
+class AutonomousSystemRangeBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
+    """Form for bulk-editing multiple AutonomousSystem records."""
+
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.AutonomousSystemRange.objects.all(), widget=forms.MultipleHiddenInput()
     )
     description = forms.CharField(max_length=200, required=False)
 
