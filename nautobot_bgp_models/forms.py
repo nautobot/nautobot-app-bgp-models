@@ -1,23 +1,22 @@
 """Forms and FilterForms for nautobot_bgp_models."""
+
 from django import forms
 
-import nautobot.utilities.forms as utilities_forms
+import nautobot.core.forms as utilities_forms
 from nautobot.apps.forms import (
-    CSVModelChoiceField,
-    CustomFieldModelCSVForm,
     DynamicModelMultipleChoiceField,
     DynamicModelChoiceField,
     NautobotModelForm,
     NautobotBulkEditForm,
-    StatusModelCSVFormMixin,
     TagFilterField,
     TagsBulkEditFormMixin,
 )
 from nautobot.circuits.models import Provider
-from nautobot.dcim.models import Device, DeviceRole, Interface
-from nautobot.extras.forms import NautobotFilterForm
-from nautobot.extras.models import Tag, Secret
+from nautobot.dcim.models import Device, Interface
+from nautobot.extras.forms import NautobotFilterForm, RoleModelFilterFormMixin
+from nautobot.extras.models import Tag, Secret, Role
 from nautobot.ipam.models import VRF, IPAddress
+from nautobot.tenancy.models import Tenant
 
 from . import choices, models
 
@@ -41,26 +40,44 @@ class AutonomousSystemFilterForm(NautobotFilterForm):
     tag = TagFilterField(model)
 
 
-class AutonomousSystemCSVForm(StatusModelCSVFormMixin, CustomFieldModelCSVForm):
-    """Form for importing AutonomousSystems from CSV data."""
-
-    provider = CSVModelChoiceField(
-        queryset=Provider.objects.all(),
-        to_field_name="name",
-        help_text="Provider name",
-        required=False,
-    )
-
-    class Meta:
-        model = models.AutonomousSystem
-        fields = models.AutonomousSystem.csv_headers
-
-
 class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
     """Form for bulk-editing multiple AutonomousSystem records."""
 
     pk = forms.ModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    class Meta:
+        nullable_fields = [
+            "description",
+        ]
+
+
+class AutonomousSystemRangeForm(NautobotModelForm):
+    """Form for creating/updating AutonomousSystem records."""
+
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+    tenant = DynamicModelChoiceField(queryset=Tenant.objects.all(), required=False)
+
+    class Meta:
+        model = models.AutonomousSystemRange
+        fields = ("name", "asn_min", "asn_max", "description", "tenant", "tags")
+
+
+class AutonomousSystemRangeFilterForm(NautobotFilterForm):
+    """Form for filtering AutonomousSystem records in combination with AutonomousSystemFilterSet."""
+
+    model = models.AutonomousSystemRange
+    field_order = ["name", "asn_min", "asn_max", "tenant", "tags"]
+    tag = TagFilterField(model)
+
+
+class AutonomousSystemRangeBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
+    """Form for bulk-editing multiple AutonomousSystem records."""
+
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.AutonomousSystemRange.objects.all(), widget=forms.MultipleHiddenInput()
     )
     description = forms.CharField(max_length=200, required=False)
 
@@ -163,6 +180,7 @@ class BGPRoutingInstanceFilterForm(NautobotFilterForm):
         "router_id",
         "autonomous_system",
         "tag",
+        "status",
     ]
 
 
@@ -172,72 +190,6 @@ class BGPRoutingInstanceBulkEditForm(NautobotBulkEditForm):
     pk = forms.ModelMultipleChoiceField(
         queryset=models.BGPRoutingInstance.objects.all(), widget=forms.MultipleHiddenInput()
     )
-    description = forms.CharField(max_length=200, required=False)
-
-    class Meta:
-        nullable_fields = [
-            "description",
-        ]
-
-
-class BGPRoutingInstanceCSVForm(StatusModelCSVFormMixin, CustomFieldModelCSVForm):
-    """Form for importing BGPRoutingInstance from CSV data."""
-
-    device = CSVModelChoiceField(
-        queryset=Device.objects.all(),
-        to_field_name="name",
-        help_text="Assigned device's name",
-    )
-
-    autonomous_system = CSVModelChoiceField(
-        queryset=models.AutonomousSystem.objects.all(),
-        to_field_name="asn",
-        help_text="Assigned autonomous system number",
-    )
-
-    router_id = CSVModelChoiceField(
-        queryset=IPAddress.objects.all(),
-        to_field_name="address",
-        help_text="Router ID - IP Address",
-        required=False,
-    )
-
-    class Meta:
-        model = models.BGPRoutingInstance
-        fields = models.BGPRoutingInstance.csv_headers
-
-
-class PeeringRoleForm(NautobotModelForm):
-    """Form for creating/updating PeeringRole records."""
-
-    slug = utilities_forms.SlugField()
-
-    class Meta:
-        model = models.PeeringRole
-        fields = ("name", "slug", "color", "description")
-
-
-class PeeringRoleFilterForm(NautobotFilterForm):
-    """Form for filtering PeeringRole records in combination with PeeringRoleFilterSet."""
-
-    model = models.PeeringRole
-    q = forms.CharField(required=False, label="Search")
-    color = forms.CharField(max_length=6, required=False, widget=utilities_forms.ColorSelect())
-
-
-class PeeringRoleCSVForm(CustomFieldModelCSVForm):
-    """Form for importing PeeringRole records from CSV data."""
-
-    class Meta:
-        model = models.PeeringRole
-        fields = models.PeeringRole.csv_headers
-
-
-class PeeringRoleBulkEditForm(NautobotBulkEditForm):
-    """Form for bulk-editing multiple PeeringRole records."""
-
-    pk = forms.ModelMultipleChoiceField(queryset=models.PeeringRole.objects.all(), widget=forms.MultipleHiddenInput())
-    color = forms.CharField(max_length=6, required=False, widget=utilities_forms.ColorSelect())
     description = forms.CharField(max_length=200, required=False)
 
     class Meta:
@@ -285,11 +237,11 @@ class PeerGroupForm(NautobotModelForm):
         label="Autonomous System",
     )
 
-    role = DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
-
     peergroup_template = DynamicModelChoiceField(queryset=models.PeerGroupTemplate.objects.all(), required=False)
 
     secret = DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
+
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
 
     class Meta:
         model = models.PeerGroup
@@ -306,6 +258,7 @@ class PeerGroupForm(NautobotModelForm):
             "autonomous_system",
             "secret",
             "extra_attributes",
+            "tags",
         )
 
 
@@ -332,8 +285,6 @@ class PeerGroupTemplateForm(NautobotModelForm):
         label="Autonomous System",
     )
 
-    role = DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
-
     secret = DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
 
     class Meta:
@@ -345,6 +296,7 @@ class PeerGroupTemplateForm(NautobotModelForm):
             "role",
             "autonomous_system",
             "extra_attributes",
+            "tags",
         )
 
 
@@ -362,16 +314,12 @@ class PeerGroupTemplateBulkEditForm(NautobotBulkEditForm):
         ]
 
 
-class PeerGroupFilterForm(NautobotFilterForm):
+class PeerGroupFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
     """Form for filtering PeerGroup records in combination with PeerGroupFilterSet."""
 
     model = models.PeerGroup
 
     q = forms.CharField(required=False, label="Search")
-
-    role = DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
-    )
 
     enabled = forms.NullBooleanField(
         required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
@@ -384,16 +332,12 @@ class PeerGroupFilterForm(NautobotFilterForm):
     vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
 
 
-class PeerGroupTemplateFilterForm(NautobotFilterForm):
+class PeerGroupTemplateFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
     """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
 
     model = models.PeerGroup
 
     q = forms.CharField(required=False, label="Search")
-
-    role = DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="slug", required=False
-    )
 
     enabled = forms.NullBooleanField(
         required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
@@ -402,77 +346,6 @@ class PeerGroupTemplateFilterForm(NautobotFilterForm):
     autonomous_system = DynamicModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
     )
-
-
-class PeerGroupTemplateCSVForm(CustomFieldModelCSVForm):
-    """Form for importing PeerGroupTemplate from CSV data."""
-
-    role = CSVModelChoiceField(
-        queryset=models.PeeringRole.objects.all(),
-        to_field_name="name",
-        help_text="Assigned Peering Role name",
-        required=False,
-    )
-
-    autonomous_system = CSVModelChoiceField(
-        queryset=models.AutonomousSystem.objects.all(),
-        to_field_name="asn",
-        help_text="Assigned autonomous system number",
-        required=False,
-    )
-
-    class Meta:
-        model = models.PeerGroupTemplate
-        fields = models.PeerGroupTemplate.csv_headers
-
-
-class PeerGroupCSVForm(CustomFieldModelCSVForm):
-    """Form for importing PeerGroup from CSV data."""
-
-    peergroup_template = CSVModelChoiceField(
-        queryset=models.PeerGroupTemplate.objects.all(),
-        to_field_name="name",
-        help_text="Assigned peering group template name",
-        required=False,
-    )
-
-    vrf = CSVModelChoiceField(
-        queryset=VRF.objects.all(),
-        to_field_name="name",
-        required=False,
-    )
-
-    autonomous_system = CSVModelChoiceField(
-        queryset=models.AutonomousSystem.objects.all(),
-        to_field_name="asn",
-        help_text="Assigned autonomous system number",
-        required=False,
-    )
-
-    role = CSVModelChoiceField(
-        queryset=models.PeeringRole.objects.all(),
-        to_field_name="name",
-        help_text="Assigned Peering Role name",
-        required=False,
-    )
-
-    source_interface = CSVModelChoiceField(
-        queryset=Interface.objects.all(),
-        to_field_name="name",
-        help_text="Peer group source Interface name",
-        required=False,
-    )
-
-    source_ip = CSVModelChoiceField(
-        queryset=IPAddress.objects.all(),
-        # to_field_name="name",
-        help_text="Peer group source IP address",
-        required=False,
-    )
-
-    class Meta:
-        model = models.PeerGroup
-        fields = models.PeerGroup.csv_headers
 
 
 class PeerEndpointForm(NautobotModelForm):
@@ -525,8 +398,6 @@ class PeerEndpointForm(NautobotModelForm):
         label="Peer Group",
     )
 
-    role = DynamicModelChoiceField(queryset=models.PeeringRole.objects.all(), required=False)
-
     secret = DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
 
     peering = DynamicModelChoiceField(  # Hidden & optional - update peers manually for new peerings.
@@ -534,6 +405,8 @@ class PeerEndpointForm(NautobotModelForm):
         widget=forms.HiddenInput(),
         required=False,
     )
+
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
 
     class Meta:
         model = models.PeerEndpoint
@@ -549,6 +422,7 @@ class PeerEndpointForm(NautobotModelForm):
             "peer_group",
             "secret",
             "extra_attributes",
+            "tags",
         )
 
     def save(self, commit=True):
@@ -561,15 +435,7 @@ class PeerEndpointForm(NautobotModelForm):
         return endpoint
 
 
-class PeerEndpointCSVForm(CustomFieldModelCSVForm):
-    """Form for importing PeerEndpoint from CSV data."""
-
-    class Meta:
-        model = models.PeerEndpoint
-        fields = models.PeerEndpoint.csv_headers
-
-
-class PeerEndpointFilterForm(NautobotFilterForm):
+class PeerEndpointFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
     """Form for filtering PeerEndpoint records in combination with PeerEndpointFilterSet."""
 
     model = models.PeerEndpoint
@@ -608,13 +474,13 @@ class PeeringFilterForm(NautobotFilterForm):
     device = DynamicModelMultipleChoiceField(queryset=Device.objects.all(), to_field_name="name", required=False)
 
     device_role = DynamicModelMultipleChoiceField(
-        queryset=DeviceRole.objects.all(),
+        queryset=Role.objects.all(),
         to_field_name="name",
         required=False,
     )
 
     peer_endpoint_role = DynamicModelMultipleChoiceField(
-        queryset=models.PeeringRole.objects.all(), to_field_name="name", required=False
+        queryset=Role.objects.all(), to_field_name="name", required=False
     )
 
 
@@ -677,14 +543,6 @@ class AddressFamilyFilterForm(NautobotFilterForm):
     vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
 
 
-class AddressFamilyCSVForm(CustomFieldModelCSVForm):
-    """Form for importing AddressFamily from CSV data."""
-
-    class Meta:
-        model = models.AddressFamily
-        fields = models.AddressFamily.csv_headers
-
-
 class PeerGroupAddressFamilyForm(NautobotModelForm):
     """Form for creating/updating PeerGroupAddressFamily records."""
 
@@ -744,14 +602,6 @@ class PeerGroupAddressFamilyFilterForm(NautobotFilterForm):
     )
 
 
-class PeerGroupAddressFamilyCSVForm(CustomFieldModelCSVForm):
-    """Form for importing PeerGroupAddressFamily from CSV data."""
-
-    class Meta:
-        model = models.PeerGroupAddressFamily
-        fields = models.PeerGroupAddressFamily.csv_headers
-
-
 class PeerEndpointAddressFamilyForm(NautobotModelForm):
     """Form for creating/updating PeerEndpointAddressFamily records."""
 
@@ -809,11 +659,3 @@ class PeerEndpointAddressFamilyFilterForm(NautobotFilterForm):
         required=False,
         widget=utilities_forms.StaticSelect2Multiple(),
     )
-
-
-class PeerEndpointAddressFamilyCSVForm(CustomFieldModelCSVForm):
-    """Form for importing PeerEndpointAddressFamily from CSV data."""
-
-    class Meta:
-        model = models.PeerEndpointAddressFamily
-        fields = models.PeerEndpointAddressFamily.csv_headers

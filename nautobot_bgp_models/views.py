@@ -4,20 +4,21 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import View
+from django_tables2 import RequestConfig
 
 from nautobot.apps.views import NautobotUIViewSet
 from nautobot.core.views import mixins
 from nautobot.core.views import generic
 from nautobot.extras.utils import get_base_template
+from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
 
-from . import filters, forms, models, tables
+from . import filters, forms, helpers, models, tables
 from .api import serializers
 
 
 class AutonomousSystemUIViewSet(NautobotUIViewSet):
     """UIViewset for AutonomousSystem model."""
 
-    bulk_create_form_class = forms.AutonomousSystemCSVForm
     bulk_update_form_class = forms.AutonomousSystemBulkEditForm
     filterset_class = filters.AutonomousSystemFilterSet
     filterset_form_class = forms.AutonomousSystemFilterForm
@@ -28,10 +29,48 @@ class AutonomousSystemUIViewSet(NautobotUIViewSet):
     table_class = tables.AutonomousSystemTable
 
 
+class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
+    """UIViewset for AutonomousSystemRange model."""
+
+    bulk_update_form_class = forms.AutonomousSystemRangeBulkEditForm
+    filterset_class = filters.AutonomousSystemRangeFilterSet
+    filterset_form_class = forms.AutonomousSystemRangeFilterForm
+    form_class = forms.AutonomousSystemRangeForm
+    lookup_field = "pk"
+    queryset = models.AutonomousSystemRange.objects.all()
+    serializer_class = serializers.AutonomousSystemRangeSerializer
+    table_class = tables.AutonomousSystemRangeTable
+
+    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
+        """Return any additional context data for the template."""
+        context = super().get_extra_context(request, instance)
+        if self.action == "retrieve":
+            asns = models.AutonomousSystem.objects.filter(asn__gte=instance.asn_min, asn__lte=instance.asn_max)
+            asns = helpers.add_available_asns(instance, asns)
+
+            asn_table = tables.AutonomousSystemTable(asns)
+            asn_table.columns.hide("actions")
+
+            if request.user.has_perm("nautobot_bgp_models.change_autonomoussystem") or request.user.has_perm(
+                "nautobot_bgp_models.delete_autonomoussystem"
+            ):
+                asn_table.columns.show("pk")
+
+            paginate = {
+                "paginator_class": EnhancedPaginator,
+                "per_page": get_paginate_count(request),
+            }
+
+            RequestConfig(request, paginate).configure(asn_table)
+
+            context["asn_range_table"] = asn_table
+
+        return context
+
+
 class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     """UIViewset for BGPRoutingInstance model."""
 
-    bulk_create_form_class = forms.BGPRoutingInstanceCSVForm
     bulk_update_form_class = forms.BGPRoutingInstanceBulkEditForm
     filterset_class = filters.BGPRoutingInstanceFilterSet
     filterset_form_class = forms.BGPRoutingInstanceFilterForm
@@ -42,23 +81,9 @@ class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     table_class = tables.BGPRoutingInstanceTable
 
 
-class PeeringRoleUIViewSet(NautobotUIViewSet):
-    """UIViewset for PeeringRole model."""
-
-    bulk_create_form_class = forms.PeeringRoleCSVForm
-    bulk_update_form_class = forms.PeeringRoleBulkEditForm
-    filterset_class = filters.PeeringRoleFilterSet
-    filterset_form_class = forms.PeeringRoleFilterForm
-    form_class = forms.PeeringRoleForm
-    queryset = models.PeeringRole.objects.all()
-    serializer_class = serializers.PeeringRoleSerializer
-    table_class = tables.PeeringRoleTable
-
-
 class PeerGroupUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroup model."""
 
-    bulk_create_form_class = forms.PeerGroupCSVForm
     bulk_update_form_class = forms.PeerGroupBulkEditForm
     filterset_class = filters.PeerGroupFilterSet
     filterset_form_class = forms.PeerGroupFilterForm
@@ -68,19 +93,17 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerGroupSerializer
     table_class = tables.PeerGroupTable
 
-
-class PeerGroupImportView(generic.BulkImportView):
-    """Workaround for #3809."""
-
-    queryset = PeerGroupUIViewSet.queryset
-    model_form = PeerGroupUIViewSet.bulk_create_form_class
-    table = PeerGroupUIViewSet.table_class
+    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
+        """Return any additional context data for the template."""
+        context = super().get_extra_context(request, instance)
+        if self.action == "retrieve":
+            context["object_fields"] = instance.get_fields(include_inherited=True)
+        return context
 
 
 class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroupTemplate model."""
 
-    bulk_create_form_class = forms.PeerGroupTemplateCSVForm
     bulk_update_form_class = forms.PeerGroupTemplateBulkEditForm
     filterset_class = filters.PeerGroupTemplateFilterSet
     filterset_form_class = forms.PeerGroupTemplateFilterForm
@@ -91,18 +114,9 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerGroupTemplateTable
 
 
-class PeerGroupTemplateImportView(generic.BulkImportView):
-    """Workaround for #3809."""
-
-    queryset = PeerGroupTemplateUIViewSet.queryset
-    model_form = PeerGroupTemplateUIViewSet.bulk_create_form_class
-    table = PeerGroupTemplateUIViewSet.table_class
-
-
 class PeerEndpointUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerEndpoint model."""
 
-    bulk_create_form_class = forms.PeerEndpointCSVForm
     bulk_update_form_class = forms.PeerEndpointBulkEditForm
     filterset_class = filters.PeerEndpointFilterSet
     filterset_form_class = forms.PeerEndpointFilterForm
@@ -111,6 +125,13 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
     queryset = models.PeerEndpoint.objects.all()
     serializer_class = serializers.PeerEndpointSerializer
     table_class = tables.PeerEndpointTable
+
+    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
+        """Return any additional context data for the template."""
+        context = super().get_extra_context(request, instance)
+        if self.action == "retrieve":
+            context["object_fields"] = instance.get_fields(include_inherited=True)
+        return context
 
 
 class PeeringUIViewSet(  # pylint: disable=abstract-method
@@ -200,7 +221,6 @@ class PeeringAddView(generic.ObjectEditView):
 class AddressFamilyUIViewSet(NautobotUIViewSet):
     """UIViewset for AddressFamily model."""
 
-    bulk_create_form_class = forms.AddressFamilyCSVForm
     bulk_update_form_class = forms.AddressFamilyBulkEditForm
     filterset_class = filters.AddressFamilyFilterSet
     filterset_form_class = forms.AddressFamilyFilterForm
@@ -211,18 +231,9 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
     table_class = tables.AddressFamilyTable
 
 
-class AddressFamilyImportView(generic.BulkImportView):
-    """Workaround for #3809."""
-
-    queryset = AddressFamilyUIViewSet.queryset
-    model_form = AddressFamilyUIViewSet.bulk_create_form_class
-    table = AddressFamilyUIViewSet.table_class
-
-
 class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroupAddressFamily model."""
 
-    bulk_create_form_class = forms.PeerGroupAddressFamilyCSVForm
     bulk_update_form_class = forms.PeerGroupAddressFamilyBulkEditForm
     filterset_class = filters.PeerGroupAddressFamilyFilterSet
     filterset_form_class = forms.PeerGroupAddressFamilyFilterForm
@@ -236,7 +247,6 @@ class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
 class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerEndpointAddressFamily model."""
 
-    bulk_create_form_class = forms.PeerEndpointAddressFamilyCSVForm
     bulk_update_form_class = forms.PeerEndpointAddressFamilyBulkEditForm
     filterset_class = filters.PeerEndpointAddressFamilyFilterSet
     filterset_form_class = forms.PeerEndpointAddressFamilyFilterForm

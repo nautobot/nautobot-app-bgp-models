@@ -1,18 +1,18 @@
 """Filter Extensions definitions for nautobot_bgp_models."""
+
 from django import forms
 
-from nautobot.extras.plugins import PluginFilterExtension
-from nautobot.utilities.filters import MultiValueCharFilter
+from nautobot.apps.filters import FilterExtension, MultiValueCharFilter
 
 
-class IPAddressFilterExtension(PluginFilterExtension):
+class IPAddressFilterExtension(FilterExtension):
     """IP Address Filter Extension."""
 
     model = "ipam.ipaddress"
 
     filterset_fields = {
         "nautobot_bgp_models_ips_bgp_routing_instance": MultiValueCharFilter(
-            field_name="interface__device__bgp_routing_instances__id",
+            field_name="interfaces__device__bgp_routing_instances__id",
             label="Routing Instance UUID",
         ),
     }
@@ -22,7 +22,7 @@ class IPAddressFilterExtension(PluginFilterExtension):
     }
 
 
-class InterfaceFilterExtension(PluginFilterExtension):
+class InterfaceFilterExtension(FilterExtension):
     """Interface filter extension."""
 
     model = "dcim.interface"

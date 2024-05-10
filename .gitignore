@@ -303,8 +303,7 @@ development/*.txt
 invoke.yml
 
 # Docs
-docs/README.md
-docs/CHANGELOG.md
 public
-
-nautobot_bgp_models/static
+/compose.yaml
+/dump.sql
+/nautobot_bgp_models/static/nautobot_bgp_models/docs

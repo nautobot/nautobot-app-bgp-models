@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/icon-nautobot-bgp-models.png" class="logo" height="200px">
   <br>
   <a href="https://github.com/nautobot/nautobot-app-bgp-models/actions"><img src="https://github.com/nautobot/nautobot-app-bgp-models/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://docs.nautobot.com/projects/bgp-models/en/latest"><img src="https://readthedocs.org/projects/nautobot-plugin-bgp-models/badge/"></a>
+  <a href="https://docs.nautobot.com/projects/bgp-models/en/latest/"><img src="https://readthedocs.org/projects/nautobot-plugin-bgp-models/badge/"></a>
   <a href="https://pypi.org/project/nautobot-bgp-models/"><img src="https://img.shields.io/pypi/v/nautobot-bgp-models"></a>
   <a href="https://pypi.org/project/nautobot-bgp-models/"><img src="https://img.shields.io/pypi/dm/nautobot-bgp-models"></a>
   <br>

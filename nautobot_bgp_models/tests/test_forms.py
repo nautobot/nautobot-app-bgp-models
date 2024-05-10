@@ -4,9 +4,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from nautobot.circuits.models import Provider
-from nautobot.dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
-from nautobot.extras.models import Status
-from nautobot.ipam.models import IPAddress
+from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Location, LocationType
+from nautobot.extras.models import Status, Role
+from nautobot.ipam.models import IPAddress, Prefix, Namespace
 
 from nautobot_bgp_models import models, forms
 
@@ -19,7 +19,7 @@ class AutonomousSystemFormTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up class-wide data for the test."""
-        cls.status_active = Status.objects.get(slug="active")
+        cls.status_active = Status.objects.get(name__iexact="active")
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
     def test_valid_asn(self):
@@ -46,6 +46,34 @@ class AutonomousSystemFormTestCase(TestCase):
         self.assertEqual("This field is required.", form.errors["status"][0])
 
 
+class AutonomousSystemRangeFormTestCase(TestCase):
+    """Test the AutonomousSystemRange create/edit form."""
+
+    form_class = forms.AutonomousSystemRangeForm
+
+    @classmethod
+    def setUpTestData(cls):
+        """Set up class-wide data for the test."""
+
+    def test_valid_asnrange(self):
+        data = {"asn_min": 1, "asn_max": 10, "name": "test"}
+        form = self.form_class(data)
+        self.assertTrue(form.is_valid())
+        self.assertTrue(form.save())
+
+    def test_invalid_asn(self):
+        data = {"asn_min": 10, "asn_max": 1, "name": "test"}
+        form = self.form_class(data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual("asn_min value must be lower than asn_max value.", form.errors["__all__"][0])
+
+    def test_name_required(self):
+        data = {"asn_min": 1000, "asn_max": 2000}
+        form = self.form_class(data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual("This field is required.", form.errors["name"][0])
+
+
 class BGPRoutingInstanceTestCase(TestCase):
     """Test the BGPRoutingInstance create/edit form."""
 
@@ -54,15 +82,17 @@ class BGPRoutingInstanceTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up class-wide data for the test."""
-        cls.status_active = Status.objects.get(slug="active")
+        cls.status_active = Status.objects.get(name__iexact="active")
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
         cls.status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
         cls.device = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=cls.status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=cls.status_active
         )
         cls.asn = models.AutonomousSystem.objects.create(asn=4294967291, status=cls.status_active)
 
@@ -96,24 +126,33 @@ class PeerGroupFormTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up class-wide data for the test."""
-        status_active = Status.objects.get(slug="active")
+        status_active = Status.objects.get(name__iexact="active")
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
-        cls.interface_1 = Interface.objects.create(device=cls.device_1, name="Loopback1")
-        cls.ip = IPAddress.objects.create(address="1.1.1.2/32", status=status_active, assigned_object=cls.interface_1)
+        interface_status = Status.objects.get_for_model(Interface).first()
+        cls.interface_1 = Interface.objects.create(device=cls.device_1, name="Loopback1", status=interface_status)
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="1.0.0.0/8", namespace=namespace, status=prefix_status)
+        cls.ip = IPAddress.objects.create(address="1.1.1.2/32", status=status_active, namespace=namespace)
+        cls.interface_1.add_ip_addresses(cls.ip)
 
         # clustertype = ClusterType.objects.create(name="Cluster Type A", slug="cluster-type-a")
         # cluster = Cluster.objects.create(name="Cluster A", type=clustertype)
         # cls.virtualmachine_1 = VirtualMachine.objects.create(name="VM 1", cluster=cluster, status=status_active)
         # cls.vminterface_1 = VMInterface.objects.create(name="eth0", virtual_machine=cls.virtualmachine_1)
 
-        cls.peeringrole_internal = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole_internal = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
 
         asn_1 = models.AutonomousSystem.objects.create(asn=4294967294, status=status_active)
 
@@ -179,29 +218,40 @@ class PeerEndpointFormTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up class-wide data for the test."""
-        status_active = Status.objects.get(slug="active")
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        status_active = Status.objects.get(name__iexact="active")
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
-        cls.interface_1 = Interface.objects.create(device=cls.device_1, name="Loopback1")
+        interface_status = Status.objects.get_for_model(Interface).first()
+        cls.interface_1 = Interface.objects.create(device=cls.device_1, name="Loopback1", status=interface_status)
+
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="1.0.0.0/8", namespace=namespace, status=prefix_status)
 
         cls.address_1 = IPAddress.objects.create(
             address="1.1.1.1/32",
             status=status_active,
-            assigned_object=cls.interface_1,
+            namespace=namespace,
         )
+
+        cls.interface_1.add_ip_addresses(cls.address_1)
 
         cls.address_2 = IPAddress.objects.create(
             address="1.1.1.2/32",
             status=status_active,
+            namespace=namespace,
         )
 
         asn_1 = models.AutonomousSystem.objects.create(asn=4294967291, status=status_active)
-        provider = Provider.objects.create(name="Provider", slug="provider")
+        provider = Provider.objects.create(name="Provider")
         cls.asn_2 = models.AutonomousSystem.objects.create(asn=4294967292, status=status_active, provider=provider)
 
         cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
@@ -216,7 +266,8 @@ class PeerEndpointFormTestCase(TestCase):
         # cls.virtualmachine_1 = VirtualMachine.objects.create(name="VM 1", cluster=cluster, status=status_active)
         # cls.vminterface_1 = VMInterface.objects.create(name="eth0", virtual_machine=cls.virtualmachine_1)
 
-        cls.peeringrole = models.PeeringRole.objects.create(name="Internal", slug="internal", color="333333")
+        cls.peeringrole = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerEndpoint))
 
         cls.peering = models.Peering.objects.create(
             status=status_active,
@@ -279,15 +330,23 @@ class AddressFamilyFormTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up class-wide data for the test."""
-        status_active = Status.objects.get(slug="active")
-        cls.address = IPAddress.objects.create(address="1.1.1.1/32", status=status_active)
+        status_active = Status.objects.get(name__iexact="active")
 
-        manufacturer = Manufacturer.objects.create(name="Cisco", slug="cisco")
-        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V", slug="csr1000v")
-        site = Site.objects.create(name="Site 1", slug="site-1")
-        devicerole = DeviceRole.objects.create(name="Router", slug="router", color="ff0000")
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="1.0.0.0/8", namespace=namespace, status=prefix_status)
+
+        cls.address = IPAddress.objects.create(address="1.1.1.1/32", status=status_active, namespace=namespace)
+
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
         cls.device_1 = Device.objects.create(
-            device_type=devicetype, device_role=devicerole, name="Device 1", site=site, status=status_active
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
 
         cls.asn_1 = models.AutonomousSystem.objects.create(asn=4294967292, status=status_active)

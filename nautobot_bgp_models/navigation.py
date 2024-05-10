@@ -27,17 +27,17 @@ menu_items = (
                         ),
                     ),
                     NavMenuItem(
-                        link="plugins:nautobot_bgp_models:peeringrole_list",
-                        name="Peering Roles",
-                        permissions=["nautobot_bgp_models.view_peeringrole"],
+                        link="plugins:nautobot_bgp_models:autonomoussystemrange_list",
+                        name="Autonomous System Ranges",
+                        permissions=["nautobot_bgp_models.view_autonomoussystemrange"],
                         buttons=(
                             NavMenuAddButton(
-                                link="plugins:nautobot_bgp_models:peeringrole_add",
-                                permissions=["nautobot_bgp_models.add_peeringrole"],
+                                link="plugins:nautobot_bgp_models:autonomoussystemrange_add",
+                                permissions=["nautobot_bgp_models.add_autonomoussystemrange"],
                             ),
                             NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:peeringrole_import",
-                                permissions=["nautobot_bgp_models.add_peeringrole"],
+                                link="plugins:nautobot_bgp_models:autonomoussystemrange_import",
+                                permissions=["nautobot_bgp_models.add_autonomoussystemrange"],
                             ),
                         ),
                     ),

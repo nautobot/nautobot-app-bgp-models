@@ -3,25 +3,37 @@
 import django_tables2 as tables
 from django_tables2.utils import A
 
-from nautobot.extras.tables import StatusTableMixin
-from nautobot.utilities.tables import (
+from nautobot.apps.tables import (
     BaseTable,
     BooleanColumn,
     ButtonsColumn,
-    ColorColumn,
     ColoredLabelColumn,
     TagColumn,
     ToggleColumn,
+    StatusTableMixin,
 )
 
 from . import models
+
+ASN_LINK = """
+{% if record.present_in_database %}
+<a href="{{ record.get_absolute_url }}">{{ record.asn }}</a>
+{% elif perms.nautobot_bgp_models.autonomoussystem_add %}
+<a href="\
+{% url 'plugins:nautobot_bgp_models:autonomoussystem_add' %}\
+?asn={{ record.asn }}\
+" class="btn btn-xs btn-success">{{ record.available }} ASN{{ record.available|pluralize }} available</a>\
+{% else %}
+{{ record.available }} ASN{{ record.available|pluralize }} available
+{% endif %}
+"""
 
 
 class AutonomousSystemTable(StatusTableMixin, BaseTable):
     """Table representation of AutonomousSystem records."""
 
     pk = ToggleColumn()
-    asn = tables.LinkColumn()
+    asn = tables.TemplateColumn(template_code=ASN_LINK, verbose_name="ASN")
     provider = tables.LinkColumn()
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystem_list")
     actions = ButtonsColumn(model=models.AutonomousSystem)
@@ -29,6 +41,22 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
     class Meta(BaseTable.Meta):
         model = models.AutonomousSystem
         fields = ("pk", "asn", "status", "provider", "description", "tags")
+
+
+class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):
+    """Table representation of AutonomousSystem records."""
+
+    pk = ToggleColumn()
+    name = tables.LinkColumn()
+    asn_min = tables.LinkColumn()
+    asn_max = tables.LinkColumn()
+    tenant = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystemrange_list")
+    actions = ButtonsColumn(model=models.AutonomousSystemRange)
+
+    class Meta(BaseTable.Meta):
+        model = models.AutonomousSystemRange
+        fields = ("pk", "name", "asn_min", "asn_max", "tenant", "description", "tags")
 
 
 class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
@@ -43,7 +71,7 @@ class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
     device = tables.LinkColumn()
     autonomous_system = tables.LinkColumn()
     router_id = tables.LinkColumn()
-    tags = TagColumn(url_name="plugins:nautobot_bgp_models:BGPRoutingInstance_list")
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:bgproutinginstance_list")
     actions = ButtonsColumn(model=models.BGPRoutingInstance)
 
     class Meta(BaseTable.Meta):
@@ -57,25 +85,6 @@ class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
             "router_id",
             "actions",
             "status",
-        )
-
-
-class PeeringRoleTable(BaseTable):
-    """Table representation of PeeringRole records."""
-
-    pk = ToggleColumn()
-    name = tables.LinkColumn()
-    color = ColorColumn()
-    actions = ButtonsColumn(model=models.PeeringRole, pk_field="slug")
-
-    class Meta(BaseTable.Meta):
-        model = models.PeeringRole
-        fields = (
-            "pk",
-            "name",
-            "slug",
-            "color",
-            "description",
         )
 
 
@@ -93,6 +102,7 @@ class PeerGroupTable(BaseTable):
     secret = tables.LinkColumn()
     source_ip = tables.LinkColumn()
     source_interface = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:peergroup_list")
 
     actions = ButtonsColumn(model=models.PeerGroup)
 
@@ -110,6 +120,7 @@ class PeerGroupTable(BaseTable):
             "source_ip",
             "source_interface",
             "secret",
+            "tags",
         )
         default_columns = (
             "pk",
@@ -171,7 +182,7 @@ class PeerEndpointTable(BaseTable):
     peering = tables.LinkColumn()
     vrf = tables.LinkColumn()
     peer_group = tables.LinkColumn()
-
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:peerendpoint_list")
     # actions = ButtonsColumn(model=models.PeerEndpoint)
 
     class Meta(BaseTable.Meta):
@@ -189,6 +200,7 @@ class PeerEndpointTable(BaseTable):
             "peering",
             "vrf",
             "peer_group",
+            "tags",
         )
         default_columns = (
             "pk",

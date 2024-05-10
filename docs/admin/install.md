@@ -2,20 +2,18 @@
 
 Here you will find detailed instructions on how to **install** and **configure** the App within your Nautobot environment.
 
-
 ## Prerequisites
 
-- The app is compatible with Nautobot 1.5.4 and higher.
+- The app is compatible with Nautobot 2.0.3 and higher.
 - Databases supported: PostgreSQL, MySQL
 
 !!! note
     Please check the [dedicated page](compatibility_matrix.md) for a full compatibility matrix and the deprecation policy.
 
-
 ## Install Guide
 
 !!! note
-    Apps can be installed manually or using Python's `pip`. See the [nautobot documentation](https://docs.nautobot.com/projects/core/en/stable/plugins/#install-the-package) for more details. The pip package name for this app is [`nautobot-bgp-models`](https://pypi.org/project/nautobot-bgp-models/).
+    Apps can be installed from the [Python Package Index](https://pypi.org/) or locally. See the [Nautobot documentation](https://docs.nautobot.com/projects/core/en/stable/user-guide/administration/installation/app-install/) for more details. The pip package name for this app is [`nautobot-bgp-models`](https://pypi.org/project/nautobot-bgp-models/).
 
 The app is available as a Python package via PyPI and can be installed with `pip`:
 

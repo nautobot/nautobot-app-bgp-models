@@ -1,7 +1,8 @@
 {% load helpers %}
+{% get_attr property "color" as has_color %}
 {% if property is not None and property != "" %}
     {% if property.get_absolute_url %}
-        {% if property_type == "peering_role" %}
+        {% if has_color %}
         <a href="{{ property.get_absolute_url }}">
             <label class="label" style="color: {{ property.color|fgcolor }}; background-color: #{{ property.color }}">
                 {{ property }}
