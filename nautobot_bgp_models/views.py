@@ -114,6 +114,26 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerGroupTemplateTable
 
 
+class PeerGroupTemplateEndpointUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerGroupTemplateEndpoint model."""
+
+    bulk_update_form_class = forms.PeerGroupTemplateEndpointBulkEditForm
+    filterset_class = filters.PeerGroupTemplateEndpointFilterSet
+    filterset_form_class = forms.PeerGroupTemplateEndpointFilterForm
+    form_class = forms.PeerGroupTemplateEndpointForm
+    lookup_field = "pk"
+    queryset = models.PeerGroupTemplateEndpoint.objects.all()
+    serializer_class = serializers.PeerGroupTemplateEndpointSerializer
+    table_class = tables.PeerGroupTemplateEndpointTable
+
+    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
+        """Return any additional context data for the template."""
+        context = super().get_extra_context(request, instance)
+        if self.action == "retrieve":
+            context["object_fields"] = instance.get_fields(include_inherited=True)
+        return context
+
+
 class PeerEndpointUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerEndpoint model."""
 
@@ -229,6 +249,19 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
     queryset = models.AddressFamily.objects.all()
     serializer_class = serializers.AddressFamilySerializer
     table_class = tables.AddressFamilyTable
+
+
+class PeerGroupTemplateAddressFamilyUIViewSet(NautobotUIViewSet):
+    """UIViewset for PeerGroupAddressFamily model."""
+
+    bulk_update_form_class = forms.PeerGroupTemplateAddressFamilyBulkEditForm
+    filterset_class = filters.PeerGroupTemplateAddressFamilyFilterSet
+    filterset_form_class = forms.PeerGroupTemplateAddressFamilyFilterForm
+    form_class = forms.PeerGroupTemplateAddressFamilyForm
+    lookup_field = "pk"
+    queryset = models.PeerGroupTemplateAddressFamily.objects.all()
+    serializer_class = serializers.PeerGroupTemplateAddressFamilySerializer
+    table_class = tables.PeerGroupTemplateAddressFamilyTable
 
 
 class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):

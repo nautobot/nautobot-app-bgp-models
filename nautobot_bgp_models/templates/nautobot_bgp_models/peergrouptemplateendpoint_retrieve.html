@@ -4,12 +4,28 @@
 {% block content_left_page %}
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <strong>BGP Peer Group Template</strong>
+                    <strong>BGP Peer Endpoint</strong>
                 </div>
                 <table class="table table-hover panel-body attr-table">
+                    {% if object.routing_instance and object.routing_instance.device %}
                     <tr>
-                        <td>Name</td>
-                        <td>{{ object.name }}</td>
+                        <td>Device</td>
+                            <td><a href="{% url 'dcim:device' pk=object.routing_instance.device.pk %}">{{ object.routing_instance.device }}</a></td>
+                    </tr>
+                    <tr>
+                        <td>Routing Instance</td>
+                        <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.routing_instance.pk %}">{{ object.routing_instance }}</a></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Peer Group Template</td>
+                        <td>
+                            {% if object.peer_group_template %}
+                                <a href="{{ object.peer_group_template.get_absolute_url }}">{{ object.peer_group_template }}</a>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -32,27 +48,33 @@
                 </div>
                 <table class="table table-hover panel-body attr-table">
                     <tr>
-                        <td>Description</td>
+                        <td>Source IP Address</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.description %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.source_ip %}
                         </td>
                     </tr>
                     <tr>
-                        <td>Role</td>
+                        <td>Source Interface</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.role %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.source_interface %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.description %}
                         </td>
                     </tr>
                     <tr>
                         <td>Enabled</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.enabled %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.enabled %}
                         </td>
                     </tr>
                     <tr>
                         <td>Autonomous System</td>
                         <td>
-                            {% include "nautobot_bgp_models/inc/native_property.html" with property=object.autonomous_system %}
+                            {% include "nautobot_bgp_models/inc/inheritable_property.html" with property=object.fields_inherited.autonomous_system %}
                         </td>
                     </tr>
                 </table>
@@ -61,38 +83,26 @@
 {% block content_right_page %}
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <strong>Peer Group Template Address-Families</strong>
+                    <strong>Peer Group Template Endpoint Address-Families</strong>
                 </div>
                 <table class="table table-hover panel-body attr-table">
-                    {% for af in object.address_families.all %}
+                    {% for af in object.peer_group_template.address_families.all %}
                     <tr>
                         <td><a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a></td>
                     </tr>
                     {% endfor %}
                 </table>
                 <div class="panel-footer text-right noprint">
-                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_add" %}?peer_group_template={{ object.pk }}">
+                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_add" %}?peer_endpoint={{ object.pk }}">
                         <span class="mdi mdi-plus-thick" aria-hidden="true"></span>
                         Add an AFI-SAFI
                     </a>
                 </div>
             </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <strong>Peer Endpoints In This Group</strong>
-                </div>
-                <table class="table table-hover panel-body">
-                    {% for endpoint in object.endpoints.all %}
-                    <tr>
-                        <td><a href="{{ endpoint.get_absolute_url }}">{{ endpoint }}</a></td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
 {% endblock content_right_page %}
 
 {% block extra_nav_tabs %}
         <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>
-            <a href="{% url 'plugins:nautobot_bgp_models:peergrouptemplate_extraattributes' pk=object.pk %}">Extra Attributes</a>
+            <a href="{% url 'plugins:nautobot_bgp_models:peerendpoint_extraattributes' pk=object.pk %}">Extra Attributes</a>
         </li>
 {% endblock extra_nav_tabs %}

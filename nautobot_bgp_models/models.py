@@ -265,6 +265,15 @@ class PeerGroupTemplate(PrimaryModel, BGPExtraAttributesMixin):
         on_delete=models.PROTECT,
     )
 
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        related_name="peer_group_templates",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
+
     secret = models.ForeignKey(
         to="extras.Secret",
         on_delete=models.PROTECT,
@@ -412,6 +421,169 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             raise ValidationError(f"Duplicate Peer Group name for {self.routing_instance}")
 
         super().validate_unique(exclude)
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class PeerGroupTemplateEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
+    """BGP information about single endpoint of a peering defined for a Peer Group Tempalte."""
+
+    natural_key_field_names = ["id"]
+
+    extra_attributes_inheritance = ["peer_group_template"]
+    property_inheritance = {
+        "autonomous_system": ["peer_group_template", "routing_instance"],
+        "description": ["peer_group_template"],
+        "enabled": ["peer_group_template"],
+        "source_ip": ["peer_group_template"],
+        "source_interface": ["peer_group_template"],
+        "role": ["peer_group_template.role"],
+    }
+
+    description = models.CharField(max_length=200, blank=True)
+
+    role = RoleField(blank=True, null=True)
+
+    enabled = models.BooleanField(default=True)
+
+    routing_instance = models.ForeignKey(
+        to=BGPRoutingInstance,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="bgp_group_template_endpoints",
+        verbose_name="BGP Routing Instance",
+    )
+
+    autonomous_system = models.ForeignKey(
+        to=AutonomousSystem,
+        blank=True,
+        null=True,
+        related_name="bgp_group_template_endpoints",
+        on_delete=models.PROTECT,
+    )
+
+    peer = models.ForeignKey(
+        to="self",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
+    # peering = models.ForeignKey(
+    #     to="Peering",
+    #     on_delete=models.CASCADE,
+    #     related_name="endpoints",
+    # )
+
+    peer_group_template = models.ForeignKey(
+        to=PeerGroupTemplate,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="endpoints",
+    )
+
+    source_ip = models.ForeignKey(  # local-address
+        to="ipam.IPAddress",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="bgp_group_template_endpoints",
+        verbose_name="BGP Peer IP",
+    )
+
+    source_interface = models.ForeignKey(  # update source
+        to="dcim.Interface",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="bgp_group_template_endpoints",
+        verbose_name="Source Interface",
+    )
+
+    @property
+    def local_ip(self):
+        """Compute effective peering endpoint IP address.
+
+        Peering endpoint IP address value can be sourced from:
+         1. Endpoint's `source_ip` attribute
+         2. Peer Groups' `source_ip` attribute
+         3. Endpoint's `source_interface` attribute
+         4. Peer Groups' `source_interface` attribute
+
+        The effective IP Address of an endpoint is based on the above order.
+        """
+        inherited_source_ip, _, _ = self.get_inherited_field(field_name="source_ip")
+        inherited_source_interface, _, _ = self.get_inherited_field(field_name="source_interface")
+
+        if inherited_source_ip:
+            return inherited_source_ip
+
+        if inherited_source_interface and inherited_source_interface.ip_addresses.count() == 1:
+            return inherited_source_interface.ip_addresses.first()
+
+        return None
+
+    secret = models.ForeignKey(
+        to="extras.Secret",
+        on_delete=models.PROTECT,
+        related_name="bgp_group_template_endpoints",
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = "BGP Peer Group Template Endpoint"
+
+    def __str__(self):
+        """String."""
+        # asn, _, _ = self.get_inherited_field(field_name="autonomous_system")
+        # if self.routing_instance and self.routing_instance.device:
+        #     return f"{self.routing_instance.device} {self.local_ip} ({asn})"
+
+        return f"{self.peer_group_template} - {self.routing_instance}"
+
+    def clean(self):
+        """
+        Clean Method.
+
+        TODO(mzb):
+         - add validation on PeerGroup while removing self.ipaddress -> check related Endpoints.
+         - ensure self.peering has no more than > endpoints !.
+        """
+        # Ensure ASN
+        asn_value, _, _ = self.get_inherited_field(field_name="autonomous_system")
+        if not asn_value:
+            raise ValidationError(f"ASN not found at any inheritance level for {self}.")
+
+        # Ensure IP
+        local_ip_value = self.local_ip
+        if not local_ip_value:
+            raise ValidationError("Endpoint IP not found at any inheritance level .")
+
+        # Ensure IP related to the routing instance
+        if self.routing_instance:
+            if local_ip_value not in IPAddress.objects.filter(interfaces__device_id=self.routing_instance.device.id):
+                raise ValidationError("Peer IP not associated with Routing Instance")
+        # Enforce Routing Instance if local IP belongs to the Device
+        elif not self.routing_instance and IPAddressToInterface.objects.filter(ip_address=local_ip_value).exists():
+            raise ValidationError("Must specify Routing Instance for this IP Address")
+
+        # Enforce peer group template VRF membership
+        if self.peer_group_template is not None:
+            if self.peer_group_template.vrf and (self.peer_group_template.vrf not in local_ip_value.parent.vrfs.all()):
+                raise ValidationError(
+                    f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.parent.vrfs.all().first()}) "
+                    f"and peer-group {self.peer_group_template.name} (VRF {self.peer_group_template.vrf})"
+                )
 
 
 @extras_features(
@@ -769,6 +941,76 @@ class PeerGroupAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttr
     def __str__(self):
         """String representation."""
         return f"{self.afi_safi} AF - {self.peer_group}"
+
+
+@extras_features(
+    "custom_fields",
+    "custom_links",
+    "custom_validators",
+    "export_templates",
+    "graphql",
+    "relationships",
+    "webhooks",
+)
+class PeerGroupTemplateAddressFamily(OrganizationalModel, InheritanceMixin, BGPExtraAttributesMixin):
+    """Address-family (AFI-SAFI) model for PeerGroupTemplate-specific configuration."""
+
+    # @property
+    # def parent_address_family(self):
+    #     """The routing-instance AddressFamily (if any) that this PeerGroupAddressFamily inherits from."""
+    #     try:
+    #         return self.peer_group_template.address_families.get(
+    #             # vrf=self.peer_group_template.vrf,
+    #             afi_safi=self.afi_safi,
+    #         )
+    #     except AddressFamily.DoesNotExist:
+    #         return None
+
+    # extra_attributes_inheritance = ["parent_address_family"]
+
+    property_inheritance = {}  # no non-extra-attributes properties inherited from AddressFamily at this time
+
+    afi_safi = models.CharField(max_length=64, choices=AFISAFIChoices, verbose_name="AFI-SAFI")
+
+    peer_group_template = models.ForeignKey(
+        to=PeerGroupTemplate,
+        on_delete=models.CASCADE,
+        related_name="address_families",
+    )
+
+    import_policy = models.CharField(max_length=100, default="", blank=True)
+
+    export_policy = models.CharField(max_length=100, default="", blank=True)
+
+    multipath = models.BooleanField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-peer_group_template"]
+        unique_together = ["peer_group_template", "afi_safi"]
+        verbose_name = "BGP peer-group template address family"
+        verbose_name_plural = "BGP Peer-Group Template Address Families"
+
+    csv_headers = [
+        "peer_group_template",
+        "afi_safi",
+        "import_policy",
+        "export_policy",
+        "multipath",
+    ]
+
+    def to_csv(self):
+        """Return a list of values for use in CSV export."""
+        return (
+            str(self.peer_group_template),
+            self.afi_safi,
+            self.import_policy,
+            self.export_policy,
+            str(self.multipath),
+        )
+
+    def __str__(self):
+        """String representation."""
+        return f"{self.afi_safi} AF - {self.peer_group_template}"
 
 
 @extras_features(

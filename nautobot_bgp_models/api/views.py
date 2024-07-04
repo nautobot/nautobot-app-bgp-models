@@ -75,6 +75,15 @@ class PeerGroupTemplateViewSet(InheritableFieldsViewSetMixin, NautobotModelViewS
     filterset_class = filters.PeerGroupTemplateFilterSet
 
 
+class PeerGroupTemplateEndpointViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
+    """REST API viewset for PeerGroupTemplateEndpoint records."""
+
+    queryset = models.PeerGroupTemplateEndpoint.objects.all()
+    serializer_class = serializers.PeerGroupTemplateEndpointSerializer
+    filter_backends = [IncludeInheritedFilterBackend, OrderingFilter]
+    filterset_class = filters.PeerGroupTemplateEndpointFilterSet
+
+
 class PeerEndpointViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
     """REST API viewset for PeerEndpoint records."""
 
@@ -98,6 +107,14 @@ class AddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
     queryset = models.AddressFamily.objects.all()
     serializer_class = serializers.AddressFamilySerializer
     filterset_class = filters.AddressFamilyFilterSet
+
+
+class PeerGroupTemplateAddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):
+    """REST API viewset for PeerGroupAddressFamily records."""
+
+    queryset = models.PeerGroupTemplateAddressFamily.objects.all()
+    serializer_class = serializers.PeerGroupTemplateAddressFamilySerializer
+    filterset_class = filters.PeerGroupTemplateAddressFamilyFilterSet
 
 
 class PeerGroupAddressFamilyViewSet(InheritableFieldsViewSetMixin, NautobotModelViewSet):

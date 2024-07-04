@@ -56,6 +56,36 @@ menu_items = (
                             ),
                         ),
                     ),
+                    NavMenuItem(
+                        link="plugins:nautobot_bgp_models:peergrouptemplateendpoint_list",
+                        name="Peer Group Template End Points",
+                        permissions=["nautobot_bgp_models.view_peergrouptemplateendpoint"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:peergrouptemplateendpoint_add",
+                                permissions=["nautobot_bgp_models.add_peergrouptemplateendpoint"],
+                            ),
+                            NavMenuImportButton(
+                                link="plugins:nautobot_bgp_models:peergrouptemplateendpoint_import",
+                                permissions=["nautobot_bgp_models.add_peergrouptemplateendpoint"],
+                            ),
+                        ),
+                    ),
+                    NavMenuItem(
+                        link="plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_list",
+                        name="Peer Group Template Address-families (AFI-SAFI)",
+                        permissions=["nautobot_bgp_models.view_peergrouptemplateaddressfamily"],
+                        buttons=(
+                            NavMenuAddButton(
+                                link="plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_add",
+                                permissions=["nautobot_bgp_models.add_peergrouptemplateaddressfamily"],
+                            ),
+                            NavMenuImportButton(
+                                link="plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_import",
+                                permissions=["nautobot_bgp_models.add_peergrouptemplateaddressfamily"],
+                            ),
+                        ),
+                    ),
                 ),
             ),
             NavMenuGroup(
