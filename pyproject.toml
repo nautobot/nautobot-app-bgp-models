@@ -28,7 +28,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-nautobot = "^2.0.3"
+nautobot = "^2.2.6"
 toml = "^0.10.2"
 
 [tool.poetry.group.dev.dependencies]

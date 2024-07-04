@@ -348,6 +348,111 @@ class PeerGroupTemplateFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
     )
 
 
+class PeerGroupTemplateEndpointForm(NautobotModelForm):
+    """Form for creating/updating PeerGroupTemplateEndpoint records."""
+
+    def __init__(self, *args, **kwargs):
+        """Init."""
+        super().__init__(*args, **kwargs)
+
+        if self.initial.get("routing_instance"):
+            self.fields["routing_instance"].disabled = True
+
+        _prefix = f"{self.prefix}-" if self.prefix else ""
+        self.fields["source_ip"].widget.add_query_param(
+            "nautobot_bgp_models_ips_bgp_routing_instance", f"${_prefix}routing_instance"
+        )
+        self.fields["source_interface"].widget.add_query_param(
+            "nautobot_bgp_models_interfaces_bgp_routing_instance", f"${_prefix}routing_instance"
+        )
+        self.fields["peer_group_template"].widget.add_query_param("routing_instance", f"${_prefix}routing_instance")
+
+    peer_group_template = DynamicModelChoiceField(
+        queryset=models.PeerGroupTemplate.objects.all(),
+        required=True,
+        label="Peer Group Template",
+    )
+
+    routing_instance = DynamicModelChoiceField(
+        queryset=models.BGPRoutingInstance.objects.all(),
+        required=False,
+        label="BGP Routing Instance",
+        help_text="Specify related Routing Instance (Device)",
+    )
+
+    autonomous_system = DynamicModelChoiceField(
+        queryset=models.AutonomousSystem.objects.all(),
+        required=False,
+        label="Autonomous System",
+    )
+
+    source_ip = DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
+        required=False,
+        label="Source IP Address",
+    )
+
+    source_interface = DynamicModelChoiceField(
+        queryset=Interface.objects.all(),
+        required=False,
+        label="Source Interface",
+    )
+
+    secret = DynamicModelChoiceField(queryset=Secret.objects.all(), required=False)
+
+    # peering = DynamicModelChoiceField(  # Hidden & optional - update peers manually for new peerings.
+    #     queryset=models.Peering.objects.all(),
+    #     widget=forms.HiddenInput(),
+    #     required=False,
+    # )
+
+    tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+
+    class Meta:
+        model = models.PeerGroupTemplateEndpoint
+        fields = (
+            # "peering",
+            "peer_group_template",
+            "routing_instance",
+            "description",
+            "enabled",
+            "role",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
+            "secret",
+            "extra_attributes",
+            "tags",
+        )
+
+    def save(self, commit=True):
+        """Save model changes on successful form submission."""
+        endpoint = super().save(commit=commit)
+
+        # if commit:
+        #     endpoint.peering.update_peers()
+
+        return endpoint
+
+
+class PeerGroupTemplateEndpointFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
+    """Form for filtering PeerGroupTemplateEndpoint records in combination with PeerGroupTemplateEndpointFilterSet."""
+
+    model = models.PeerGroupTemplateEndpoint
+    tag = TagFilterField(model)
+
+
+class PeerGroupTemplateEndpointBulkEditForm(NautobotBulkEditForm):
+    """Form for bulk-editing multiple PeerGroupTemplateEndpoint records."""
+
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.PeerGroupTemplateEndpoint.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+
+    class Meta:
+        nullable_fields = []
+
+
 class PeerEndpointForm(NautobotModelForm):
     """Form for creating/updating PeerEndpoint records."""
 
@@ -541,6 +646,67 @@ class AddressFamilyFilterForm(NautobotFilterForm):
     )
 
     vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
+
+
+class PeerGroupTemplateAddressFamilyForm(NautobotModelForm):
+    """Form for creating/updating PeerGroupTemplateAddressFamily records."""
+
+    # peer_group_tempalte = DynamicModelChoiceField(
+    #     queryset=models.PeerGroupTemplate.objects.all(),
+    #     required=True,
+    #     label="BGP Peer Group Template",
+    # )
+
+    afi_safi = forms.ChoiceField(
+        label="AFI-SAFI",
+        choices=choices.AFISAFIChoices,
+        required=False,
+        widget=utilities_forms.StaticSelect2(),
+    )
+
+    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+
+    class Meta:
+        model = models.PeerGroupTemplateAddressFamily
+        fields = (
+            "peer_group_template",
+            "afi_safi",
+            "import_policy",
+            "export_policy",
+            "multipath",
+            "extra_attributes",
+        )
+
+
+class PeerGroupTemplateAddressFamilyFilterForm(NautobotFilterForm):
+    """Form for filtering PeerGroupTemplateAddressFamily records in combination with PeerGroupTemplateAddressFamilyFilterSet."""
+
+    model = models.PeerGroupTemplateAddressFamily
+
+    peer_group_template = DynamicModelMultipleChoiceField(
+        queryset=models.PeerGroupTemplate.objects.all(), required=False
+    )
+
+    afi_safi = forms.MultipleChoiceField(
+        label="AFI-SAFI",
+        choices=choices.AFISAFIChoices,
+        required=False,
+        widget=utilities_forms.StaticSelect2Multiple(),
+    )
+
+
+class PeerGroupTemplateAddressFamilyBulkEditForm(NautobotBulkEditForm):
+    """Form for bulk-editing multiple PeerGroupTemplateAddressFamily records."""
+
+    pk = forms.ModelMultipleChoiceField(
+        queryset=models.PeerGroupTemplateAddressFamily.objects.all(), widget=forms.MultipleHiddenInput()
+    )
+    import_policy = forms.CharField(max_length=100, required=False)
+    export_policy = forms.CharField(max_length=100, required=False)
+    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+
+    class Meta:
+        nullable_fields = ["import_policy", "export_policy", "multipath"]
 
 
 class PeerGroupAddressFamilyForm(NautobotModelForm):

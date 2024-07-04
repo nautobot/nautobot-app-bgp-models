@@ -179,6 +179,53 @@ class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
 
 
+class PeerGroupTemplateEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
+    """Filtering of PeerGroupTemplateEndpoint records."""
+
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
+
+    device = django_filters.ModelMultipleChoiceFilter(
+        field_name="routing_instance__device__name",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name)",
+    )
+
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        field_name="routing_instance__device__id",
+        queryset=Device.objects.all(),
+        to_field_name="id",
+        label="Device (ID)",
+    )
+
+    autonomous_system = django_filters.ModelMultipleChoiceFilter(
+        field_name="autonomous_system__asn",
+        queryset=models.AutonomousSystem.objects.all(),
+        to_field_name="asn",
+        label="Autonomous System Number",
+    )
+
+    peer_group_template = django_filters.ModelMultipleChoiceFilter(
+        queryset=models.PeerGroupTemplate.objects.all(),
+        label="Peer Group Template (id)",
+    )
+
+    class Meta:
+        model = models.PeerGroupTemplateEndpoint
+        fields = ["id", "enabled"]
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(routing_instance__device__name__iexact=value) | Q(description__icontains=value)
+        ).distinct()
+
+
 class PeerEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerEndpoint records."""
 
@@ -297,6 +344,42 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
             "afi_safi",
             "vrf",
         ]
+
+
+class PeerGroupTemplateAddressFamilyFilterSet(
+    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin
+):
+    """Filtering of PeerGroupTemplateAddressFamily records."""
+
+    q = django_filters.CharFilter(
+        method="search",
+        label="Search",
+    )
+
+    afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
+
+    peer_group_template = django_filters.ModelMultipleChoiceFilter(
+        label="Peer Group Template (ID)",
+        queryset=models.PeerGroupTemplate.objects.all(),
+    )
+
+    class Meta:
+        model = models.PeerGroupTemplateAddressFamily
+        fields = [
+            "id",
+            "afi_safi",
+            "peer_group_template",
+        ]
+
+    def search(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Free-text search method implementation."""
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(afi_safi__icontains=value)
+            | Q(peer_group__name__icontains=value)
+            | Q(peer_group__description__icontains=value)
+        ).distinct()
 
 
 class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):

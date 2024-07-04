@@ -167,6 +167,60 @@ class PeerGroupTemplateTable(BaseTable):
         )
 
 
+class PeerGroupTemplateEndpointTable(BaseTable):
+    """Table representation of PeerGroupTemplateEndpoint records."""
+
+    pk = ToggleColumn()
+    peer_group_template_endpoint = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:peergrouptemplateendpoint", args=[A("pk")], text=str
+    )
+    id = tables.LinkColumn()
+    routing_instance = tables.LinkColumn()
+    role = ColoredLabelColumn()
+    source_ip = tables.LinkColumn()
+    source_interface = tables.LinkColumn()
+    autonomous_system = tables.LinkColumn()
+    remote_autonomous_system = tables.LinkColumn()
+    peer = tables.LinkColumn()
+    # peering = tables.LinkColumn()
+    vrf = tables.LinkColumn()
+    peer_group_template = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:nautobot_bgp_models:peergrouptemplateendpoint_list")
+    # actions = ButtonsColumn(model=models.PeerEndpoint)
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerGroupTemplateEndpoint
+        fields = (
+            "pk",
+            "peer_group_template_endpoint",
+            "peer_group_template",
+            "routing_instance",
+            "role",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
+            "remote_autonomous_system",
+            "peer",
+            # "peering",
+            "vrf",
+            "tags",
+        )
+        default_columns = (
+            "pk",
+            "peer_group_template_endpoint",
+            "peer_group_template",
+            "routing_instance",
+            "role",
+            "source_ip",
+            "source_interface",
+            "autonomous_system",
+            "remote_autonomous_system",
+            "peer",
+            # "peering",
+            "vrf",
+        )
+
+
 class PeerEndpointTable(BaseTable):
     """Table representation of PeerEndpoint records."""
 
@@ -280,6 +334,42 @@ class AddressFamilyTable(BaseTable):
             "routing_instance",
             "afi_safi",
             "vrf",
+            "actions",
+        )
+
+
+class PeerGroupTemplateAddressFamilyTable(BaseTable):
+    """Table representation of PeerGroupTemplateAddressFamily records."""
+
+    pk = ToggleColumn()
+    peer_group_template_address_family = tables.LinkColumn(
+        viewname="plugins:nautobot_bgp_models:peergrouptemplateaddressfamily",
+        args=[A("pk")],
+        text=str,
+    )
+    peer_group_template = tables.LinkColumn()
+    afi_safi = tables.Column()
+    actions = ButtonsColumn(model=models.PeerGroupTemplateAddressFamily)
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerGroupTemplateAddressFamily
+        fields = (
+            "pk",
+            "peer_group_template_address_family",
+            "peer_group_template",
+            "afi_safi",
+            "import_policy",
+            "export_policy",
+            "multipath",
+        )
+        default_columns = (
+            "pk",
+            "peer_group_template_address_family",
+            "peer_group_template",
+            "afi_safi",
+            "import_policy",
+            "export_policy",
+            "multipath",
             "actions",
         )
 

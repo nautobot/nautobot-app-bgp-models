@@ -58,6 +58,38 @@
                 </table>
             </div>
 {% endblock content_left_page %}
+{% block content_right_page %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Peer Group Template Address-Families</strong>
+                </div>
+                <table class="table table-hover panel-body attr-table">
+                    {% for af in object.address_families.all %}
+                    <tr>
+                        <td><a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div class="panel-footer text-right noprint">
+                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_add" %}?peer_group_template={{ object.pk }}">
+                        <span class="mdi mdi-plus-thick" aria-hidden="true"></span>
+                        Add an AFI-SAFI
+                    </a>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Peer Endpoints In This Group</strong>
+                </div>
+                <table class="table table-hover panel-body">
+                    {% for endpoint in object.endpoints.all %}
+                    <tr>
+                        <td><a href="{{ endpoint.get_absolute_url }}">{{ endpoint }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+{% endblock content_right_page %}
 
 {% block extra_nav_tabs %}
         <li role="presentation" {% if active_tab == 'extraattributes' %} class="active"{% endif %}>

@@ -11,7 +11,9 @@ router.register("autonomous-systems", views.AutonomousSystemUIViewSet)
 router.register("autonomous-system-ranges", views.AutonomousSystemRangeUIViewSet)
 router.register("routing-instances", views.BGPRoutingInstanceUIViewSet)
 router.register("peer-groups", views.PeerGroupUIViewSet)
+router.register("peer-group-template-address-families", views.PeerGroupTemplateAddressFamilyUIViewSet)
 router.register("peer-group-templates", views.PeerGroupTemplateUIViewSet)
+router.register("peer-group-template-endpoints", views.PeerGroupTemplateEndpointUIViewSet)
 router.register("peer-endpoints", views.PeerEndpointUIViewSet)
 router.register("peerings", views.PeeringUIViewSet)
 router.register("address-families", views.AddressFamilyUIViewSet)
@@ -33,10 +35,22 @@ urlpatterns = [
         kwargs={"model": models.PeerGroup},
     ),
     path(
+        "peer-group-template-address-families/<uuid:pk>/extra-attributes/",
+        views.BgpExtraAttributesView.as_view(),
+        name="peergrouptemplateaddressfamily_extraattributes",
+        kwargs={"model": models.PeerGroupTemplateAddressFamily},
+    ),
+    path(
         "peer-group-templates/<uuid:pk>/extra-attributes/",
         views.BgpExtraAttributesView.as_view(),
         name="peergrouptemplate_extraattributes",
         kwargs={"model": models.PeerGroupTemplate},
+    ),
+    path(
+        "peer-group-template-endpoints/<uuid:pk>/extra-attributes/",
+        views.BgpExtraAttributesView.as_view(),
+        name="peergrouptemplateendpoint_extraattributes",
+        kwargs={"model": models.PeerGroupTemplateEndpoint},
     ),
     path(
         "peer-endpoints/<uuid:pk>/extra-attributes/",

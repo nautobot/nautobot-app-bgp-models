@@ -104,6 +104,38 @@ class PeerGroupSerializer(
         return data
 
 
+class PeerGroupTemplateEndpointSerializer(
+    InheritableFieldsSerializerMixin,
+    TaggedModelSerializerMixin,
+    NautobotModelSerializer,
+    ExtraAttributesSerializerMixin,
+):
+    """REST API serializer for PeerGroupTemplateEndpoint records."""
+
+    class Meta:
+        model = models.PeerGroupTemplateEndpoint
+        fields = "__all__"
+
+    def create(self, validated_data):
+        """Create a new PeerGroupTemplateEndpoint and update the peer on both sides."""
+        record = super().create(validated_data)
+        # record.peering.update_peers()
+        return record
+
+    def update(self, instance, validated_data):
+        # """When updating an existing PeerGroupTemplateEndpoint, ensure peer is properly setup on both side."""
+        # peering_has_been_updated = False
+        # if instance.peering.pk != validated_data.get("peering"):
+        #     peering_has_been_updated = True
+
+        result = super().update(instance, validated_data)
+
+        # if peering_has_been_updated:
+        #     result.peering.update_peers()
+
+        return result
+
+
 class PeerEndpointSerializer(
     InheritableFieldsSerializerMixin,
     TaggedModelSerializerMixin,
@@ -161,6 +193,18 @@ class AddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializer
 
     class Meta:
         model = models.AddressFamily
+        fields = "__all__"
+
+
+class PeerGroupTemplateAddressFamilySerializer(NautobotModelSerializer, ExtraAttributesSerializerMixin):
+    """REST API serializer for PeerGroupTemplateAddressFamily records."""
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name="plugins-api:nautobot_bgp_models-api:peergrouptemplateaddressfamily-detail"
+    )
+
+    class Meta:
+        model = models.PeerGroupTemplateAddressFamily
         fields = "__all__"
 
 

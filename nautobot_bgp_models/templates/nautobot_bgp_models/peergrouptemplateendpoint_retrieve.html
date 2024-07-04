@@ -18,20 +18,10 @@
                     </tr>
                     {% endif %}
                     <tr>
-                        <td>Peer Group</td>
+                        <td>Peer Group Template</td>
                         <td>
-                            {% if object.peer_group %}
-                                <a href="{{ object.peer_group.get_absolute_url }}">{{ object.peer_group }}</a>
-                            {% else %}
-                                <span class="text-muted">None</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Peering Session</td>
-                        <td>
-                            {% if object.peering %}
-                                <a href="{{ object.peering.get_absolute_url }}">{{ object.peering }}</a>
+                            {% if object.peer_group_template %}
+                                <a href="{{ object.peer_group_template.get_absolute_url }}">{{ object.peer_group_template }}</a>
                             {% else %}
                                 <span class="text-muted">None</span>
                             {% endif %}
@@ -93,38 +83,21 @@
 {% block content_right_page %}
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <strong>Peer Endpoint Address-Families</strong>
+                    <strong>Peer Group Template Endpoint Address-Families</strong>
                 </div>
                 <table class="table table-hover panel-body attr-table">
-                    {% for af in object.address_families.all %}
+                    {% for af in object.peer_group_template.address_families.all %}
                     <tr>
                         <td><a href="{{ af.get_absolute_url }}">{{ af.afi_safi }}</a></td>
                     </tr>
                     {% endfor %}
                 </table>
                 <div class="panel-footer text-right noprint">
-                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peerendpointaddressfamily_add" %}?peer_endpoint={{ object.pk }}">
+                    <a class="btn btn-xs btn-primary" href="{% url "plugins:nautobot_bgp_models:peergrouptemplateaddressfamily_add" %}?peer_endpoint={{ object.pk }}">
                         <span class="mdi mdi-plus-thick" aria-hidden="true"></span>
                         Add an AFI-SAFI
                     </a>
                 </div>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <strong>Remote Peer Information</strong>
-                </div>
-                <table class="table table-hover panel-body attr-table">
-                    <tr>
-                        <td>Remote Peer Endpoint</td>
-                        <td>
-                            {% if object.peer %}
-                                <a href="{{ object.peer.get_absolute_url }}">{{ object.peer }}</a>
-                            {% else %}
-                                <span class="text-muted">None</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                </table>
             </div>
 {% endblock content_right_page %}
 
