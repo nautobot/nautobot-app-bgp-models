@@ -1,7 +1,9 @@
 [flake8]
 ignore =
-  E501,  # Line length is enforced by Black, so flake8 doesn't need to check it
-  W503   # Black disagrees with this rule, as does PEP 8; Black wins
+  # Line length is enforced by Black, so flake8 doesn't need to check it
+  E501,
+  # Black disagrees with this rule, as does PEP 8; Black wins
+  W503
 exclude = 
   migrations,
   __pycache__,
