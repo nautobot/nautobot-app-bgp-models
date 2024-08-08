@@ -334,7 +334,7 @@ class PeerGroupFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
 class PeerGroupTemplateFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
     """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
 
-    model = models.PeerGroup
+    model = models.PeerGroupTemplate
 
     q = forms.CharField(required=False, label="Search")
 
@@ -620,7 +620,7 @@ class PeerEndpointAddressFamilyForm(NautobotModelForm):
     multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
 
     class Meta:
-        model = models.PeerGroupAddressFamily
+        model = models.PeerEndpointAddressFamily
         fields = (
             "peer_endpoint",
             "afi_safi",

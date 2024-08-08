@@ -11,7 +11,7 @@ from nautobot.circuits.models import Provider
 from nautobot.core.models.generics import OrganizationalModel, PrimaryModel
 from nautobot.core.utils.data import deepmerge
 from nautobot.dcim.fields import ASNField
-from nautobot.extras.models import RoleField, StatusModel
+from nautobot.extras.models import RoleField, StatusField
 from nautobot.ipam.models import IPAddress, IPAddressToInterface
 from nautobot.tenancy.models import Tenant
 from netutils.asn import int_to_asdot
@@ -129,12 +129,13 @@ class BGPExtraAttributesMixin(models.Model):
     "statuses",
     "webhooks",
 )
-class AutonomousSystem(PrimaryModel, StatusModel):
+class AutonomousSystem(PrimaryModel):
     """Autonomous System information."""
 
     asn = ASNField(unique=True, verbose_name="ASN", help_text="32-bit autonomous system number")
     description = models.CharField(max_length=200, blank=True)
     provider = models.ForeignKey(to=Provider, on_delete=models.PROTECT, blank=True, null=True)
+    status = StatusField(null=True)
 
     class Meta:
         ordering = ["asn"]
@@ -203,7 +204,7 @@ class AutonomousSystemRange(PrimaryModel):
     "statuses",
     "webhooks",
 )
-class BGPRoutingInstance(PrimaryModel, StatusModel, BGPExtraAttributesMixin):
+class BGPRoutingInstance(PrimaryModel, BGPExtraAttributesMixin):
     """BGP instance definition."""
 
     description = models.CharField(max_length=200, blank=True)
@@ -227,6 +228,8 @@ class BGPRoutingInstance(PrimaryModel, StatusModel, BGPExtraAttributesMixin):
         to=AutonomousSystem,
         on_delete=models.PROTECT,
     )
+
+    status = StatusField(null=True)
 
     def __str__(self):
         """String representation of a BGPRoutingInstance."""
@@ -593,8 +596,10 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
     "statuses",
     "webhooks",
 )
-class Peering(OrganizationalModel, StatusModel):
+class Peering(OrganizationalModel):
     """Linkage between two PeerEndpoint records."""
+
+    status = StatusField(null=True)
 
     natural_key_field_names = ["id"]
 
