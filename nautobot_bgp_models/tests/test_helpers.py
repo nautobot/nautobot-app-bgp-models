@@ -2,7 +2,6 @@
 
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
-
 from nautobot.extras.models import Status
 
 from nautobot_bgp_models import models

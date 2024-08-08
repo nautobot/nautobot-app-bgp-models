@@ -1,11 +1,20 @@
 """Unit tests for nautobot_bgp_models."""
 
+from unittest import skip
+
 from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.urls import reverse
-from nautobot.users.models import Token
-from rest_framework import status
+from django.contrib.contenttypes.models import ContentType
 from django.test import override_settings
+from nautobot.apps.testing import APIViewTestCases
+from nautobot.circuits.models import Provider
+from nautobot.dcim.choices import InterfaceTypeChoices
+from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
+from nautobot.extras.models import Role, Status, Tag
+from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
+from nautobot.users.models import ObjectPermission
+from rest_framework import status
+
+from nautobot_bgp_models import choices, models
 
 User = get_user_model()
 

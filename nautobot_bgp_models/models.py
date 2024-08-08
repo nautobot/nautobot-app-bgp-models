@@ -6,15 +6,14 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from nautobot.circuits.models import Provider
-from nautobot.core.models.generics import PrimaryModel, OrganizationalModel
-from nautobot.dcim.fields import ASNField
-from nautobot.extras.models import StatusModel, RoleField
 from nautobot.apps.models import extras_features
-from nautobot.ipam.models import IPAddress, IPAddressToInterface
+from nautobot.circuits.models import Provider
+from nautobot.core.models.generics import OrganizationalModel, PrimaryModel
 from nautobot.core.utils.data import deepmerge
+from nautobot.dcim.fields import ASNField
+from nautobot.extras.models import RoleField, StatusModel
+from nautobot.ipam.models import IPAddress, IPAddressToInterface
 from nautobot.tenancy.models import Tenant
-
 from netutils.asn import int_to_asdot
 
 from nautobot_bgp_models.choices import AFISAFIChoices
@@ -619,7 +618,7 @@ class Peering(OrganizationalModel, StatusModel):
     def update_peers(self):
         """Update peer field for both PeerEndpoints."""
         endpoints = self.endpoints.all()
-        if len(endpoints) < 2:
+        if len(endpoints) < 2:  # noqa: PLR2004: magic-value-comparison
             return None
         if endpoints[0].peer == endpoints[1] and endpoints[1].peer == endpoints[0]:
             return False
