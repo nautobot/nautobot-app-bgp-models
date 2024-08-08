@@ -1,22 +1,13 @@
-"""Unit tests for nautobot_bgp_models."""  # pylint: disable=too-many-lines
+"""Unit tests for nautobot_bgp_models."""
 
-from unittest import skip
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.urls import reverse
+from nautobot.users.models import Token
 from rest_framework import status
 from django.test import override_settings
 
-from django.contrib.contenttypes.models import ContentType
-
-from nautobot.circuits.models import Provider
-from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Location, LocationType
-from nautobot.extras.models import Status, Role, Tag
-from nautobot.ipam.models import IPAddress, VRF, Prefix, Namespace
-from nautobot.apps.testing import APIViewTestCases
-from nautobot.users.models import ObjectPermission
-
-from nautobot_bgp_models import models
-
-from nautobot_bgp_models import choices
+User = get_user_model()
 
 
 class AutonomousSystemAPITestCase(APIViewTestCases.APIViewTestCase):
