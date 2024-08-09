@@ -1,13 +1,13 @@
 """REST API viewsets for nautobot_bgp_models."""
 
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from nautobot.apps.api import NautobotModelViewSet
 from rest_framework.filters import OrderingFilter
 
-from nautobot_bgp_models import filters
-from nautobot_bgp_models import models
+from nautobot_bgp_models import filters, models
 from nautobot_bgp_models.api.filter_backends import IncludeInheritedFilterBackend
+
 from . import serializers
 
 

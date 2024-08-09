@@ -1,10 +1,10 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,invalid-name
 
-from django.db import migrations, models
 import django.db.models.deletion
 import nautobot.core.models.fields
 import nautobot.extras.models.roles
 import nautobot.extras.models.statuses
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

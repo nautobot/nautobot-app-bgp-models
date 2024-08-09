@@ -2,12 +2,12 @@
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.test import TestCase
 from django.db.models.deletion import ProtectedError
+from django.test import TestCase
 from nautobot.circuits.models import Provider
-from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Location, LocationType
-from nautobot.extras.models import Status, Role
-from nautobot.ipam.models import IPAddress, VRF, Namespace, Prefix
+from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
+from nautobot.extras.models import Role, Status
+from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
 
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices

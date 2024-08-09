@@ -2,19 +2,17 @@
 """FilterSet definitions for nautobot_bgp_models."""
 
 import django_filters
-
 from django.db.models import Q
-
-from nautobot.dcim.models import Device
 from nautobot.apps.filters import (
-    StatusModelFilterSetMixin,
+    BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    StatusModelFilterSetMixin,
 )
+from nautobot.dcim.models import Device
 from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
-from nautobot.ipam.models import VRF
-from nautobot.apps.filters import BaseFilterSet
 from nautobot.extras.models import Role
+from nautobot.ipam.models import VRF
 
 from . import choices, models
 

@@ -2,15 +2,14 @@
 
 import django_tables2 as tables
 from django_tables2.utils import A
-
 from nautobot.apps.tables import (
     BaseTable,
     BooleanColumn,
     ButtonsColumn,
     ColoredLabelColumn,
+    StatusTableMixin,
     TagColumn,
     ToggleColumn,
-    StatusTableMixin,
 )
 
 from . import models

@@ -1,6 +1,6 @@
 """Nautobot UI navigation elements for nautobot_bgp_models."""
 
-from nautobot.core.apps import NavMenuAddButton, NavMenuGroup, NavMenuItem, NavMenuTab, NavMenuImportButton
+from nautobot.core.apps import NavMenuAddButton, NavMenuGroup, NavMenuImportButton, NavMenuItem, NavMenuTab
 
 menu_items = (
     NavMenuTab(

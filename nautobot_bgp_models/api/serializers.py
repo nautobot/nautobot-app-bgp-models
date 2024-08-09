@@ -1,12 +1,11 @@
 """REST API serializers for nautobot_bgp_models models."""
 
-from rest_framework import serializers, validators
-
 from nautobot.apps.api import (
     NautobotModelSerializer,
     TaggedModelSerializerMixin,
 )
 from nautobot.core.settings_funcs import is_truthy
+from rest_framework import serializers, validators
 
 from nautobot_bgp_models import models
 

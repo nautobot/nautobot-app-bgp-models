@@ -1,21 +1,19 @@
 """Unit test automation for Model classes in nautobot_bgp_models."""
 
 import json
-
-from unittest import skipIf
 from importlib import metadata
-from packaging import version
+from unittest import skipIf
 
 from django.contrib.contenttypes.models import ContentType
 from nautobot.circuits.models import Provider
-from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Location, LocationType
-from nautobot.extras.models import Status, Role
-from nautobot.ipam.models import IPAddress, Namespace, Prefix
 from nautobot.core.testing import ViewTestCases
+from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
+from nautobot.extras.models import Role, Status
+from nautobot.ipam.models import IPAddress, Namespace, Prefix
+from packaging import version
 
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices
-
 
 _NAUTOBOT_VERSION = version.parse(metadata.version("nautobot"))
 # Related to this issue: https://github.com/nautobot/nautobot/issues/2948

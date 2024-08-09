@@ -1,20 +1,19 @@
 """Forms and FilterForms for nautobot_bgp_models."""
 
-from django import forms
-
 import nautobot.core.forms as utilities_forms
+from django import forms
 from nautobot.apps.forms import (
-    DynamicModelMultipleChoiceField,
     DynamicModelChoiceField,
-    NautobotModelForm,
+    DynamicModelMultipleChoiceField,
     NautobotBulkEditForm,
+    NautobotModelForm,
     TagFilterField,
     TagsBulkEditFormMixin,
 )
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, Interface
 from nautobot.extras.forms import NautobotFilterForm, RoleModelFilterFormMixin
-from nautobot.extras.models import Tag, Secret, Role
+from nautobot.extras.models import Role, Secret, Tag
 from nautobot.ipam.models import VRF, IPAddress
 from nautobot.tenancy.models import Tenant
 
@@ -335,7 +334,7 @@ class PeerGroupFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
 class PeerGroupTemplateFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
     """Form for filtering PeerGroupTemplate records in combination with PeerGroupTemplateFilterSet."""
 
-    model = models.PeerGroup
+    model = models.PeerGroupTemplate
 
     q = forms.CharField(required=False, label="Search")
 
@@ -621,7 +620,7 @@ class PeerEndpointAddressFamilyForm(NautobotModelForm):
     multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
 
     class Meta:
-        model = models.PeerGroupAddressFamily
+        model = models.PeerEndpointAddressFamily
         fields = (
             "peer_endpoint",
             "afi_safi",

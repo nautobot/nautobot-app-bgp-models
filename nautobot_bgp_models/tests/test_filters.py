@@ -5,12 +5,11 @@ from django.test import TestCase
 
 # from nautobot.circuits.models import Provider
 from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Device, DeviceType, Interface, Manufacturer, Location, LocationType
-from nautobot.extras.models import Status, Role
-from nautobot.ipam.models import IPAddress, Prefix, Namespace
+from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
+from nautobot.extras.models import Role, Status
+from nautobot.ipam.models import IPAddress, Namespace, Prefix
 
-
-from nautobot_bgp_models import filters, models, choices
+from nautobot_bgp_models import choices, filters, models
 
 
 class AutonomousSystemTestCase(TestCase):
