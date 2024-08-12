@@ -3,6 +3,7 @@
 This app adds the following data models to Nautobot:
 
 - AutonomousSystem
+- AutonomousSystemRange
 - PeeringRole
 - BGPRoutingInstance
 - AddressFamily
@@ -32,6 +33,10 @@ The data models introduced by the BGP app support the following Nautobot feature
 ### AutonomousSystem
 
 This model represents a network-wide description of a BGP autonomous system (AS). It has fields including the actual AS number (ASN), a description field, foreign key (FK) to a Nautobot `Provider` object, and a FK to a Nautobot `Status` object.
+
+### AutonomousSystemRange
+
+This model represents a range of Autonomous Systems. It describes the range using `name`, minimum ASN number (`asn_min`) and maximum ASN number (`asn_max`) properties, allowing to specify optional foreign key to `Tenant`. 
 
 ### PeeringRole
 

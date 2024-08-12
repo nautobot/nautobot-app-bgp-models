@@ -37,10 +37,12 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
     provider = tables.LinkColumn()
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystem_list")
     actions = ButtonsColumn(model=models.AutonomousSystem)
+    asn_asdot = tables.Column(accessor=A("asn_asdot"), linkify=True, order_by=A("asn"), verbose_name="ASN ASDOT")
 
     class Meta(BaseTable.Meta):
         model = models.AutonomousSystem
-        fields = ("pk", "asn", "status", "provider", "description", "tags")
+        fields = ("pk", "asn", "asn_asdot", "status", "provider", "description", "tags")
+        default_columns = ("pk", "asn", "status", "provider", "description", "tags")
 
 
 class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):

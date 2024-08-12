@@ -26,9 +26,17 @@ class AutonomousSystemTestCase(TestCase):
             asn=15521, status=status_active, description="Hi ex Premium Internet AS!"
         )
 
+        cls.autonomous_system_32_bit = models.AutonomousSystem.objects.create(
+            asn=655460, status=status_active, description="Test Description"
+        )
+
     def test_str(self):
         """Test string representation of an AutonomousSystem."""
         self.assertEqual(str(self.autonomous_system), "AS 15521")
+
+    def test_asdot(self):
+        """Test representation of an AutonomousSystem using asdot notation."""
+        self.assertEqual(self.autonomous_system_32_bit.asn_asdot, "10.100")
 
 
 class AutonomousSystemRangeTestCase(TestCase):

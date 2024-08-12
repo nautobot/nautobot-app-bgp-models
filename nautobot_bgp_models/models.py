@@ -15,6 +15,8 @@ from nautobot.ipam.models import IPAddress, IPAddressToInterface
 from nautobot.core.utils.data import deepmerge
 from nautobot.tenancy.models import Tenant
 
+from netutils.asn import int_to_asdot
+
 from nautobot_bgp_models.choices import AFISAFIChoices
 
 
@@ -142,6 +144,11 @@ class AutonomousSystem(PrimaryModel, StatusModel):
     def __str__(self):
         """String representation of an AutonomousSystem."""
         return f"AS {self.asn}"
+
+    @property
+    def asn_asdot(self):
+        """ASDOT (RFC 5396) representation of an AutonomousSystem."""
+        return int_to_asdot(self.asn)
 
 
 @extras_features(
