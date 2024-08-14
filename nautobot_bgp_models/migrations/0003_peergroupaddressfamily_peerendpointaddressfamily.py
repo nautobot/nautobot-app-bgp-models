@@ -3,9 +3,9 @@
 import uuid
 
 import django.core.serializers.json
-from django.db import migrations, models
 import django.db.models.deletion
 import nautobot.extras.models.mixins
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

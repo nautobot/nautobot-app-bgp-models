@@ -4,13 +4,13 @@
 import uuid
 
 import django.core.serializers.json
-from django.db import migrations, models
 import django.db.models.deletion
 import nautobot.core.models.fields
 import nautobot.dcim.fields
 import nautobot.extras.models.mixins
 import nautobot.extras.models.statuses
 import taggit.managers
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
