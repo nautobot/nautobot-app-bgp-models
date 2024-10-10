@@ -22,6 +22,7 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
     max_version = "2.9999"
     default_settings = {}
     caching_config = {}
+    docs_view_name = "plugins:nautobot_bgp_models:docs"
 
 
 config = NautobotBGPModelsConfig  # pylint:disable=invalid-name
