@@ -29,6 +29,7 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
         }
     }
     caching_config = {}
+    docs_view_name = "plugins:nautobot_bgp_models:docs"
 
     def ready(self):
         """Callback invoked after the app is loaded."""

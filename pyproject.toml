@@ -35,7 +35,6 @@ netutils = "^1.6.0"
 toml = "^0.10.2"
 
 [tool.poetry.group.dev.dependencies]
-bandit = "*"
 coverage = "*"
 django-debug-toolbar = "*"
 invoke = "*"
