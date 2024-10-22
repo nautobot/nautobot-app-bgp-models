@@ -14,7 +14,7 @@
         "max_nautobot_version": "2.9999",
         "camel_name": "NautobotBGPModels",
         "project_short_description": "Nautobot BGP Models App",
-        "model_class_name": "None",
+        "model_class_name": "AutonomousSystem",
         "open_source_license": "Apache-2.0",
         "docs_base_url": "https://docs.nautobot.com",
         "docs_app_url": "https://docs.nautobot.com/projects/bgp-models/en/latest",
