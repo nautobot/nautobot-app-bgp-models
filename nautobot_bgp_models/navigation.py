@@ -1,6 +1,6 @@
 """Nautobot UI navigation elements for nautobot_bgp_models."""
 
-from nautobot.core.apps import NavMenuAddButton, NavMenuGroup, NavMenuImportButton, NavMenuItem, NavMenuTab
+from nautobot.core.apps import NavMenuAddButton, NavMenuGroup, NavMenuItem, NavMenuTab
 
 menu_items = (
     NavMenuTab(
@@ -20,10 +20,6 @@ menu_items = (
                                 link="plugins:nautobot_bgp_models:autonomoussystem_add",
                                 permissions=["nautobot_bgp_models.add_autonomoussystem"],
                             ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:autonomoussystem_import",
-                                permissions=["nautobot_bgp_models.add_autonomoussystem"],
-                            ),
                         ),
                     ),
                     NavMenuItem(
@@ -35,10 +31,6 @@ menu_items = (
                                 link="plugins:nautobot_bgp_models:autonomoussystemrange_add",
                                 permissions=["nautobot_bgp_models.add_autonomoussystemrange"],
                             ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:autonomoussystemrange_import",
-                                permissions=["nautobot_bgp_models.add_autonomoussystemrange"],
-                            ),
                         ),
                     ),
                     NavMenuItem(
@@ -48,10 +40,6 @@ menu_items = (
                         buttons=(
                             NavMenuAddButton(
                                 link="plugins:nautobot_bgp_models:peergrouptemplate_add",
-                                permissions=["nautobot_bgp_models.add_peergrouptemplate"],
-                            ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:peergrouptemplate_import",
                                 permissions=["nautobot_bgp_models.add_peergrouptemplate"],
                             ),
                         ),
@@ -71,10 +59,6 @@ menu_items = (
                                 link="plugins:nautobot_bgp_models:bgproutinginstance_add",
                                 permissions=["nautobot_bgp_models.add_bgproutinginstance"],
                             ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:bgproutinginstance_import",
-                                permissions=["nautobot_bgp_models.add_bgproutinginstance"],
-                            ),
                         ),
                     ),
                     NavMenuItem(
@@ -84,10 +68,6 @@ menu_items = (
                         buttons=(
                             NavMenuAddButton(
                                 link="plugins:nautobot_bgp_models:addressfamily_add",
-                                permissions=["nautobot_bgp_models.add_addressfamily"],
-                            ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:addressfamily_import",
                                 permissions=["nautobot_bgp_models.add_addressfamily"],
                             ),
                         ),
@@ -101,10 +81,6 @@ menu_items = (
                                 link="plugins:nautobot_bgp_models:peergroup_add",
                                 permissions=["nautobot_bgp_models.add_peergroup"],
                             ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:peergroup_import",
-                                permissions=["nautobot_bgp_models.add_peergroup"],
-                            ),
                         ),
                     ),
                     NavMenuItem(
@@ -114,10 +90,6 @@ menu_items = (
                         buttons=(
                             NavMenuAddButton(
                                 link="plugins:nautobot_bgp_models:peergroupaddressfamily_add",
-                                permissions=["nautobot_bgp_models.add_peergroupaddressfamily"],
-                            ),
-                            NavMenuImportButton(
-                                link="plugins:nautobot_bgp_models:peergroupaddressfamily_import",
                                 permissions=["nautobot_bgp_models.add_peergroupaddressfamily"],
                             ),
                         ),
