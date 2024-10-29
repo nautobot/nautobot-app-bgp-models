@@ -1,1 +1,1 @@
-add q search method for AddressFamilyFilterSet
+Added `q` search filters to `AddressFamilyFilterSet` and `PeeringFilterSet`.
