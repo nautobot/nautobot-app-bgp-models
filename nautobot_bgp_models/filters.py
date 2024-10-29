@@ -249,6 +249,12 @@ class PeeringFilterSet(
 class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
     """Filtering of AddressFamily records."""
 
+    q = SearchFilter(
+        filter_predicates={
+            "routing_instance__device__name": "iexact",
+        },
+    )
+
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
 
     routing_instance = django_filters.ModelMultipleChoiceFilter(
