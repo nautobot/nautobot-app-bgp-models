@@ -7,6 +7,7 @@ from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    SearchFilter,
     StatusModelFilterSetMixin,
 )
 from nautobot.dcim.models import Device
@@ -234,6 +235,12 @@ class PeeringFilterSet(
 
     # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
     #  this requires to consider inheritance methods.
+
+    q = SearchFilter(
+        filter_predicates={
+            "endpoints__routing_instance__device__name": "icontains",
+        },
+    )
 
     device = django_filters.ModelMultipleChoiceFilter(
         field_name="endpoints__routing_instance__device__name",
