@@ -1,1 +1,1 @@
-Changed q search method method for SearchFilter
+Changed all `q` search methods to use `SearchFilter`.
