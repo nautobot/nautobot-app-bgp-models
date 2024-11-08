@@ -19,8 +19,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-nautobot = "^1.5.4"
+python = ">=3.8,<3.12"
+# Used for local development
+nautobot = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 invoke = "*"
@@ -36,15 +37,19 @@ pydocstyle = "*"
 flake8 = "^3.9.2"
 coverage = "^5.5"
 # Rendering docs to HTML
-mkdocs = "1.6.0"
+mkdocs = "1.5.3"
 # Material for MkDocs theme
-mkdocs-material = "9.5.32"
+mkdocs-material = "9.1.18"
 # Render custom markdown for version added/changed/remove notes
-mkdocs-version-annotations = "1.0.0"
+markdown-version-annotations = "1.0.1"
 # Automatic documentation from sources, for MkDocs
-mkdocstrings = "0.25.2"
-mkdocstrings-python = "1.10.8"
-griffe = "1.1.1"
+mkdocstrings = "0.22.0"
+mkdocstrings-python = "1.2.0"
+griffe = "0.31.0"
+
+[tool.poetry.extras]
+all = [
+]
 
 [tool.black]
 line-length = 120
