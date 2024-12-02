@@ -125,6 +125,7 @@ nav:
           - v2.0: "admin/release_notes/version_2.0.md"
           - v2.1: "admin/release_notes/version_2.1.md"
           - v2.2: "admin/release_notes/version_2.2.md"
+          - v2.3: "admin/release_notes/version_2.3.md"
   - Developer Guide:
       - BGP Data Models: "dev/models.md"
       - Extending the App: "dev/extending.md"
