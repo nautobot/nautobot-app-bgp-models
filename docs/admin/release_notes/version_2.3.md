@@ -17,7 +17,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Housekeeping
 
-- [#0](https://github.com/nautobot/nautobot-app-bgp-models/issues/0) - Rebaked from the cookie `nautobot-app-v2.4.0`.
+- Rebaked from the cookie `nautobot-app-v2.4.0`.
 - [#199](https://github.com/nautobot/nautobot-app-bgp-models/issues/199) - Updated the documentation to be in sync with the latest default configuration.
 - [#219](https://github.com/nautobot/nautobot-app-bgp-models/issues/219) - Rebaked from the cookie `nautobot-app-v2.3.0`.
 - [#221](https://github.com/nautobot/nautobot-app-bgp-models/issues/221) - Rebaked from the cookie `nautobot-app-v2.3.2`.
