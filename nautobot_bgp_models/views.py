@@ -5,12 +5,10 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import View
 from django_tables2 import RequestConfig
-
 from nautobot.apps.views import NautobotUIViewSet
-from nautobot.core.views import mixins
-from nautobot.core.views import generic
-from nautobot.extras.utils import get_base_template
+from nautobot.core.views import generic, mixins
 from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
+from nautobot.extras.utils import get_base_template
 
 from . import filters, forms, helpers, models, tables
 from .api import serializers

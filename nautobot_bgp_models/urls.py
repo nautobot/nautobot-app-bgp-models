@@ -1,7 +1,8 @@
 """Django urlpatterns declaration for nautobot_bgp_models app."""
 
+from django.templatetags.static import static
 from django.urls import path
-
+from django.views.generic import RedirectView
 from nautobot.core.views.routers import NautobotUIViewSetRouter
 
 from . import models, views
@@ -63,5 +64,6 @@ urlpatterns = [
         kwargs={"model": models.PeerEndpointAddressFamily},
     ),
     path("peerings/add/", views.PeeringAddView.as_view(), name="peering_add"),
+    path("docs/", RedirectView.as_view(url=static("nautobot_bgp_models/docs/index.html")), name="docs"),
 ]
 urlpatterns += router.urls

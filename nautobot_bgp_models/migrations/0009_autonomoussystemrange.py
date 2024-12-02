@@ -1,16 +1,16 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring,missing-class-docstring,invalid-name
 
 import uuid
+
 import django.core.serializers.json
-from django.db import migrations, models
 import django.db.models.deletion
 import nautobot.core.models.fields
 import nautobot.dcim.fields
 import nautobot.extras.models.mixins
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tenancy", "0008_tagsfield"),
         ("extras", "0098_rename_data_jobresult_result"),

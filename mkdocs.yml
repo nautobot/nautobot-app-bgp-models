@@ -1,6 +1,6 @@
 ---
 dev_addr: "127.0.0.1:8001"
-edit_uri: "edit/main/nautobot-app-bgp-models/docs"
+edit_uri: "edit/main/docs"
 site_dir: "nautobot_bgp_models/static/nautobot_bgp_models/docs"
 site_name: "BGP Models Documentation"
 site_url: "https://docs.nautobot.com/projects/bgp-models/en/latest/"
@@ -72,6 +72,8 @@ extra:
       link: "https://twitter.com/networktocode"
       name: "Network to Code Twitter"
 markdown_extensions:
+  - "markdown_version_annotations":
+      admonition_tag: "???"
   - "admonition"
   - "toc":
       permalink: true
@@ -89,7 +91,6 @@ markdown_extensions:
   - "footnotes"
 plugins:
   - "search"
-  - "mkdocs-version-annotations"
   - "mkdocstrings":
       default_handler: "python"
       handlers:
@@ -124,6 +125,7 @@ nav:
           - v2.0: "admin/release_notes/version_2.0.md"
           - v2.1: "admin/release_notes/version_2.1.md"
           - v2.2: "admin/release_notes/version_2.2.md"
+          - v2.3: "admin/release_notes/version_2.3.md"
   - Developer Guide:
       - BGP Data Models: "dev/models.md"
       - Extending the App: "dev/extending.md"

@@ -14,22 +14,23 @@
         "max_nautobot_version": "2.9999",
         "camel_name": "NautobotBGPModels",
         "project_short_description": "Nautobot BGP Models App",
-        "model_class_name": "None",
+        "model_class_name": "AutonomousSystem",
         "open_source_license": "Apache-2.0",
         "docs_base_url": "https://docs.nautobot.com",
         "docs_app_url": "https://docs.nautobot.com/projects/bgp-models/en/latest",
         "_drift_manager": {
             "template": "https://github.com/nautobot/cookiecutter-nautobot-app.git",
             "template_dir": "nautobot-app",
-            "template_ref": "nautobot-app-v2.2.1",
+            "template_ref": "refs/tags/nautobot-app-v2.4.0",
             "cookie_dir": "",
             "branch_prefix": "drift-manager",
             "pull_request_strategy": "create",
             "post_actions": [
-                "black"
+                "ruff",
+                "poetry"
             ],
-            "draft": true,
-            "baked_commit_ref": "e768e8f62f6900e8c0dd71f74bbaa727d6dd0975"
+            "draft": false,
+            "baked_commit_ref": "00caf083839acaa6628bcdb922abfa797186341b"
         }
     }
 }
