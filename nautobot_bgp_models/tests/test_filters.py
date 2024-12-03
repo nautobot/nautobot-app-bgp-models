@@ -1,9 +1,9 @@
 """Unit test automation for FilterSet classes in nautobot_bgp_models."""
 
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
 
 # from nautobot.circuits.models import Provider
+from nautobot.core.testing import FilterTestCases
 from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
 from nautobot.extras.models import Role, Status
@@ -12,7 +12,7 @@ from nautobot.ipam.models import IPAddress, Namespace, Prefix
 from nautobot_bgp_models import choices, filters, models
 
 
-class AutonomousSystemTestCase(TestCase):
+class AutonomousSystemTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of AutonomousSystem records."""
 
     queryset = models.AutonomousSystem.objects.all()
@@ -55,8 +55,13 @@ class AutonomousSystemTestCase(TestCase):
         params = {"status": [self.status_primary_asn.name, self.status_remote_asn.name]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
+    def test_search(self):
+        """Test filtering by Q search value."""
+        self.assertEqual(self.filterset({"q": "420"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": "another"}, self.queryset).qs.count(), 1)
 
-class AutonomousSystemRangeTestCase(TestCase):
+
+class AutonomousSystemRangeTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of AutonomousSystemRange records."""
 
     queryset = models.AutonomousSystemRange.objects.all()
@@ -94,8 +99,12 @@ class AutonomousSystemRangeTestCase(TestCase):
         params = {"asn_max": [3000]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
+    def test_search(self):
+        """Test filtering by Q search value."""
+        self.assertEqual(self.filterset({"q": "DC"}, self.queryset).qs.count(), 2)
 
-class PeerGroupTestCase(TestCase):
+
+class PeerGroupTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of PeerGroup records."""
 
     queryset = models.PeerGroup.objects.all()
@@ -219,7 +228,7 @@ class PeerGroupTestCase(TestCase):
         )
 
 
-class PeerEndpointTestCase(TestCase):
+class PeerEndpointTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of PeerEndpoint records."""
 
     queryset = models.PeerEndpoint.objects.all()
@@ -309,7 +318,7 @@ class PeerEndpointTestCase(TestCase):
     def test_search(self):
         """Test text search."""
         self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 2)
-        self.assertEqual(self.filterset({"q": "device 1"}, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset({"q": "dev"}, self.queryset).qs.count(), 0)
 
     def test_id(self):
         """Test filtering by ID (primary key)."""
@@ -342,7 +351,7 @@ class PeerEndpointTestCase(TestCase):
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
 
-class PeeringTestCase(TestCase):
+class PeeringTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of Peering records."""
 
     queryset = models.Peering.objects.all()
@@ -656,8 +665,13 @@ class PeeringTestCase(TestCase):
     #     params = {"address": ["10.1.1.3", "10.1.1.5"]}
     #     self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
+    def test_search(self):
+        """Test filtering by Q search value."""
+        self.assertEqual(self.filterset({"q": "device1"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": "device2"}, self.queryset).qs.count(), 2)
 
-class AddressFamilyTestCase(TestCase):
+
+class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of AddressFamily records."""
 
     queryset = models.AddressFamily.objects.all()
@@ -742,8 +756,12 @@ class AddressFamilyTestCase(TestCase):
     def test_device(self):
         pass
 
+    def test_search(self):
+        """Test filtering by Q search value."""
+        self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 3)
 
-class PeerGroupAddressFamilyTestCase(TestCase):
+
+class PeerGroupAddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of PeerGroupAddressFamily records."""
 
     queryset = models.PeerGroupAddressFamily.objects.all()
@@ -833,7 +851,7 @@ class PeerGroupAddressFamilyTestCase(TestCase):
         self.assertEqual(self.filterset({"peer_group": [self.pg1.pk]}, self.queryset).qs.count(), 2)
 
 
-class PeerEndpointAddressFamilyTestCase(TestCase):
+class PeerEndpointAddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
     """Test filtering of PeerEndpointAddressFamily records."""
 
     queryset = models.PeerEndpointAddressFamily.objects.all()
@@ -951,8 +969,9 @@ class PeerEndpointAddressFamilyTestCase(TestCase):
 
     def test_search(self):
         """Test text search."""
-        self.assertEqual(self.filterset({"q": "ipv4_unicast"}, self.queryset).qs.count(), 3)
-        self.assertEqual(self.filterset({"q": self.pe1.description}, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset({"q": "ipv4_uni"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": "endpoint"}, self.queryset).qs.count(), 2)
+        self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 3)
 
     def test_id(self):
         """Test filtering by ID (primary key)."""
