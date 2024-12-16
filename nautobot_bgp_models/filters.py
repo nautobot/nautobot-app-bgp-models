@@ -2,11 +2,11 @@
 """FilterSet definitions for nautobot_bgp_models."""
 
 import django_filters
-from django.db.models import Q
 from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    SearchFilter,
     StatusModelFilterSetMixin,
 )
 from nautobot.dcim.models import Device
@@ -22,16 +22,12 @@ class AutonomousSystemFilterSet(
 ):
     """Filtering of AutonomousSystem records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "asn": "icontains",
+            "description": "icontains",
+        },
     )
-
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(Q(asn__icontains=value) | Q(description__icontains=value)).distinct()
 
     class Meta:
         model = models.AutonomousSystem
@@ -45,19 +41,14 @@ class AutonomousSystemRangeFilterSet(
 ):
     """Filtering of AutonomousSystemRange records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "name": "icontains",
+            "asn_max": "icontains",
+            "asn_min": "icontains",
+            "description": "icontains",
+        },
     )
-
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-
-        return queryset.filter(
-            Q(name=value) | Q(asn_max__icontains=value) | Q(asn_min__icontains=value) | Q(description__icontains=value)
-        ).distinct()
 
     class Meta:
         model = models.AutonomousSystemRange
@@ -69,9 +60,10 @@ class BGPRoutingInstanceFilterSet(
 ):
     """Filtering of BGPRoutingInstance records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "device__name": "icontains",
+        },
     )
 
     autonomous_system = django_filters.ModelMultipleChoiceFilter(
@@ -97,19 +89,15 @@ class BGPRoutingInstanceFilterSet(
         model = models.BGPRoutingInstance
         fields = ["id", "autonomous_system", "tags"]
 
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(Q(device__name__icontains=value)).distinct()
-
 
 class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerGroup records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "name": "icontains",
+            "description": "icontains",
+        },
     )
 
     autonomous_system = django_filters.ModelMultipleChoiceFilter(
@@ -144,19 +132,15 @@ class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         model = models.PeerGroup
         fields = ["id", "name", "enabled"]
 
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
-
 
 class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerGroupTemplate records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "name": "icontains",
+            "description": "icontains",
+        },
     )
 
     autonomous_system = django_filters.ModelMultipleChoiceFilter(
@@ -170,19 +154,15 @@ class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         model = models.PeerGroupTemplate
         fields = ["id", "name", "enabled"]
 
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value)).distinct()
-
 
 class PeerEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
     """Filtering of PeerEndpoint records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "routing_instance__device__name": "iexact",
+            "description": "icontains",
+        },
     )
 
     device = django_filters.ModelMultipleChoiceFilter(
@@ -215,14 +195,6 @@ class PeerEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         model = models.PeerEndpoint
         fields = ["id", "enabled"]
 
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(routing_instance__device__name__iexact=value) | Q(description__icontains=value)
-        ).distinct()
-
 
 class PeeringFilterSet(
     BaseFilterSet,
@@ -234,6 +206,12 @@ class PeeringFilterSet(
 
     # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
     #  this requires to consider inheritance methods.
+
+    q = SearchFilter(
+        filter_predicates={
+            "endpoints__routing_instance__device__name": "icontains",
+        },
+    )
 
     device = django_filters.ModelMultipleChoiceFilter(
         field_name="endpoints__routing_instance__device__name",
@@ -271,6 +249,12 @@ class PeeringFilterSet(
 class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
     """Filtering of AddressFamily records."""
 
+    q = SearchFilter(
+        filter_predicates={
+            "routing_instance__device__name": "iexact",
+        },
+    )
+
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
 
     routing_instance = django_filters.ModelMultipleChoiceFilter(
@@ -300,9 +284,12 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
 class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
     """Filtering of PeerGroupAddressFamily records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "afi_safi": "icontains",
+            "peer_group__name": "icontains",
+            "peer_group__description": "icontains",
+        },
     )
 
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
@@ -320,25 +307,18 @@ class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSe
             "peer_group",
         ]
 
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(afi_safi__icontains=value)
-            | Q(peer_group__name__icontains=value)
-            | Q(peer_group__description__icontains=value)
-        ).distinct()
-
 
 class PeerEndpointAddressFamilyFilterSet(
     BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin
 ):
     """Filtering of PeerEndpointAddressFamily records."""
 
-    q = django_filters.CharFilter(
-        method="search",
-        label="Search",
+    q = SearchFilter(
+        filter_predicates={
+            "afi_safi": "icontains",
+            "peer_endpoint__routing_instance__device__name": "iexact",
+            "peer_endpoint__description": "icontains",
+        },
     )
 
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
@@ -355,13 +335,3 @@ class PeerEndpointAddressFamilyFilterSet(
             "afi_safi",
             "peer_endpoint",
         ]
-
-    def search(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Free-text search method implementation."""
-        if not value.strip():
-            return queryset
-        return queryset.filter(
-            Q(afi_safi__icontains=value)
-            | Q(peer_endpoint__routing_instance__device__name__iexact=value)
-            | Q(peer_endpoint__description__icontains=value)
-        ).distinct()
