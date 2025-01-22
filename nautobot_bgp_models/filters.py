@@ -18,9 +18,7 @@ from nautobot.ipam.models import VRF
 from . import choices, models
 
 
-class AutonomousSystemFilterSet(
-    NautobotFilterSet, StatusModelFilterSetMixin
-):
+class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
     """Filtering of AutonomousSystem records."""
 
     q = SearchFilter(
@@ -52,9 +50,7 @@ class AutonomousSystemRangeFilterSet(NautobotFilterSet):
         fields = ["id", "name", "asn_min", "asn_max", "tags"]
 
 
-class BGPRoutingInstanceFilterSet(
-    NautobotFilterSet, StatusModelFilterSetMixin
-):
+class BGPRoutingInstanceFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
     """Filtering of BGPRoutingInstance records."""
 
     q = SearchFilter(
