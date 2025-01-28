@@ -66,4 +66,5 @@ urlpatterns = [
     path("peerings/add/", views.PeeringAddView.as_view(), name="peering_add"),
     path("docs/", RedirectView.as_view(url=static("nautobot_bgp_models/docs/index.html")), name="docs"),
 ]
+app_name = "nautobot_bgp_models"
 urlpatterns += router.urls

@@ -18,4 +18,5 @@ router.register("peer-group-address-families", views.PeerGroupAddressFamilyViewS
 router.register("peer-endpoint-address-families", views.PeerEndpointAddressFamilyViewSet)
 router.register("routing-instances", views.BGPRoutingInstanceViewSet)
 
+app_name = "nautobot_bgp_models-api"
 urlpatterns = router.urls
