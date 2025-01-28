@@ -6,6 +6,7 @@ from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    NautobotFilterSet,
     SearchFilter,
     StatusModelFilterSetMixin,
 )
@@ -17,9 +18,7 @@ from nautobot.ipam.models import VRF
 from . import choices, models
 
 
-class AutonomousSystemFilterSet(
-    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin, StatusModelFilterSetMixin
-):
+class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
     """Filtering of AutonomousSystem records."""
 
     q = SearchFilter(
@@ -34,11 +33,7 @@ class AutonomousSystemFilterSet(
         fields = ["id", "asn", "status", "tags"]
 
 
-class AutonomousSystemRangeFilterSet(
-    BaseFilterSet,
-    CreatedUpdatedModelFilterSetMixin,
-    CustomFieldModelFilterSetMixin,
-):
+class AutonomousSystemRangeFilterSet(NautobotFilterSet):
     """Filtering of AutonomousSystemRange records."""
 
     q = SearchFilter(
@@ -55,9 +50,7 @@ class AutonomousSystemRangeFilterSet(
         fields = ["id", "name", "asn_min", "asn_max", "tags"]
 
 
-class BGPRoutingInstanceFilterSet(
-    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin, StatusModelFilterSetMixin
-):
+class BGPRoutingInstanceFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
     """Filtering of BGPRoutingInstance records."""
 
     q = SearchFilter(
@@ -90,7 +83,7 @@ class BGPRoutingInstanceFilterSet(
         fields = ["id", "autonomous_system", "tags"]
 
 
-class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
+class PeerGroupFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
     """Filtering of PeerGroup records."""
 
     q = SearchFilter(
@@ -133,7 +126,7 @@ class PeerGroupFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         fields = ["id", "name", "enabled"]
 
 
-class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
+class PeerGroupTemplateFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
     """Filtering of PeerGroupTemplate records."""
 
     q = SearchFilter(
@@ -155,7 +148,7 @@ class PeerGroupTemplateFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
         fields = ["id", "name", "enabled"]
 
 
-class PeerEndpointFilterSet(RoleModelFilterSetMixin, BaseFilterSet):
+class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
     """Filtering of PeerEndpoint records."""
 
     q = SearchFilter(

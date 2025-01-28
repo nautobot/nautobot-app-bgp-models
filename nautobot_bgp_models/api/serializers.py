@@ -1,4 +1,4 @@
-"""REST API serializers for nautobot_bgp_models models."""
+"""API serializers for nautobot_bgp_models."""
 
 from nautobot.apps.api import (
     NautobotModelSerializer,
