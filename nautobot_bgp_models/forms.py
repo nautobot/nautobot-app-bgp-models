@@ -28,7 +28,7 @@ class AutonomousSystemForm(NautobotModelForm):
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ("asn", "description", "provider", "status", "tags")
+        fields = ("asn", "description", "tenant", "provider", "status", "tags")
 
 
 class AutonomousSystemFilterForm(NautobotFilterForm):
