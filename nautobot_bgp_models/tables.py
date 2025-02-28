@@ -34,6 +34,12 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
     pk = ToggleColumn()
     asn = tables.TemplateColumn(template_code=ASN_LINK, verbose_name="ASN")
     provider = tables.LinkColumn()
+    tenant = tables.LinkColumn(
+        viewname="tenancy:tenant",
+        args=[A("tenant__pk")],
+        verbose_name="Tenant",
+        text=lambda record: record.tenant.name if record.tenant else "",
+    )
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystem_list")
     actions = ButtonsColumn(model=models.AutonomousSystem)
     asn_asdot = tables.Column(accessor=A("asn_asdot"), linkify=True, order_by=A("asn"), verbose_name="ASN ASDOT")

@@ -135,7 +135,14 @@ class AutonomousSystem(PrimaryModel):
     asn = ASNField(unique=True, verbose_name="ASN", help_text="32-bit autonomous system number")
     description = models.CharField(max_length=200, blank=True)
     provider = models.ForeignKey(to=Provider, on_delete=models.PROTECT, blank=True, null=True)
-    tenant = models.ForeignKey(to=Tenant, on_delete=models.PROTECT, blank=True, null=True)
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.PROTECT,
+        related_name="autonomous_systems",
+        blank=True,
+        null=True,
+        help_text="The tenant this Autonomous System belongs to",
+    )
     status = StatusField(null=True)
 
     class Meta:
