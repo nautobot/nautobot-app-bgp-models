@@ -1,1 +1,1 @@
-changed peer group validation to allow virtual chassis interfaces
+changed PeerEndpoint validation to look at all interfaces
