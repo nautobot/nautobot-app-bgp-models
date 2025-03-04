@@ -571,7 +571,8 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         # Ensure IP related to the routing instance
         if self.routing_instance:
-            if local_ip_value not in IPAddress.objects.filter(interfaces__in=self.routing_instance.device.all_interfaces):
+            all_interfaces = self.routing_instance.device.all_interfaces | self.routing_instance.device.vc_interfaces
+            if local_ip_value not in IPAddress.objects.filter(interfaces__in=all_interfaces):
                 raise ValidationError("Peer IP not associated with Routing Instance")
         # Enforce Routing Instance if local IP belongs to the Device
         elif not self.routing_instance and IPAddressToInterface.objects.filter(ip_address=local_ip_value).exists():
