@@ -25,10 +25,15 @@ class AutonomousSystemForm(NautobotModelForm):
 
     tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
     provider = DynamicModelChoiceField(queryset=Provider.objects.all(), required=False)
+    tenant = DynamicModelChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+        label="Tenant",
+    )
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ("asn", "description", "provider", "status", "tags")
+        fields = ("asn", "description", "tenant", "provider", "status", "tags")
 
 
 class AutonomousSystemFilterForm(NautobotFilterForm):
@@ -37,6 +42,11 @@ class AutonomousSystemFilterForm(NautobotFilterForm):
     model = models.AutonomousSystem
     field_order = ["status", "tag"]
     tag = TagFilterField(model)
+    tenant = DynamicModelMultipleChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+        label="Tenant",
+    )
 
 
 class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
@@ -46,6 +56,11 @@ class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
         queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput()
     )
     description = forms.CharField(max_length=200, required=False)
+    tenant = DynamicModelChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+        label="Tenant",
+    )
 
     class Meta:
         nullable_fields = [

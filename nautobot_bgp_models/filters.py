@@ -14,6 +14,7 @@ from nautobot.dcim.models import Device
 from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role
 from nautobot.ipam.models import VRF
+from nautobot.tenancy.models import Tenant
 
 from . import choices, models
 
@@ -26,6 +27,10 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
             "asn": "icontains",
             "description": "icontains",
         },
+    )
+    tenant = django_filters.ModelMultipleChoiceFilter(
+        queryset=Tenant.objects.all(),
+        label="Tenant",
     )
 
     class Meta:
