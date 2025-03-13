@@ -7,6 +7,7 @@ from nautobot.core.views.routers import NautobotUIViewSetRouter
 
 from . import models, views
 
+app_name = "nautobot_bgp_models"
 router = NautobotUIViewSetRouter()
 router.register("autonomous-systems", views.AutonomousSystemUIViewSet)
 router.register("autonomous-system-ranges", views.AutonomousSystemRangeUIViewSet)
