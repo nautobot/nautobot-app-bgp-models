@@ -408,7 +408,7 @@ namespace.configure(
     {
         "nautobot_bgp_models": {
             ...
-            "nautobot_ver": "2.0.3",
+            "nautobot_ver": "3.0.0",
 	    ...
         }
     }
