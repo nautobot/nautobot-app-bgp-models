@@ -149,6 +149,9 @@ jobs:
           - python-version: "3.12"
             db-backend: "mysql"
             nautobot-version: "stable"
+          - python-version: "3.12"
+            db-backend: "postgresql"
+            nautobot-version: "next"
     runs-on: "ubuntu-22.04"
     env:
       INVOKE_NAUTOBOT_BGP_MODELS_PYTHON_VER: "${{ matrix.python-version }}"
