@@ -24,19 +24,16 @@ class AutonomousSystemTestCase(ViewTestCases.PrimaryObjectViewTestCase):
     """Test views related to the AutonomousSystem model."""
 
     model = models.AutonomousSystem
+    bulk_edit_data = {"description": "Bulk edit views"}
+    form_data = {
+        "name": "Test 1",
+        "description": "Initial model",
+    }
 
-    test_bulk_import_objects_without_permission = None
-    test_bulk_import_objects_with_permission = None
-    test_bulk_import_objects_with_constrained_permission = None
-
-    @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
-    def test_list_objects_with_permission(self):
-        super().test_list_objects_with_permission()
-
-    def _get_base_url(self):
-        return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
-            self.model._meta.app_label, self.model._meta.model_name
-        )
+    update_data = {
+        "name": "Test 2",
+        "description": "Updated model",
+    }
 
     @classmethod
     def setUpTestData(cls):

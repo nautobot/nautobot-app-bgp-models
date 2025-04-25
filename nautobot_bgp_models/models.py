@@ -16,11 +16,16 @@ from nautobot.ipam.models import IPAddress, IPAddressToInterface
 from nautobot.tenancy.models import Tenant
 from netutils.asn import int_to_asdot
 
-from nautobot_bgp_models.choices import AFISAFIChoices
+# Nautobot imports
+from nautobot.apps.models import PrimaryModel, extras_features
 
-
-def rgetattr(obj, attr, *args):
-    """Recursive getattr helper."""
+# If you want to choose a specific model to overload in your class declaration, please reference the following documentation:
+# how to chose a database model: https://docs.nautobot.com/projects/core/en/stable/plugins/development/#database-models
+# If you want to use the extras_features decorator please reference the following documentation
+# https://docs.nautobot.com/projects/core/en/stable/development/core/model-checklist/#extras-features
+@extras_features("custom_links", "custom_validators", "export_templates", "graphql", "webhooks")
+class AutonomousSystem(PrimaryModel):  # pylint: disable=too-many-ancestors
+    """Base model for BGP Models app."""
 
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)

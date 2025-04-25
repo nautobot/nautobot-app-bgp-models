@@ -6,17 +6,8 @@ from . import views
 
 # Use instead of rest_framework.routers.DefaultRouter so that we get bulk-update/bulk-delete features
 router = OrderedDefaultRouter()
-
+# add the name of your api endpoint, usually hyphenated model name in plural, e.g. "my-model-classes"
 router.register("autonomous-systems", views.AutonomousSystemViewSet)
-router.register("autonomous-system-ranges", views.AutonomousSystemRangeViewSet)
-router.register("peer-groups", views.PeerGroupViewSet)
-router.register("peer-group-templates", views.PeerGroupTemplateViewSet)
-router.register("peer-endpoints", views.PeerEndpointViewSet)
-router.register("peerings", views.PeeringViewSet)
-router.register("address-families", views.AddressFamilyViewSet)
-router.register("peer-group-address-families", views.PeerGroupAddressFamilyViewSet)
-router.register("peer-endpoint-address-families", views.PeerEndpointAddressFamilyViewSet)
-router.register("routing-instances", views.BGPRoutingInstanceViewSet)
 
 app_name = "nautobot_bgp_models-api"
 urlpatterns = router.urls
