@@ -1,16 +1,22 @@
 """Test AutonomousSystem Filter."""
 
-from django.test import TestCase
+from nautobot.apps.testing import FilterTestCases
 
 from nautobot_bgp_models import filters, models
 from nautobot_bgp_models.tests import fixtures
 
 
-class AutonomousSystemFilterTestCase(TestCase):
+class AutonomousSystemFilterTestCase(FilterTestCases.FilterTestCase):
     """AutonomousSystem Filter Test Case."""
 
     queryset = models.AutonomousSystem.objects.all()
     filterset = filters.AutonomousSystemFilterSet
+    generic_filter_tests = (
+        ("id",),
+        ("created",),
+        ("last_updated",),
+        ("name",),
+    )
 
     @classmethod
     def setUpTestData(cls):

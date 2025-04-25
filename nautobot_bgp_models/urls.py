@@ -12,7 +12,9 @@ from nautobot_bgp_models import views
 app_name = "nautobot_bgp_models"
 router = NautobotUIViewSetRouter()
 
-router.register("autonomoussystem", views.AutonomousSystemUIViewSet)
+# The standard is for the route to be the hyphenated version of the model class name plural.
+# for example, ExampleModel would be example-models.
+router.register("autonomous-systems", views.AutonomousSystemUIViewSet)
 
 
 urlpatterns = [

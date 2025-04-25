@@ -1,12 +1,22 @@
 """Test AutonomousSystem."""
 
-from django.test import TestCase
+from nautobot.apps.testing import ModelTestCases
 
 from nautobot_bgp_models import models
+from nautobot_bgp_models.tests import fixtures
 
 
-class TestAutonomousSystem(TestCase):
+class TestAutonomousSystem(ModelTestCases.BaseModelTestCase):
     """Test AutonomousSystem."""
+
+    model = models.AutonomousSystem
+
+    @classmethod
+    def setUpTestData(cls):
+        """Create test data for AutonomousSystem Model."""
+        super().setUpTestData()
+        # Create 3 objects for the model test cases.
+        fixtures.create_autonomoussystem()
 
     def test_create_autonomoussystem_only_required(self):
         """Create with only required fields, and validate null description and __str__."""

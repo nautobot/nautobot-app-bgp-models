@@ -13,10 +13,7 @@ class AutonomousSystemForm(NautobotModelForm):  # pylint: disable=too-many-ances
         """Meta attributes."""
 
         model = models.AutonomousSystem
-        fields = [
-            "name",
-            "description",
-        ]
+        fields = "__all__"
 
 
 class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):  # pylint: disable=too-many-ancestors
@@ -42,6 +39,6 @@ class AutonomousSystemFilterForm(NautobotFilterForm):
     q = forms.CharField(
         required=False,
         label="Search",
-        help_text="Search within Name or Slug.",
+        help_text="Search within Name.",
     )
     name = forms.CharField(required=False, label="Name")
