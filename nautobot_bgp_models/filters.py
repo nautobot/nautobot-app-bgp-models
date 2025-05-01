@@ -32,6 +32,7 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         model = models.AutonomousSystem
         fields = ["id", "asn", "status", "tags"]
 
+
 class AutonomousSystemRangeFilterSet(NautobotFilterSet):
     """Filtering of AutonomousSystemRange records."""
 

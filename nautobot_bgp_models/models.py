@@ -6,7 +6,7 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from nautobot.apps.models import PrimaryModel, OrganizationalModel, extras_features
+from nautobot.apps.models import OrganizationalModel, PrimaryModel, extras_features
 from nautobot.circuits.models import Provider
 from nautobot.core.utils.data import deepmerge
 from nautobot.dcim.fields import ASNField
