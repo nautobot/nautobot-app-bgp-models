@@ -655,5 +655,6 @@ class PeerEndpointAddressFamilyFilterForm(NautobotFilterForm):
     afi_safi = forms.MultipleChoiceField(
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
+        required=False,
         widget=utilities_forms.StaticSelect2Multiple(),
     )
