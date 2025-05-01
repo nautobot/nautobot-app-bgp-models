@@ -110,7 +110,6 @@ nav:
       - Cisco Example Use Case: "user/cisco_use_case.md"
       - Juniper Example Use Case: "user/juniper_use_case.md"
       - Frequently Asked Questions: "user/faq.md"
-      - External Interactions: "user/external_interactions.md"
       - Data Models:
           - Autonomous System: "models/autonomoussystem.md"
   - Administrator Guide:
