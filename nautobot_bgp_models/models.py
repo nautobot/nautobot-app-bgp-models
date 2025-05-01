@@ -6,9 +6,8 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from nautobot.apps.models import extras_features
+from nautobot.apps.models import PrimaryModel, OrganizationalModel, extras_features
 from nautobot.circuits.models import Provider
-from nautobot.core.models.generics import OrganizationalModel, PrimaryModel
 from nautobot.core.utils.data import deepmerge
 from nautobot.dcim.fields import ASNField
 from nautobot.extras.models import RoleField, StatusField
@@ -16,16 +15,11 @@ from nautobot.ipam.models import IPAddress, IPAddressToInterface
 from nautobot.tenancy.models import Tenant
 from netutils.asn import int_to_asdot
 
-# Nautobot imports
-from nautobot.apps.models import PrimaryModel, extras_features
+from nautobot_bgp_models.choices import AFISAFIChoices
 
-# If you want to choose a specific model to overload in your class declaration, please reference the following documentation:
-# how to chose a database model: https://docs.nautobot.com/projects/core/en/stable/plugins/development/#database-models
-# If you want to use the extras_features decorator please reference the following documentation
-# https://docs.nautobot.com/projects/core/en/stable/development/core/model-checklist/#extras-features
-@extras_features("custom_links", "custom_validators", "export_templates", "graphql", "webhooks")
-class AutonomousSystem(PrimaryModel):  # pylint: disable=too-many-ancestors
-    """Base model for BGP Models app."""
+
+def rgetattr(obj, attr, *args):
+    """Recursive getattr helper."""
 
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)
