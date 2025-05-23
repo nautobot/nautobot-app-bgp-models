@@ -1,6 +1,8 @@
 """Table display definitions for nautobot_bgp_models."""
 
 import django_tables2 as tables
+from django.utils.html import format_html
+from django.urls import reverse
 from django_tables2.utils import A
 from nautobot.apps.tables import (
     BaseTable,
@@ -222,8 +224,6 @@ class PeerEndpointTable(BaseTable):
 class PeeringTable(StatusTableMixin, BaseTable):
     """Table representation of Peering records."""
 
-    # TODO(mzb): Add columns: Device_A, Device_B, Provider_A, Provider_Z
-
     pk = ToggleColumn()
     peering = tables.LinkColumn(
         viewname="plugins:nautobot_bgp_models:peering",
@@ -231,23 +231,102 @@ class PeeringTable(StatusTableMixin, BaseTable):
         text=str,
         orderable=False,
     )
-
-    endpoint_a = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None, orderable=False
+    a_side_device = tables.Column(
+        verbose_name="A Side Device", 
+        accessor="endpoint_a__routing_instance__device",
+        linkify=True,
+        orderable=False
+    )
+    a_endpoint = tables.Column(
+        verbose_name="A Endpoint", 
+        accessor="endpoint_a__local_ip",
+        linkify=("plugins:nautobot_bgp_models:peerendpoint", [A("endpoint_a__pk")]),
+        orderable=False
+    )
+    a_side_asn = tables.Column(
+        verbose_name="A Side ASN",
+        empty_values=(),
+        orderable=False
+    )
+    provider_a = tables.Column(
+        verbose_name="Provider A",
+        empty_values=(),
+        orderable=False
+    )
+    z_side_device = tables.Column(
+        verbose_name="Z Side Device", 
+        accessor="endpoint_z__routing_instance__device",
+        linkify=True,
+        orderable=False
+    )
+    z_endpoint = tables.Column(
+        verbose_name="Z Endpoint", 
+        accessor="endpoint_z__local_ip",
+        linkify=("plugins:nautobot_bgp_models:peerendpoint", [A("endpoint_z__pk")]),
+        orderable=False
+    )
+    z_side_asn = tables.Column(
+        verbose_name="Z Side ASN",
+        empty_values=(),
+        orderable=False
+    )
+    provider_z = tables.Column(
+        verbose_name="Provider Z",
+        empty_values=(),
+        orderable=False
     )
 
-    endpoint_z = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_z.local_ip) if x.endpoint_z else None, orderable=False
-    )
     actions = ButtonsColumn(model=models.Peering)
+
+    def render_a_side_asn(self, record):
+        """Render A Side ASN using inherited autonomous system."""
+        if record.endpoint_a:
+            asn, _, _ = record.endpoint_a.get_inherited_field("autonomous_system")
+            if asn:
+                url = reverse("plugins:nautobot_bgp_models:autonomoussystem", args=[asn.pk])
+                return format_html('<a href="{}">{}</a>', url, asn.asn)
+        return None
+
+    def render_provider_a(self, record):
+        """Render Provider A using inherited autonomous system."""
+        if record.endpoint_a:
+            asn, _, _ = record.endpoint_a.get_inherited_field("autonomous_system")
+            if asn and asn.provider:
+                url = reverse("circuits:provider", args=[asn.provider.pk])
+                return format_html('<a href="{}">{}</a>', url, asn.provider)
+        return None
+
+    def render_z_side_asn(self, record):
+        """Render Z Side ASN using inherited autonomous system."""
+        if record.endpoint_z:
+            asn, _, _ = record.endpoint_z.get_inherited_field("autonomous_system")
+            if asn:
+                url = reverse("plugins:nautobot_bgp_models:autonomoussystem", args=[asn.pk])
+                return format_html('<a href="{}">{}</a>', url, asn.asn)
+        return None
+
+    def render_provider_z(self, record):
+        """Render Provider Z using inherited autonomous system."""
+        if record.endpoint_z:
+            asn, _, _ = record.endpoint_z.get_inherited_field("autonomous_system")
+            if asn and asn.provider:
+                url = reverse("circuits:provider", args=[asn.provider.pk])
+                return format_html('<a href="{}">{}</a>', url, asn.provider)
+        return None
 
     class Meta(BaseTable.Meta):
         model = models.Peering
         fields = (
             "pk",
             "peering",
-            "endpoint_a",
-            "endpoint_z",
+            "a_side_device",
+            "a_endpoint",
+            "a_side_asn",
+            "provider_a",
+            "z_side_device", 
+            "z_endpoint",
+            "z_side_asn",
+            "provider_z",
             "status",
         )
 
