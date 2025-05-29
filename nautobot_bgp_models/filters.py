@@ -2,6 +2,7 @@
 """FilterSet definitions for nautobot_bgp_models."""
 
 import django_filters
+from django.db import models as django_models
 from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
@@ -10,10 +11,12 @@ from nautobot.apps.filters import (
     SearchFilter,
     StatusModelFilterSetMixin,
 )
+from nautobot.core.filters import MultiValueCharFilter
+from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device
 from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role
-from nautobot.ipam.models import VRF
+from nautobot.ipam.models import VRF, IPAddress
 
 from . import choices, models
 
@@ -197,8 +200,8 @@ class PeeringFilterSet(
 ):
     """Filtering of Peering records."""
 
-    # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
-    #  this requires to consider inheritance methods.
+    # Inheritance filtering implemented for Provider, ASN, IP Address using routing_instance paths
+    # These filters now work with the actual data structure where most values are inherited
 
     q = SearchFilter(
         filter_predicates={
@@ -233,6 +236,32 @@ class PeeringFilterSet(
         to_field_name="name",
         label="Peer Endpoint Role (name)",
     )
+
+    endpoint_ip = MultiValueCharFilter(
+        method="filter_endpoint_ip",
+        label="Endpoint IP Address",
+    )
+
+    autonomous_system = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__routing_instance__autonomous_system__asn",
+        queryset=models.AutonomousSystem.objects.all(),
+        to_field_name="asn",
+        label="Autonomous System Number",
+    )
+
+    provider = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__routing_instance__autonomous_system__provider__name",
+        queryset=Provider.objects.all(),
+        to_field_name="name",
+        label="Provider",
+    )
+
+    def filter_endpoint_ip(self, queryset, name, value):
+        matching_ips = IPAddress.objects.net_in(value)
+        
+        return queryset.filter(
+            django_models.Q(endpoints__source_interface__ip_addresses__in=matching_ips)
+        ).distinct()
 
     class Meta:
         model = models.Peering
