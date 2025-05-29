@@ -11,8 +11,8 @@ from nautobot.apps.filters import (
     SearchFilter,
     StatusModelFilterSetMixin,
 )
-from nautobot.core.filters import MultiValueCharFilter
 from nautobot.circuits.models import Provider
+from nautobot.core.filters import MultiValueCharFilter
 from nautobot.dcim.models import Device
 from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role
@@ -200,9 +200,6 @@ class PeeringFilterSet(
 ):
     """Filtering of Peering records."""
 
-    # Inheritance filtering implemented for Provider, ASN, IP Address using routing_instance paths
-    # These filters now work with the actual data structure where most values are inherited
-
     q = SearchFilter(
         filter_predicates={
             "endpoints__routing_instance__device__name": "icontains",
@@ -256,12 +253,11 @@ class PeeringFilterSet(
         label="Provider",
     )
 
-    def filter_endpoint_ip(self, queryset, name, value):
+    def filter_endpoint_ip(self, queryset, _name, value):
+        """Filter for IP address."""
         matching_ips = IPAddress.objects.net_in(value)
-        
-        return queryset.filter(
-            django_models.Q(endpoints__source_interface__ip_addresses__in=matching_ips)
-        ).distinct()
+
+        return queryset.filter(django_models.Q(endpoints__source_interface__ip_addresses__in=matching_ips)).distinct()
 
     class Meta:
         model = models.Peering

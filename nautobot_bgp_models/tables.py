@@ -14,13 +14,13 @@ from nautobot.apps.tables import (
 
 from . import models
 from .table_columns import (
+    AASNColumn,
     ADeviceColumn,
     AEndpointIPColumn,
-    AASNColumn,
     AProviderColumn,
+    ZASNColumn,
     ZDeviceColumn,
     ZEndpointIPColumn,
-    ZASNColumn,
     ZProviderColumn,
 )
 
@@ -259,7 +259,7 @@ class PeeringTable(StatusTableMixin, BaseTable):
             "a_endpoint",
             "a_side_asn",
             "provider_a",
-            "z_side_device", 
+            "z_side_device",
             "z_endpoint",
             "z_side_asn",
             "provider_z",
