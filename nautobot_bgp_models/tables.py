@@ -38,6 +38,33 @@ ASN_LINK = """
 """
 
 
+def extract_endpoint_from_peering(peering_str, side='a'):
+    """Extract device endpoint information from peering string.
+    
+    Args:
+        peering_str: String like "leaf9-cp1-smn1-hfa01 7.240.169.157/32 (AS 4266004237) ↔︎ core1-cp1-smn1-hfa01 7.240.169.0/32 (AS 4266004040)"
+        side: 'a' for left side (before ↔︎), 'z' for right side (after ↔︎)
+    
+    Returns:
+        Full endpoint string (device name + IP + ASN) or the original string if parsing fails
+    """
+    if not peering_str or '↔︎' not in str(peering_str):
+        return str(peering_str)
+    
+    try:
+        parts = str(peering_str).split(' ↔︎ ')
+        if len(parts) != 2:
+            return str(peering_str)
+        
+        endpoint_str = parts[0].strip() if side == 'a' else parts[1].strip()
+        
+        # Return the full endpoint string (device name + IP + ASN)
+        return endpoint_str
+        
+    except Exception:
+        return str(peering_str)
+
+
 class AutonomousSystemTable(StatusTableMixin, BaseTable):
     """Table representation of AutonomousSystem records."""
 
@@ -227,6 +254,39 @@ class PeerEndpointTable(BaseTable):
             "vrf",
             "peer_group",
         )
+
+
+class DevicePeerEndpointTable(BaseTable):
+    """Simplified table representation of PeerEndpoint records for device detail view."""
+
+    peer_endpoint_a = tables.LinkColumn(
+        accessor="id",
+        viewname="plugins:nautobot_bgp_models:peerendpoint",
+        args=[A("pk")],  # Link to the current record (this endpoint)
+        verbose_name="Peer Endpoint A",
+        text=lambda record: str(record),
+    )
+    
+    peer_endpoint_z = tables.LinkColumn(
+        accessor="peer",
+        viewname="plugins:nautobot_bgp_models:peerendpoint", 
+        args=[A("peer.pk")],  # Link to the peer record (the other endpoint)
+        verbose_name="Peer Endpoint Z",
+        text=lambda record: str(record.peer) if record.peer else "No peer",
+    )
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerEndpoint
+        fields = (
+            "peer_endpoint_a",
+            "peer_endpoint_z", 
+        )
+        default_columns = (
+            "peer_endpoint_a",
+            "peer_endpoint_z",
+        )
+        orderable = False
+        empty_text = "No BGP peer endpoints found for this device."
 
 
 class PeeringTable(StatusTableMixin, BaseTable):
