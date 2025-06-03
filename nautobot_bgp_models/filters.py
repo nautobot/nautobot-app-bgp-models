@@ -10,9 +10,9 @@ from nautobot.apps.filters import (
     NautobotFilterSet,
     SearchFilter,
     StatusModelFilterSetMixin,
+    MultiValueCharFilter,
 )
 from nautobot.circuits.models import Provider
-from nautobot.core.filters import MultiValueCharFilter
 from nautobot.dcim.models import Device
 from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role

@@ -1,7 +1,7 @@
 """Custom table columns for nautobot_bgp_models."""
 
 import django_tables2 as tables
-from django.db import models
+from django.db import models as django_models
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -31,12 +31,12 @@ class ADeviceColumn(BaseEndpointColumn):
         """Custom ordering for A Side Device."""
         # Use a subquery to get specifically the first endpoint's device name
         first_endpoint_device = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values("routing_instance__device__name")[:1]
         )
 
-        queryset = queryset.annotate(a_device_name=models.Subquery(first_endpoint_device)).order_by(
+        queryset = queryset.annotate(a_device_name=django_models.Subquery(first_endpoint_device)).order_by(
             ("-" if is_descending else "") + "a_device_name"
         )
 
@@ -57,12 +57,12 @@ class ZDeviceColumn(BaseEndpointColumn):
         """Custom ordering for Z Side Device."""
         # Use a subquery to get specifically the second endpoint's device name
         second_endpoint_device = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values("routing_instance__device__name")[1:2]
         )
 
-        queryset = queryset.annotate(z_device_name=models.Subquery(second_endpoint_device)).order_by(
+        queryset = queryset.annotate(z_device_name=django_models.Subquery(second_endpoint_device)).order_by(
             ("-" if is_descending else "") + "z_device_name"
         )
 
@@ -83,7 +83,7 @@ class AEndpointIPColumn(BaseEndpointColumn):
     def order(self, queryset, is_descending):
         """Custom ordering for A Endpoint IP."""
         first_endpoint_interface_ip = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values(
                 "source_interface__ip_addresses__mask_length",
@@ -93,13 +93,13 @@ class AEndpointIPColumn(BaseEndpointColumn):
         )
 
         queryset = queryset.annotate(
-            a_endpoint_mask=models.Subquery(
+            a_endpoint_mask=django_models.Subquery(
                 first_endpoint_interface_ip.values("source_interface__ip_addresses__mask_length")
             ),
-            a_endpoint_ip_version=models.Subquery(
+            a_endpoint_ip_version=django_models.Subquery(
                 first_endpoint_interface_ip.values("source_interface__ip_addresses__ip_version")
             ),
-            a_endpoint_host=models.Subquery(first_endpoint_interface_ip.values("source_interface__ip_addresses__host")),
+            a_endpoint_host=django_models.Subquery(first_endpoint_interface_ip.values("source_interface__ip_addresses__host")),
         )
 
         if is_descending:
@@ -123,7 +123,7 @@ class ZEndpointIPColumn(BaseEndpointColumn):
     def order(self, queryset, is_descending):
         """Custom ordering for Z Endpoint IP."""
         second_endpoint_interface_ip = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values(
                 "source_interface__ip_addresses__mask_length",
@@ -133,13 +133,13 @@ class ZEndpointIPColumn(BaseEndpointColumn):
         )
 
         queryset = queryset.annotate(
-            z_endpoint_mask=models.Subquery(
+            z_endpoint_mask=django_models.Subquery(
                 second_endpoint_interface_ip.values("source_interface__ip_addresses__mask_length")
             ),
-            z_endpoint_ip_version=models.Subquery(
+            z_endpoint_ip_version=django_models.Subquery(
                 second_endpoint_interface_ip.values("source_interface__ip_addresses__ip_version")
             ),
-            z_endpoint_host=models.Subquery(
+            z_endpoint_host=django_models.Subquery(
                 second_endpoint_interface_ip.values("source_interface__ip_addresses__host")
             ),
         )
@@ -167,12 +167,12 @@ class AASNColumn(BaseEndpointColumn):
     def order(self, queryset, is_descending):
         """Custom ordering for A Side ASN."""
         first_endpoint_asn = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values("routing_instance__autonomous_system__asn")[:1]
         )
 
-        queryset = queryset.annotate(a_side_asn_value=models.Subquery(first_endpoint_asn))
+        queryset = queryset.annotate(a_side_asn_value=django_models.Subquery(first_endpoint_asn))
 
         order_field = "-a_side_asn_value" if is_descending else "a_side_asn_value"
         return queryset.order_by(order_field), True
@@ -193,12 +193,12 @@ class ZASNColumn(BaseEndpointColumn):
     def order(self, queryset, is_descending):
         """Custom ordering for Z Side ASN."""
         second_endpoint_asn = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values("routing_instance__autonomous_system__asn")[1:2]
         )
 
-        queryset = queryset.annotate(z_side_asn_value=models.Subquery(second_endpoint_asn))
+        queryset = queryset.annotate(z_side_asn_value=django_models.Subquery(second_endpoint_asn))
 
         order_field = "-z_side_asn_value" if is_descending else "z_side_asn_value"
         return queryset.order_by(order_field), True
@@ -219,12 +219,12 @@ class AProviderColumn(BaseEndpointColumn):
     def order(self, queryset, is_descending):
         """Custom ordering for A Side Provider."""
         first_endpoint_provider = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values("routing_instance__autonomous_system__provider__name")[:1]
         )
 
-        queryset = queryset.annotate(a_side_provider_name=models.Subquery(first_endpoint_provider))
+        queryset = queryset.annotate(a_side_provider_name=django_models.Subquery(first_endpoint_provider))
 
         order_field = "-a_side_provider_name" if is_descending else "a_side_provider_name"
         return queryset.order_by(order_field), True
@@ -245,12 +245,12 @@ class ZProviderColumn(BaseEndpointColumn):
     def order(self, queryset, is_descending):
         """Custom ordering for Z Side Provider."""
         second_endpoint_provider = (
-            PeerEndpoint.objects.filter(peering=models.OuterRef("pk"))
+            PeerEndpoint.objects.filter(peering=django_models.OuterRef("pk"))
             .order_by("pk")
             .values("routing_instance__autonomous_system__provider__name")[1:2]
         )
 
-        queryset = queryset.annotate(z_side_provider_name=models.Subquery(second_endpoint_provider))
+        queryset = queryset.annotate(z_side_provider_name=django_models.Subquery(second_endpoint_provider))
 
         order_field = "-z_side_provider_name" if is_descending else "z_side_provider_name"
         return queryset.order_by(order_field), True
