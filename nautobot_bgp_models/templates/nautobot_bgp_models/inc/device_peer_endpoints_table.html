@@ -1,17 +1,8 @@
-{% load render_table from django_tables2 %}
-
 <div class="panel panel-default">
     <div class="panel-heading">
         <strong>BGP Peer Endpoints</strong>
-        <span class="badge">{{ table.data|length }}</span>
+        <span class="badge">{{ bgp_peer_endpoints_table.data|length }}</span>
     </div>
-    <div class="panel-body">
-        {% if table.data %}
-            {% render_table table %}
-        {% else %}
-            <div class="text-muted text-center">
-                No BGP peer endpoints found for this device.
-            </div>
-        {% endif %}
-    </div>
-</div> 
+    {% include 'inc/table.html' with table=bgp_peer_endpoints_table %}
+</div>
+{% include 'inc/paginator.html' with paginator=bgp_peer_endpoints_table.paginator page=bgp_peer_endpoints_table.page %}

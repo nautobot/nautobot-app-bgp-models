@@ -265,6 +265,7 @@ class DevicePeerEndpointsTable(BaseTable):  # pylint: disable=nb-sub-class-name
         args=[A("pk")],  # Link to the current record (this endpoint)
         verbose_name="Peer Endpoint A",
         text=str,
+        order_by=("routing_instance__device__name",),
     )
 
     arrow = tables.Column(
@@ -274,14 +275,15 @@ class DevicePeerEndpointsTable(BaseTable):  # pylint: disable=nb-sub-class-name
     )
 
     peer_endpoint_z = tables.LinkColumn(
-        accessor="peer",
+        accessor="peer__id",
         viewname="plugins:nautobot_bgp_models:peerendpoint",
         args=[A("peer.pk")],  # Link to the peer record (the other endpoint)
         verbose_name="Peer Endpoint Z",
         text=lambda record: str(record.peer) if record.peer else "No peer",
+        order_by=("peer__routing_instance__device__name",),
     )
 
-    def render_arrow(self, record):
+    def render_arrow(self):
         """Render the arrow symbol between endpoints."""
         return "↔︎"
 
@@ -297,7 +299,6 @@ class DevicePeerEndpointsTable(BaseTable):  # pylint: disable=nb-sub-class-name
             "arrow",
             "peer_endpoint_z",
         )
-        orderable = False
         empty_text = "No BGP peer endpoints found for this device."
 
 
