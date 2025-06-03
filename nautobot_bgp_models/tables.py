@@ -267,6 +267,12 @@ class DevicePeerEndpointsTable(BaseTable):  # pylint: disable=nb-sub-class-name
         text=str,
     )
 
+    arrow = tables.Column(
+        empty_values=(),
+        verbose_name="",
+        orderable=False,
+    )
+
     peer_endpoint_z = tables.LinkColumn(
         accessor="peer",
         viewname="plugins:nautobot_bgp_models:peerendpoint",
@@ -275,14 +281,20 @@ class DevicePeerEndpointsTable(BaseTable):  # pylint: disable=nb-sub-class-name
         text=lambda record: str(record.peer) if record.peer else "No peer",
     )
 
+    def render_arrow(self, record):
+        """Render the arrow symbol between endpoints."""
+        return "↔︎"
+
     class Meta(BaseTable.Meta):
         model = models.PeerEndpoint
         fields = (
             "peer_endpoint_a",
+            "arrow",
             "peer_endpoint_z",
         )
         default_columns = (
             "peer_endpoint_a",
+            "arrow",
             "peer_endpoint_z",
         )
         orderable = False
