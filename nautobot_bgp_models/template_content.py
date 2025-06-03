@@ -2,7 +2,7 @@
 
 from nautobot.extras.plugins import PluginTemplateExtension
 
-from .models import AddressFamily, BGPRoutingInstance, PeerEndpoint
+from .models import AddressFamily, AutonomousSystem, BGPRoutingInstance, PeerEndpoint
 
 
 class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -53,7 +53,28 @@ class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abs
         )
 
 
+class DeviceAutonomousSystems(PluginTemplateExtension):  # pylint: disable=abstract-method
+    """Add AutonomousSystems to the right side of the Device page."""
+
+    model = "dcim.device"
+
+    def right_page(self):
+        """Add content to the right side of the Device detail view."""
+        autonomous_systems = (
+            AutonomousSystem.objects.filter(
+                bgproutinginstance__device=self.context["object"],
+            )
+            .distinct()
+            .order_by("asn")
+        )
+        return self.render(
+            "nautobot_bgp_models/inc/device_autonomous_systems.html",
+            extra_context={"autonomous_systems": autonomous_systems},
+        )
+
+
 template_extensions = [
+    DeviceAutonomousSystems,
     DeviceBgpRoutingInstances,
     DeviceAddressFamilies,
     DevicePeerEndpoints,
