@@ -7,10 +7,10 @@ from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    MultiValueCharFilter,
     NautobotFilterSet,
     SearchFilter,
     StatusModelFilterSetMixin,
-    MultiValueCharFilter,
 )
 from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device

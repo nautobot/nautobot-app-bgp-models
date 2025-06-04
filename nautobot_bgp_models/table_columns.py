@@ -99,7 +99,9 @@ class AEndpointIPColumn(BaseEndpointColumn):
             a_endpoint_ip_version=django_models.Subquery(
                 first_endpoint_interface_ip.values("source_interface__ip_addresses__ip_version")
             ),
-            a_endpoint_host=django_models.Subquery(first_endpoint_interface_ip.values("source_interface__ip_addresses__host")),
+            a_endpoint_host=django_models.Subquery(
+                first_endpoint_interface_ip.values("source_interface__ip_addresses__host")
+            ),
         )
 
         if is_descending:
