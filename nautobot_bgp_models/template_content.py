@@ -1,8 +1,11 @@
 """Extensions of baseline Nautobot views."""
 
+from django_tables2 import RequestConfig
+from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
 from nautobot.extras.plugins import PluginTemplateExtension
 
 from .models import AddressFamily, BGPRoutingInstance, PeerEndpoint
+from .tables import DevicePeerEndpointsTable
 
 
 class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -15,9 +18,17 @@ class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-
         endpoints = PeerEndpoint.objects.filter(
             routing_instance__device=self.context["object"],
         )
+        table = DevicePeerEndpointsTable(endpoints)
+
+        paginate = {
+            "paginator_class": EnhancedPaginator,
+            "per_page": get_paginate_count(self.context["request"]),
+        }
+        RequestConfig(self.context["request"], paginate).configure(table)
+
         return self.render(
-            "nautobot_bgp_models/inc/device_peer_endpoints.html",
-            extra_context={"endpoints": endpoints},
+            "nautobot_bgp_models/inc/device_peer_endpoints_table.html",
+            extra_context={"bgp_peer_endpoints_table": table},
         )
 
 

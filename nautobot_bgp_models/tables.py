@@ -13,6 +13,16 @@ from nautobot.apps.tables import (
 )
 
 from . import models
+from .table_columns import (
+    AASNColumn,
+    ADeviceColumn,
+    AEndpointIPColumn,
+    AProviderColumn,
+    ZASNColumn,
+    ZDeviceColumn,
+    ZEndpointIPColumn,
+    ZProviderColumn,
+)
 
 ASN_LINK = """
 {% if record.present_in_database %}
@@ -26,6 +36,33 @@ ASN_LINK = """
 {{ record.available }} ASN{{ record.available|pluralize }} available
 {% endif %}
 """
+
+
+def extract_endpoint_from_peering(peering_str, side="a"):
+    """Extract device endpoint information from peering string.
+
+    Args:
+        peering_str: String like "leaf9-cp1-smn1-hfa01 7.240.169.157/32 (AS 4266004237) ↔︎ core1-cp1-smn1-hfa01 7.240.169.0/32 (AS 4266004040)"
+        side: 'a' for left side (before ↔︎), 'z' for right side (after ↔︎)
+
+    Returns:
+        Full endpoint string (device name + IP + ASN) or the original string if parsing fails
+    """
+    if not peering_str or "↔︎" not in str(peering_str):
+        return str(peering_str)
+
+    try:
+        parts = str(peering_str).split(" ↔︎ ")
+        if len(parts) != 2:
+            return str(peering_str)
+
+        endpoint_str = parts[0].strip() if side == "a" else parts[1].strip()
+
+        # Return the full endpoint string (device name + IP + ASN)
+        return endpoint_str
+
+    except Exception:  # pylint: disable=broad-exception-caught
+        return str(peering_str)
 
 
 class AutonomousSystemTable(StatusTableMixin, BaseTable):
@@ -219,10 +256,54 @@ class PeerEndpointTable(BaseTable):
         )
 
 
+class DevicePeerEndpointsTable(BaseTable):  # pylint: disable=nb-sub-class-name
+    """Simplified table representation of PeerEndpoint records for device detail view."""
+
+    peer_endpoint_a = tables.LinkColumn(
+        accessor="id",
+        viewname="plugins:nautobot_bgp_models:peerendpoint",
+        args=[A("pk")],  # Link to the current record (this endpoint)
+        verbose_name="Peer Endpoint A",
+        text=str,
+        order_by=("routing_instance__device__name",),
+    )
+
+    arrow = tables.Column(
+        empty_values=(),
+        verbose_name="",
+        orderable=False,
+    )
+
+    peer_endpoint_z = tables.LinkColumn(
+        accessor="peer__id",
+        viewname="plugins:nautobot_bgp_models:peerendpoint",
+        args=[A("peer.pk")],  # Link to the peer record (the other endpoint)
+        verbose_name="Peer Endpoint Z",
+        text=lambda record: str(record.peer) if record.peer else "No peer",
+        order_by=("peer__routing_instance__device__name",),
+    )
+
+    def render_arrow(self):
+        """Render the arrow symbol between endpoints."""
+        return "↔︎"
+
+    class Meta(BaseTable.Meta):
+        model = models.PeerEndpoint
+        fields = (
+            "peer_endpoint_a",
+            "arrow",
+            "peer_endpoint_z",
+        )
+        default_columns = (
+            "peer_endpoint_a",
+            "arrow",
+            "peer_endpoint_z",
+        )
+        empty_text = "No BGP peer endpoints found for this device."
+
+
 class PeeringTable(StatusTableMixin, BaseTable):
     """Table representation of Peering records."""
-
-    # TODO(mzb): Add columns: Device_A, Device_B, Provider_A, Provider_Z
 
     pk = ToggleColumn()
     peering = tables.LinkColumn(
@@ -231,14 +312,15 @@ class PeeringTable(StatusTableMixin, BaseTable):
         text=str,
         orderable=False,
     )
+    a_side_device = ADeviceColumn(verbose_name="A Side Device")
+    a_endpoint = AEndpointIPColumn(verbose_name="A Endpoint")
+    a_side_asn = AASNColumn(verbose_name="A Side ASN")
+    provider_a = AProviderColumn(verbose_name="Provider A")
+    z_side_device = ZDeviceColumn(verbose_name="Z Side Device")
+    z_endpoint = ZEndpointIPColumn(verbose_name="Z Endpoint")
+    z_side_asn = ZASNColumn(verbose_name="Z Side ASN")
+    provider_z = ZProviderColumn(verbose_name="Provider Z")
 
-    endpoint_a = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None, orderable=False
-    )
-
-    endpoint_z = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_z.local_ip) if x.endpoint_z else None, orderable=False
-    )
     actions = ButtonsColumn(model=models.Peering)
 
     class Meta(BaseTable.Meta):
@@ -246,8 +328,14 @@ class PeeringTable(StatusTableMixin, BaseTable):
         fields = (
             "pk",
             "peering",
-            "endpoint_a",
-            "endpoint_z",
+            "a_side_device",
+            "a_endpoint",
+            "a_side_asn",
+            "provider_a",
+            "z_side_device",
+            "z_endpoint",
+            "z_side_asn",
+            "provider_z",
             "status",
         )
 

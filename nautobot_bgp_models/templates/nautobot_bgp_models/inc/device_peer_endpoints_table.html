@@ -1,0 +1,8 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <strong>BGP Peerings</strong>
+        <span class="badge">{{ bgp_peer_endpoints_table.data|length }}</span>
+    </div>
+    {% include 'inc/table.html' with table=bgp_peer_endpoints_table %}
+</div>
+{% include 'inc/paginator.html' with paginator=bgp_peer_endpoints_table.paginator page=bgp_peer_endpoints_table.page %}
