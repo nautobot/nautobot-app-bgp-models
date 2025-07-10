@@ -174,16 +174,18 @@ Some models can inherit attribute values, similar to what BGP supports with Peer
 Example **PeerEndpoint** inheritance details:
 
 - A `PeerEndpoint` inherits `AutonomousSystem` and `extra_attributes` fields from:
-  - `PeerGroup`
-  - `PeerGroupTemplate`
-  - `BGPRoutingInstance`
+    - `PeerGroup`
+    - `PeerGroupTemplate`
+    - `BGPRoutingInstance`
+
 
 - A `PeerEndpoint` inherits `description`, `enabled`, `export_policy`, `import_policy` fields from:
-  - `PeerGroup`
-  - `PeerGroupTemplate`
+    - `PeerGroup`
+    - `PeerGroupTemplate`
+
 
 - A `PeerEndpoint` inherits `source_ip`, `source_interface` fields from:
-  - `PeerGroup`
+    - `PeerGroup`
 
 As an example, a `PeerEndpoint` associated with a `PeerGroup` will automatically inherit the above attributes of the `PeerGroup` that haven't been defined at the `PeerEndpoint` level. If an attribute is defined at both levels, the value defined in the `PeerEndpoint` will be used.
 
