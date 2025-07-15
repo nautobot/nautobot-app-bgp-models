@@ -177,8 +177,9 @@ class PeerEndpointTable(BaseTable):
     role = ColoredLabelColumn()
     source_ip = tables.LinkColumn()
     source_interface = tables.LinkColumn()
+    local_ip = tables.LinkColumn()
     autonomous_system = tables.LinkColumn()
-    remote_autonomous_system = tables.LinkColumn()
+    # remote_autonomous_system = tables.LinkColumn()
     peer = tables.LinkColumn()
     peering = tables.LinkColumn()
     vrf = tables.LinkColumn()
@@ -189,14 +190,15 @@ class PeerEndpointTable(BaseTable):
     class Meta(BaseTable.Meta):
         model = models.PeerEndpoint
         fields = (
-            "pk",
-            "id",
+            # "pk",
+            # "id",
             "routing_instance",
             "role",
             "source_ip",
             "source_interface",
+            "local_ip",
             "autonomous_system",
-            "remote_autonomous_system",
+            # "remote_autonomous_system",
             "peer",
             "peering",
             "vrf",
@@ -204,14 +206,15 @@ class PeerEndpointTable(BaseTable):
             "tags",
         )
         default_columns = (
-            "pk",
-            "id",
+            # "pk",
+            # "id",
             "routing_instance",
             "role",
             "source_ip",
+            "local_ip",
             "source_interface",
             "autonomous_system",
-            "remote_autonomous_system",
+            # "remote_autonomous_system",
             "peer",
             "peering",
             "vrf",
