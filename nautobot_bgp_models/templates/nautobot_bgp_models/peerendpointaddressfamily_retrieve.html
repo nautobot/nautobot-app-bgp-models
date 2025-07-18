@@ -17,7 +17,11 @@
                     </tr>
                     <tr>
                         <td>Routing Instance</td>
-                        <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.peer_endpoint.routing_instance.pk %}">{{ object.peer_endpoint.routing_instance }}</a></td>
+                        {% if object.peer_endpoint.routing_instance and object.peer_endpoint.routing_instance != '' %}
+                            <td><a href="{% url 'plugins:nautobot_bgp_models:bgproutinginstance' pk=object.peer_endpoint.routing_instance.pk %}">{{ object.peer_endpoint.routing_instance }}</a></td>
+                        {% else %}
+                            <td><span class="text-muted">None</span></td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <td>Peer Endpoint</td>
