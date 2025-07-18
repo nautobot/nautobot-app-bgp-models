@@ -15,10 +15,13 @@ class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-
         endpoints = PeerEndpoint.objects.filter(
             routing_instance__device=self.context["object"],
         )
-        return self.render(
-            "nautobot_bgp_models/inc/device_peer_endpoints.html",
-            extra_context={"endpoints": endpoints},
-        )
+        if endpoints.exists():
+            return self.render(
+                "nautobot_bgp_models/inc/device_peer_endpoints.html",
+                extra_context={"endpoints": endpoints},
+            )
+        else:
+            return ""
 
 
 class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -31,10 +34,13 @@ class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstrac
         address_families = AddressFamily.objects.filter(
             routing_instance__device=self.context["object"],
         )
-        return self.render(
-            "nautobot_bgp_models/inc/device_address_families.html",
-            extra_context={"address_families": address_families},
-        )
+        if address_families.exists():
+            return self.render(
+                "nautobot_bgp_models/inc/device_address_families.html",
+                extra_context={"address_families": address_families},
+            )
+        else:
+            return ""
 
 
 class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -47,10 +53,13 @@ class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abs
         bgp_routing_instances = BGPRoutingInstance.objects.filter(
             device=self.context["object"],
         )
-        return self.render(
-            "nautobot_bgp_models/inc/device_bgp_routing_instances.html",
-            extra_context={"bgp_routing_instances": bgp_routing_instances},
-        )
+        if bgp_routing_instances.exists():
+            return self.render(
+                "nautobot_bgp_models/inc/device_bgp_routing_instances.html",
+                extra_context={"bgp_routing_instances": bgp_routing_instances},
+            )
+        else:
+            return ""
 
 
 class DeviceAutonomousSystems(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -67,10 +76,13 @@ class DeviceAutonomousSystems(PluginTemplateExtension):  # pylint: disable=abstr
             .distinct()
             .order_by("asn")
         )
-        return self.render(
-            "nautobot_bgp_models/inc/device_autonomous_systems.html",
-            extra_context={"autonomous_systems": autonomous_systems},
-        )
+        if autonomous_systems.exists():
+            return self.render(
+                "nautobot_bgp_models/inc/device_autonomous_systems.html",
+                extra_context={"autonomous_systems": autonomous_systems},
+            )
+        else:
+            return ""
 
 
 template_extensions = [
