@@ -20,8 +20,7 @@ class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-
                 "nautobot_bgp_models/inc/device_peer_endpoints.html",
                 extra_context={"endpoints": endpoints},
             )
-        else:
-            return ""
+        return ""
 
 
 class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -39,8 +38,7 @@ class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstrac
                 "nautobot_bgp_models/inc/device_address_families.html",
                 extra_context={"address_families": address_families},
             )
-        else:
-            return ""
+        return ""
 
 
 class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -58,8 +56,7 @@ class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abs
                 "nautobot_bgp_models/inc/device_bgp_routing_instances.html",
                 extra_context={"bgp_routing_instances": bgp_routing_instances},
             )
-        else:
-            return ""
+        return ""
 
 
 class DeviceAutonomousSystems(PluginTemplateExtension):  # pylint: disable=abstract-method
@@ -81,8 +78,7 @@ class DeviceAutonomousSystems(PluginTemplateExtension):  # pylint: disable=abstr
                 "nautobot_bgp_models/inc/device_autonomous_systems.html",
                 extra_context={"autonomous_systems": autonomous_systems},
             )
-        else:
-            return ""
+        return ""
 
 
 template_extensions = [
