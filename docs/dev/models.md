@@ -123,7 +123,7 @@ This model represents the configuration of a single device for a single BGP peer
 
 Note that in the case of an external peering (connection with an ISP or Transit Provider), there is no need to create and model the provider's `Device` object. However, as a minimum `PeerEndpoint` (representing the provider's side of `Peering`) created during `Peering` object creation, will have to store IP Address and ASN.
 
-`PeerEndpoint` model has optional FK relationships to a BGP Routing Instance (`BGPRoutingInstance`) record, `PeerGroup`, and `AutonomousSystem`, but one of these must be provided with an ASN and the provided ASN must match accoss these relationships. See [Inheritance between models](#inheritance-between-models) below. Additionally, if BGP Routing Instance (`BGPRoutingInstance`) is provided, the [Local-IP](#peerendpoint-local-ip) must be assigned to an Interface on the related Device. Optional fields include:
+`PeerEndpoint` model has optional FK relationships to a BGP Routing Instance (`BGPRoutingInstance`) record, `PeerGroup`, and `AutonomousSystem`, but one of these must be provided with an ASN. See [Inheritance between models](#inheritance-between-models) below for the order of precedence. A [Local-IP](#peerendpoint-local-ip) must also be provided, via the `Source IP` or `Source Interface` relationships. Additionally, if BGP Routing Instance (`BGPRoutingInstance`) is provided, the Local-IP must be assigned to an Interface on the related Device. Optional fields include
 
 - Routing Instance (optional, FK to `BGPRoutingInstance`)
 - Peer Group (optional, FK to `PeerGroup`)
