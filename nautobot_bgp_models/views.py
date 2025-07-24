@@ -5,6 +5,11 @@ from django.db import transaction
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django_tables2 import RequestConfig
+from nautobot.apps.ui import (
+    ObjectTextPanel,
+    SectionChoices,
+    TemplateExtension,
+)
 from nautobot.apps.views import NautobotUIViewSet
 from nautobot.core.ui import object_detail
 from nautobot.core.ui.choices import SectionChoices
@@ -47,6 +52,29 @@ class BGPObjectsFieldPanel(object_detail.ObjectFieldsPanel):
             )
 
         return rendered_value
+
+
+extra_attributes_tab = object_detail.Tab(
+    weight=100,
+    tab_id="Extra Attributes",
+    label="Extra Attributes",
+    panels=[
+        object_detail.ObjectTextPanel(
+            weight=100,
+            section=SectionChoices.LEFT_HALF,
+            label="Rendered BGP Extra Attributes (includes inherited)",
+            object_field="extra_attributes",
+            render_as=ObjectTextPanel.RenderOptions.JSON,
+        ),
+        object_detail.ObjectTextPanel(
+            weight=100,
+            section=SectionChoices.RIGHT_HALF,
+            label="BGP object's extra attributes (The local BGP object's extra attribute overwrite all inherited attributes.)",
+            object_field="extra_attributes_inherited",
+            render_as=ObjectTextPanel.RenderOptions.JSON,
+        ),
+    ],
+)
 
 
 class AutonomousSystemUIViewSet(NautobotUIViewSet):
@@ -133,18 +161,10 @@ class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.BGPRoutingInstanceSerializer
     table_class = tables.BGPRoutingInstanceTable
 
-    object_detail_tabs = (
-        object_detail.Tab(
-            weight=100,
-            tab_id="example_app_inline_tab",
-            label="Example App Inline Tab",
-            panels=[
-                object_detail.ObjectFieldsPanel(weight=100, fields="__all__"),
-            ],
-        ),
-    )
-
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             object_detail.ObjectFieldsPanel(
                 weight=100,
@@ -181,6 +201,9 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerGroupTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             BGPObjectsFieldPanel(
                 weight=100,
@@ -217,6 +240,9 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerGroupTemplateTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             object_detail.ObjectFieldsPanel(
                 weight=100,
@@ -241,6 +267,9 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerEndpointTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             BGPObjectsFieldPanel(
                 weight=100,
@@ -384,6 +413,9 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
     table_class = tables.AddressFamilyTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             object_detail.ObjectFieldsPanel(
                 weight=100,
@@ -408,6 +440,9 @@ class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerGroupAddressFamilyTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             BGPObjectsFieldPanel(
                 weight=100,
@@ -432,6 +467,9 @@ class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
     table_class = tables.PeerEndpointAddressFamilyTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
         panels=[
             BGPObjectsFieldPanel(
                 weight=100,
