@@ -6,11 +6,13 @@ from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django_tables2 import RequestConfig
 from nautobot.apps.ui import (
+    ButtonColorChoices,
     ObjectTextPanel,
     SectionChoices,
     TemplateExtension,
 )
 from nautobot.apps.views import NautobotUIViewSet
+from nautobot.core.choices import ButtonActionIconChoices
 from nautobot.core.ui import object_detail
 from nautobot.core.ui.choices import SectionChoices
 from nautobot.core.views import generic, mixins
@@ -118,6 +120,11 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
+            ),
+            object_detail.ObjectsTablePanel(
+                section=SectionChoices.RIGHT_HALF,
+                weight=100,
+                context_table_key="asn_range_table",
             ),
         ],
     )
@@ -305,6 +312,31 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
     table_class = tables.PeeringTable
 
     object_detail_content = object_detail.ObjectDetailContent(
+        extra_buttons=[
+            object_detail.DropdownButton(
+                weight=100,
+                color=ButtonColorChoices.YELLOW,
+                label="Edit Peer Endpoint",
+                icon=ButtonActionIconChoices.EDIT,
+                required_permissions=["dcim.change_device"],
+                children=(
+                    object_detail.Button(
+                        weight=100,
+                        link_name="dcim:device_consoleports_add",
+                        label="Peer Endpoint A-side",
+                        icon="mdi-alpha-a-box",
+                        required_permissions=["dcim.add_consoleport"],
+                    ),
+                    object_detail.Button(
+                        weight=200,
+                        link_name="dcim:device_consoleserverports_add",
+                        label="Peer Endpoint Z-side",
+                        icon="mdi-alpha-z-box",
+                        required_permissions=["dcim.add_consoleserverport"],
+                    ),
+                ),
+            ),
+        ],
         panels=[
             BGPObjectsFieldPanel(
                 weight=100,
@@ -315,6 +347,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
             BGPObjectsFieldPanel(
                 weight=100,
                 section=SectionChoices.RIGHT_HALF,
+                label="BGP Peer Endpoint (A-side)",
                 context_object_key="endpoint_a",
                 fields="__all__",
                 exclude_fields=["extra_attributes"],
@@ -322,6 +355,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
             BGPObjectsFieldPanel(
                 weight=150,
                 section=SectionChoices.RIGHT_HALF,
+                label="BGP Peer Endpoint (Z-side)",
                 context_object_key="endpoint_z",
                 fields="__all__",
                 exclude_fields=["extra_attributes"],
