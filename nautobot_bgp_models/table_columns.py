@@ -4,6 +4,7 @@ import django_tables2 as tables
 from django.db import models as django_models
 from django.urls import reverse
 from django.utils.html import format_html
+from nautobot.core.templatetags.helpers import hyperlinked_object
 
 from nautobot_bgp_models.models import PeerEndpoint
 
@@ -24,7 +25,7 @@ class ADeviceColumn(BaseEndpointColumn):
         """Render A Side Device."""
         if record.endpoint_a and record.endpoint_a.routing_instance and record.endpoint_a.routing_instance.device:
             device = record.endpoint_a.routing_instance.device
-            return format_html('<a href="{}">{}</a>', device.get_absolute_url(), device)
+            return hyperlinked_object(device)
         return None
 
     def order(self, queryset, is_descending):
@@ -50,7 +51,7 @@ class ZDeviceColumn(BaseEndpointColumn):
         """Render Z Side Device."""
         if record.endpoint_z and record.endpoint_z.routing_instance and record.endpoint_z.routing_instance.device:
             device = record.endpoint_z.routing_instance.device
-            return format_html('<a href="{}">{}</a>', device.get_absolute_url(), device)
+            return hyperlinked_object(device)
         return None
 
     def order(self, queryset, is_descending):
@@ -74,10 +75,8 @@ class AEndpointIPColumn(BaseEndpointColumn):
 
     def render(self, record):  # pylint: disable=arguments-renamed
         """Render A Endpoint IP."""
-        if record.endpoint_a:
-            if record.endpoint_a.local_ip:
-                url = reverse("plugins:nautobot_bgp_models:peerendpoint", args=[record.endpoint_a.pk])
-                return format_html('<a href="{}">{}</a>', url, record.endpoint_a.local_ip)
+        if record.endpoint_a and record.endpoint_a.local_ip:
+            return hyperlinked_object(record.endpoint_a)
         return None
 
     def order(self, queryset, is_descending):
@@ -118,8 +117,7 @@ class ZEndpointIPColumn(BaseEndpointColumn):
     def render(self, record):  # pylint: disable=arguments-renamed
         """Render Z Endpoint IP."""
         if record.endpoint_z and record.endpoint_z.local_ip:
-            url = reverse("plugins:nautobot_bgp_models:peerendpoint", args=[record.endpoint_z.pk])
-            return format_html('<a href="{}">{}</a>', url, record.endpoint_z.local_ip)
+            return hyperlinked_object(record.endpoint_z)
         return None
 
     def order(self, queryset, is_descending):
@@ -162,8 +160,7 @@ class AASNColumn(BaseEndpointColumn):
         if record.endpoint_a:
             asn, _, _ = record.endpoint_a.get_inherited_field("autonomous_system")
             if asn:
-                url = reverse("plugins:nautobot_bgp_models:autonomoussystem", args=[asn.pk])
-                return format_html('<a href="{}">{}</a>', url, asn.asn)
+                return hyperlinked_object(asn)
         return None
 
     def order(self, queryset, is_descending):
@@ -214,8 +211,7 @@ class AProviderColumn(BaseEndpointColumn):
         if record.endpoint_a:
             asn, _, _ = record.endpoint_a.get_inherited_field("autonomous_system")
             if asn and asn.provider:
-                url = reverse("circuits:provider", args=[asn.provider.pk])
-                return format_html('<a href="{}">{}</a>', url, asn.provider)
+                return hyperlinked_object(asn.provider)
         return None
 
     def order(self, queryset, is_descending):
@@ -240,8 +236,7 @@ class ZProviderColumn(BaseEndpointColumn):
         if record.endpoint_z:
             asn, _, _ = record.endpoint_z.get_inherited_field("autonomous_system")
             if asn and asn.provider:
-                url = reverse("circuits:provider", args=[asn.provider.pk])
-                return format_html('<a href="{}">{}</a>', url, asn.provider)
+                return hyperlinked_object(asn.provider)
         return None
 
     def order(self, queryset, is_descending):

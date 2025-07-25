@@ -2,12 +2,12 @@
 """FilterSet definitions for nautobot_bgp_models."""
 
 import django_filters
-from django.db import models as django_models
 from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
     MultiValueCharFilter,
+    NaturalKeyOrPKMultipleChoiceFilter,
     NautobotFilterSet,
     SearchFilter,
     StatusModelFilterSetMixin,
@@ -239,17 +239,13 @@ class PeeringFilterSet(
         label="Endpoint IP Address",
     )
 
-    autonomous_system = django_filters.ModelMultipleChoiceFilter(
-        field_name="endpoints__routing_instance__autonomous_system__asn",
+    autonomous_system = NaturalKeyOrPKMultipleChoiceFilter(
         queryset=models.AutonomousSystem.objects.all(),
-        to_field_name="asn",
         label="Autonomous System Number",
     )
 
-    provider = django_filters.ModelMultipleChoiceFilter(
-        field_name="endpoints__routing_instance__autonomous_system__provider__name",
+    provider = NaturalKeyOrPKMultipleChoiceFilter(
         queryset=Provider.objects.all(),
-        to_field_name="name",
         label="Provider",
     )
 
@@ -257,7 +253,7 @@ class PeeringFilterSet(
         """Filter for IP address."""
         matching_ips = IPAddress.objects.net_in(value)
 
-        return queryset.filter(django_models.Q(endpoints__source_interface__ip_addresses__in=matching_ips)).distinct()
+        return queryset.filter(endpoints__source_interface__ip_addresses__in=matching_ips).distinct()
 
     class Meta:
         model = models.Peering
