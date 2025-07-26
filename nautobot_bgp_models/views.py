@@ -322,14 +322,14 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                 children=(
                     object_detail.Button(
                         weight=100,
-                        link_name="dcim:device_consoleports_add",
+                        link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint A-side",
                         icon="mdi-alpha-a-box",
                         required_permissions=["dcim.add_consoleport"],
                     ),
                     object_detail.Button(
                         weight=200,
-                        link_name="dcim:device_consoleserverports_add",
+                        link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint Z-side",
                         icon="mdi-alpha-z-box",
                         required_permissions=["dcim.add_consoleserverport"],
@@ -509,6 +509,7 @@ class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
+                exclude_fields=["extra_attributes"],
             ),
         ],
     )
