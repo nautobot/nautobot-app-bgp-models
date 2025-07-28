@@ -2,14 +2,12 @@
 """Extensions of baseline Nautobot views."""
 
 from nautobot.apps.ui import (
-    ObjectTextPanel,
     SectionChoices,
     TemplateExtension,
 )
 from nautobot.core.ui import object_detail
 
 from nautobot_bgp_models import tables
-
 
 
 class DeviceContent(TemplateExtension):

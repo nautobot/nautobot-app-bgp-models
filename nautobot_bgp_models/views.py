@@ -9,12 +9,10 @@ from nautobot.apps.ui import (
     ButtonColorChoices,
     ObjectTextPanel,
     SectionChoices,
-    TemplateExtension,
 )
 from nautobot.apps.views import NautobotUIViewSet
 from nautobot.core.choices import ButtonActionIconChoices
 from nautobot.core.ui import object_detail
-from nautobot.core.ui.choices import SectionChoices
 from nautobot.core.views import generic, mixins
 from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
 from nautobot.core.views.utils import get_obj_from_context
