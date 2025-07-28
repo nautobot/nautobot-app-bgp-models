@@ -318,21 +318,20 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                 color=ButtonColorChoices.YELLOW,
                 label="Edit Peer Endpoint",
                 icon=ButtonActionIconChoices.EDIT,
-                required_permissions=["dcim.change_device"],
+                required_permissions=["nautobot_bgp_models:edit_peerendpoint"],
+                # TODO(mzb): Below depends on #7610 in Nautobot.
                 children=(
                     object_detail.Button(
                         weight=100,
                         link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint A-side",
                         icon="mdi-alpha-a-box",
-                        required_permissions=["dcim.add_consoleport"],
                     ),
                     object_detail.Button(
                         weight=200,
                         link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint Z-side",
                         icon="mdi-alpha-z-box",
-                        required_permissions=["dcim.add_consoleserverport"],
                     ),
                 ),
             ),
