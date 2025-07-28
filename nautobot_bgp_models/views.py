@@ -58,7 +58,7 @@ class BGPObjectsFieldPanel(object_detail.ObjectFieldsPanel):
 
 extra_attributes_tab = object_detail.Tab(
     weight=100,
-    tab_id="Extra Attributes",
+    tab_id="extra_attributes",
     label="Extra Attributes",
     panels=[
         object_detail.ObjectTextPanel(
