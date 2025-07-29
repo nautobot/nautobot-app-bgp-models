@@ -78,9 +78,16 @@ class BGPRoutingInstanceFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         label="Device (name)",
     )
 
+    vrf = django_filters.ModelMultipleChoiceFilter(
+        field_name="vrf__name",
+        queryset=VRF.objects.all(),
+        to_field_name="name",
+        label="VRF (name)",
+    )
+
     class Meta:
         model = models.BGPRoutingInstance
-        fields = ["id", "autonomous_system", "tags"]
+        fields = ["id", "autonomous_system", "vrf", "tags"]
 
 
 class PeerGroupFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
@@ -121,9 +128,16 @@ class PeerGroupFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
         label="Device (ID)",
     )
 
+    vrf = django_filters.ModelMultipleChoiceFilter(
+        field_name="vrf__name",
+        queryset=VRF.objects.all(),
+        to_field_name="name",
+        label="VRF (name)",
+    )
+
     class Meta:
         model = models.PeerGroup
-        fields = ["id", "name", "enabled"]
+        fields = ["id", "name", "enabled", "vrf"]
 
 
 class PeerGroupTemplateFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):

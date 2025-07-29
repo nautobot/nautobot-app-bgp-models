@@ -112,6 +112,13 @@ class BGPRoutingInstanceForm(NautobotModelForm):
         query_params={"device_id": "$device"},
     )
 
+    vrf = DynamicModelChoiceField(
+        queryset=VRF.objects.all(),
+        required=False,
+        to_field_name="name",
+        label="VRF",
+    )
+
     tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
 
     peergroup_template = DynamicModelMultipleChoiceField(
@@ -143,6 +150,7 @@ class BGPRoutingInstanceForm(NautobotModelForm):
         fields = (
             "device",
             "autonomous_system",
+            "vrf",
             "status",
             "description",
             "router_id",
@@ -171,6 +179,13 @@ class BGPRoutingInstanceFilterForm(NautobotFilterForm):
         to_field_name="asn",
     )
 
+    vrf = DynamicModelMultipleChoiceField(
+        queryset=VRF.objects.all(),
+        required=False,
+        to_field_name="name",
+        label="VRF",
+    )
+
     tag = TagFilterField(model)
 
     field_order = [
@@ -178,6 +193,7 @@ class BGPRoutingInstanceFilterForm(NautobotFilterForm):
         "device",
         "router_id",
         "autonomous_system",
+        "vrf",
         "tag",
         "status",
     ]
@@ -190,10 +206,12 @@ class BGPRoutingInstanceBulkEditForm(NautobotBulkEditForm):
         queryset=models.BGPRoutingInstance.objects.all(), widget=forms.MultipleHiddenInput()
     )
     description = forms.CharField(max_length=200, required=False)
+    vrf = DynamicModelChoiceField(queryset=VRF.objects.all(), required=False, to_field_name="name", label="VRF")
 
     class Meta:
         nullable_fields = [
             "description",
+            "vrf",
         ]
 
 
@@ -210,6 +228,7 @@ class PeerGroupForm(NautobotModelForm):
     vrf = DynamicModelChoiceField(
         queryset=VRF.objects.all(),
         required=False,
+        to_field_name="name",
         label="VRF",
     )
 
@@ -328,7 +347,7 @@ class PeerGroupFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
         queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
     )
 
-    vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
+    vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False, to_field_name="name", label="VRF")
 
 
 class PeerGroupTemplateFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
@@ -503,6 +522,7 @@ class AddressFamilyForm(NautobotModelForm):
     vrf = DynamicModelChoiceField(
         queryset=VRF.objects.all(),
         required=False,
+        to_field_name="name",
         label="VRF",
     )
 
@@ -539,7 +559,7 @@ class AddressFamilyFilterForm(NautobotFilterForm):
         widget=utilities_forms.StaticSelect2Multiple(),
     )
 
-    vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
+    vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False, to_field_name="name", label="VRF")
 
 
 class PeerGroupAddressFamilyForm(NautobotModelForm):
