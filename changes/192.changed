@@ -1,1 +1,0 @@
-Changed all `q` search methods to use `SearchFilter`.
