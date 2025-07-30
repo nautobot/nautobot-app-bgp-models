@@ -8,6 +8,7 @@ from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
 from nautobot.extras.models import Role, Status
 from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
+from nautobot.virtualization.models import Cluster, ClusterType, VirtualMachine, VMInterface
 
 from nautobot_bgp_models import models
 from nautobot_bgp_models.choices import AFISAFIChoices
@@ -204,6 +205,7 @@ class PeerEndpointTestCase(TestCase):
         device_2 = Device.objects.create(
             device_type=devicetype, role=devicerole, name="Device 2", location=location, status=cls.status_active
         )
+        cls.interface_2 = Interface.objects.create(device=device_2, name="Loopback1", status=interface_status)
 
         cls.peeringrole_internal = Role.objects.create(name="Internal", color="333333")
         cls.peeringrole_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
@@ -255,6 +257,12 @@ class PeerEndpointTestCase(TestCase):
             address="1.1.1.2/32",
             status=status_active,
             namespace=cls.namespace,
+        )
+        vm_cluster_type = ClusterType.objects.create(name="vShpere")
+        vm_cluster = Cluster.objects.create(name="VM Test Cluster", cluster_type=vm_cluster_type)
+        cls.virtual_machine_1 = VirtualMachine.objects.create(name="VM 1", cluster=vm_cluster, status=cls.status_active)
+        cls.vm_interface_1 = VMInterface.objects.create(
+            name="Loopback1", virtual_machine=cls.virtual_machine_1, status=status_active
         )
 
     def setUp(self):
@@ -342,6 +350,44 @@ class PeerEndpointTestCase(TestCase):
         with self.assertRaises(models.PeerEndpoint.DoesNotExist):
             self.peerendpoint_1.refresh_from_db()
             self.peerendpoint_2.refresh_from_db()
+
+    def test_route_instance_matches_interface(self):
+        """PeerEndpoint Routing Instance matches interface.device if assigned."""
+        self.interface_1.ip_addresses.add(self.ipaddress_1)
+        # assignement to secondary device should be ingored in Routing Instance validation
+        self.interface_2.ip_addresses.add(self.ipaddress_1)
+        self.peerendpoint_1.routing_instance = self.bgp_routing_instance_1
+        self.peerendpoint_1.source_address = self.ipaddress_1
+        self.peerendpoint_1.validated_save()
+
+        self.interface_1.ip_addresses.remove(self.ipaddress_1)
+        with self.assertRaises(ValidationError):
+            self.peerendpoint_1.clean()
+
+    def test_route_instance_duplicate_assignment(self):
+        """PeerEndpoint not require Routing Instance for any Interface associations if ASN is provided."""
+        self.interface_1.ip_addresses.add(self.ipaddress_1)
+        self.interface_2.ip_addresses.add(self.ipaddress_1)
+        self.peerendpoint_1.routing_instance = None
+        self.peerendpoint_1.source_address = self.ipaddress_1
+        self.peerendpoint_1.autonomous_system = self.autonomous_system_23456
+        self.peerendpoint_1.validated_save()
+
+        self.peerendpoint_1.autonomous_system = None
+        with self.assertRaises(ValidationError):
+            self.peerendpoint_1.clean()
+
+    def test_route_instance_vm_interface(self):
+        """PeerEndpoint not require Routing Instance for VMInterface association if ASN is provided."""
+        self.vm_interface_1.ip_addresses.add(self.ipaddress_1)
+        self.peerendpoint_1.routing_instance = None
+        self.peerendpoint_1.source_address = self.ipaddress_1
+        self.peerendpoint_1.autonomous_system = self.autonomous_system_23456
+        self.peerendpoint_1.validated_save()
+
+        self.peerendpoint_1.autonomous_system = None
+        with self.assertRaises(ValidationError):
+            self.peerendpoint_1.clean()
 
 
 class PeeringTestCase(TestCase):
