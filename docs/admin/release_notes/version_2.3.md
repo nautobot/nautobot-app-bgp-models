@@ -40,7 +40,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - Rebaked from the cookie `nautobot-app-v2.4.2`.
 - Rebaked from the cookie `nautobot-app-v2.4.1`.
 
-## [v2.3.2 (2025-07-29)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v2.3.2)
+## [v2.3.2 (2025-07-30)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v2.3.2)
 
 ### Added
 
