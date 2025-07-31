@@ -1,4 +1,3 @@
-
 # v2.3 Release Notes
 
 This document describes all new features and changes in the release. The format is based on [Keep a
@@ -40,3 +39,21 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 ### Housekeeping in v2.3.1
 - Rebaked from the cookie `nautobot-app-v2.4.2`.
 - Rebaked from the cookie `nautobot-app-v2.4.1`.
+
+## [v2.3.2 (2025-07-30)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v2.3.2)
+
+### Added
+
+- [#251](https://github.com/nautobot/nautobot-app-bgp-models/issues/251) - Added ASNs list to Device view.
+
+### Changed
+
+- [#257](https://github.com/nautobot/nautobot-app-bgp-models/issues/257) - Removed PeerEndpoint validation requiring RoutingInstance when local_ip is assigned to any Interface.
+
+### Fixed
+
+- [#245](https://github.com/nautobot/nautobot-app-bgp-models/issues/245) - Fixed device URL link in BGP Routing Instance detail view.
+
+### Housekeeping
+
+- Rebaked from the cookie `nautobot-app-v2.5.0`.
