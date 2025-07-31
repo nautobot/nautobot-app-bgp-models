@@ -6,14 +6,17 @@ from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    MultiValueCharFilter,
+    NaturalKeyOrPKMultipleChoiceFilter,
     NautobotFilterSet,
     SearchFilter,
     StatusModelFilterSetMixin,
 )
+from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device
 from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role
-from nautobot.ipam.models import VRF
+from nautobot.ipam.models import VRF, IPAddress
 
 from . import choices, models
 
@@ -197,9 +200,6 @@ class PeeringFilterSet(
 ):
     """Filtering of Peering records."""
 
-    # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
-    #  this requires to consider inheritance methods.
-
     q = SearchFilter(
         filter_predicates={
             "endpoints__routing_instance__device__name": "icontains",
@@ -233,6 +233,27 @@ class PeeringFilterSet(
         to_field_name="name",
         label="Peer Endpoint Role (name)",
     )
+
+    endpoint_ip = MultiValueCharFilter(
+        method="filter_endpoint_ip",
+        label="Endpoint IP Address",
+    )
+
+    autonomous_system = NaturalKeyOrPKMultipleChoiceFilter(
+        queryset=models.AutonomousSystem.objects.all(),
+        label="Autonomous System Number",
+    )
+
+    provider = NaturalKeyOrPKMultipleChoiceFilter(
+        queryset=Provider.objects.all(),
+        label="Provider",
+    )
+
+    def filter_endpoint_ip(self, queryset, _name, value):
+        """Filter for IP address."""
+        matching_ips = IPAddress.objects.net_in(value)
+
+        return queryset.filter(endpoints__source_interface__ip_addresses__in=matching_ips).distinct()
 
     class Meta:
         model = models.Peering

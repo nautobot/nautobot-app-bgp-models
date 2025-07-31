@@ -13,6 +13,16 @@ from nautobot.apps.tables import (
 )
 
 from . import models
+from .table_columns import (
+    AASNColumn,
+    ADeviceColumn,
+    AEndpointIPColumn,
+    AProviderColumn,
+    ZASNColumn,
+    ZDeviceColumn,
+    ZEndpointIPColumn,
+    ZProviderColumn,
+)
 
 ASN_LINK = """
 {% if record.present_in_database %}
@@ -222,8 +232,6 @@ class PeerEndpointTable(BaseTable):
 class PeeringTable(StatusTableMixin, BaseTable):
     """Table representation of Peering records."""
 
-    # TODO(mzb): Add columns: Device_A, Device_B, Provider_A, Provider_Z
-
     pk = ToggleColumn()
     peering = tables.LinkColumn(
         viewname="plugins:nautobot_bgp_models:peering",
@@ -231,14 +239,15 @@ class PeeringTable(StatusTableMixin, BaseTable):
         text=str,
         orderable=False,
     )
+    a_side_device = ADeviceColumn(verbose_name="A Side Device")
+    a_endpoint = AEndpointIPColumn(verbose_name="A Endpoint")
+    a_side_asn = AASNColumn(verbose_name="A Side ASN")
+    a_provider = AProviderColumn(verbose_name="A Provider")
+    z_side_device = ZDeviceColumn(verbose_name="Z Side Device")
+    z_endpoint = ZEndpointIPColumn(verbose_name="Z Endpoint")
+    z_side_asn = ZASNColumn(verbose_name="Z Side ASN")
+    z_provider = ZProviderColumn(verbose_name="Z Provider")
 
-    endpoint_a = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_a.local_ip) if x.endpoint_a else None, orderable=False
-    )
-
-    endpoint_z = tables.LinkColumn(
-        verbose_name="Endpoint", text=lambda x: str(x.endpoint_z.local_ip) if x.endpoint_z else None, orderable=False
-    )
     actions = ButtonsColumn(model=models.Peering)
 
     class Meta(BaseTable.Meta):
@@ -246,8 +255,14 @@ class PeeringTable(StatusTableMixin, BaseTable):
         fields = (
             "pk",
             "peering",
-            "endpoint_a",
-            "endpoint_z",
+            "a_side_device",
+            "a_endpoint",
+            "a_side_asn",
+            "a_provider",
+            "z_side_device",
+            "z_endpoint",
+            "z_side_asn",
+            "z_provider",
             "status",
         )
 

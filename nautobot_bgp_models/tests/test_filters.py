@@ -1,8 +1,7 @@
 """Unit test automation for FilterSet classes in nautobot_bgp_models."""
 
 from django.contrib.contenttypes.models import ContentType
-
-# from nautobot.circuits.models import Provider
+from nautobot.circuits.models import Provider
 from nautobot.core.testing import FilterTestCases
 from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
@@ -24,6 +23,9 @@ class AutonomousSystemTestCase(FilterTestCases.BaseFilterTestCase):
         status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
+        cls.provider_a = Provider.objects.create(name="Provider A")
+        cls.provider_b = Provider.objects.create(name="Provider B")
+
         cls.status_primary_asn = Status.objects.create(name="Primary ASN", color="FFFFFF")
         cls.status_primary_asn.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
@@ -31,10 +33,13 @@ class AutonomousSystemTestCase(FilterTestCases.BaseFilterTestCase):
         cls.status_remote_asn.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
 
         models.AutonomousSystem.objects.create(
-            asn=4200000000, status=status_active, description="Reserved for private use"
+            asn=4200000000, status=status_active, description="Reserved for private use", provider=cls.provider_a
         )
         models.AutonomousSystem.objects.create(
-            asn=4200000001, status=cls.status_primary_asn, description="Also reserved for private use"
+            asn=4200000001,
+            status=cls.status_primary_asn,
+            description="Also reserved for private use",
+            provider=cls.provider_b,
         )
         models.AutonomousSystem.objects.create(
             asn=4200000002, status=cls.status_remote_asn, description="Another reserved for private use"
@@ -102,6 +107,136 @@ class AutonomousSystemRangeTestCase(FilterTestCases.BaseFilterTestCase):
     def test_search(self):
         """Test filtering by Q search value."""
         self.assertEqual(self.filterset({"q": "DC"}, self.queryset).qs.count(), 2)
+
+
+class BGPRoutingInstanceFilterTestCase(FilterTestCases.BaseFilterTestCase):
+    """Test filtering of BGPRoutingInstance records."""
+
+    queryset = models.BGPRoutingInstance.objects.all()
+    filterset = filters.BGPRoutingInstanceFilterSet
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class setup to prepopulate required data for tests."""
+        status_active = Status.objects.get(name__iexact="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+        status_active.content_types.add(ContentType.objects.get_for_model(models.BGPRoutingInstance))
+
+        # Create infrastructure
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
+
+        # Create devices
+        cls.device_1 = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
+        )
+        cls.device_2 = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Device 2", location=location, status=status_active
+        )
+
+        # Create ASNs
+        cls.asn_1 = models.AutonomousSystem.objects.create(asn=65001, status=status_active, description="ASN 1")
+        cls.asn_2 = models.AutonomousSystem.objects.create(asn=65002, status=status_active, description="ASN 2")
+
+        # Create BGP routing instances
+        cls.bgp_ri_1 = models.BGPRoutingInstance.objects.create(
+            description="Routing Instance 1", autonomous_system=cls.asn_1, device=cls.device_1, status=status_active
+        )
+        cls.bgp_ri_2 = models.BGPRoutingInstance.objects.create(
+            description="Routing Instance 2", autonomous_system=cls.asn_2, device=cls.device_2, status=status_active
+        )
+
+    def test_id(self):
+        """Test filtering by ID (primary key)."""
+        params = {"id": self.queryset.values_list("pk", flat=True)[:1]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_autonomous_system(self):
+        """Test filtering by autonomous system."""
+        params = {"autonomous_system": [65001]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_device_id(self):
+        """Test filtering by device ID."""
+        params = {"device_id": [self.device_1.id]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_device(self):
+        """Test filtering by device name."""
+        params = {"device": ["Device 1"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_search(self):
+        """Test filtering by Q search value."""
+        self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 1)
+
+
+class PeerGroupTemplateFilterTestCase(FilterTestCases.BaseFilterTestCase):
+    """Test filtering of PeerGroupTemplate records."""
+
+    queryset = models.PeerGroupTemplate.objects.all()
+    filterset = filters.PeerGroupTemplateFilterSet
+
+    @classmethod
+    def setUpTestData(cls):
+        """One-time class setup to prepopulate required data for tests."""
+        status_active = Status.objects.get(name__iexact="active")
+        status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        # Create ASNs
+        cls.asn_1 = models.AutonomousSystem.objects.create(asn=65001, status=status_active, description="ASN 1")
+        cls.asn_2 = models.AutonomousSystem.objects.create(asn=65002, status=status_active, description="ASN 2")
+
+        # Create peer group role
+        cls.peeringrole_internal = Role.objects.create(name="Internal", color="333333")
+        cls.peeringrole_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroupTemplate))
+        peeringrole_external = Role.objects.create(name="External", color="ffffff")
+        peeringrole_external.content_types.add(ContentType.objects.get_for_model(models.PeerGroupTemplate))
+
+        # Create peer group templates
+        models.PeerGroupTemplate.objects.create(
+            name="Template A",
+            role=cls.peeringrole_internal,
+            autonomous_system=cls.asn_1,
+            description="Internal Template",
+        )
+        models.PeerGroupTemplate.objects.create(
+            name="Template B",
+            role=peeringrole_external,
+            autonomous_system=cls.asn_2,
+            enabled=False,
+            description="External Template",
+        )
+
+    def test_id(self):
+        """Test filtering by ID (primary key)."""
+        params = {"id": self.queryset.values_list("pk", flat=True)[:1]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_name(self):
+        """Test filtering by name."""
+        params = {"name": ["Template A"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_enabled(self):
+        """Test filtering by enabled status."""
+        params = {"enabled": True}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_autonomous_system(self):
+        """Test filtering by autonomous system."""
+        params = {"autonomous_system": [65001]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
+
+    def test_search(self):
+        """Test text search."""
+        self.assertEqual(self.filterset({"q": "Template A"}, self.queryset).qs.count(), 1)
+        self.assertEqual(self.filterset({"q": "Internal Template"}, self.queryset).qs.count(), 1)
 
 
 class PeerGroupTestCase(FilterTestCases.BaseFilterTestCase):
@@ -368,8 +503,12 @@ class PeeringTestCase(FilterTestCases.BaseFilterTestCase):
         status_reserved = Status.objects.get(name__iexact="reserved")
         status_reserved.content_types.add(ContentType.objects.get_for_model(models.Peering))
 
-        asn1 = models.AutonomousSystem.objects.create(asn=65000, status=status_active)
-        asn2 = models.AutonomousSystem.objects.create(asn=66000, status=status_active)
+        # Create providers
+        cls.provider_a = Provider.objects.create(name="Provider A")
+        cls.provider_b = Provider.objects.create(name="Provider B")
+
+        asn1 = models.AutonomousSystem.objects.create(asn=65000, status=status_active, provider=cls.provider_a)
+        asn2 = models.AutonomousSystem.objects.create(asn=66000, status=status_active, provider=cls.provider_b)
         asn3 = models.AutonomousSystem.objects.create(asn=12345, status=status_active)
 
         manufacturer = Manufacturer.objects.create(name="Cisco")
