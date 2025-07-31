@@ -30,7 +30,7 @@ include = [
 [tool.poetry.dependencies]
 python = ">=3.9.2,<3.13"
 # Used for local development
-nautobot = "^2.4.0"
+nautobot = "^2.4.13"
 netutils = "^1.6.0"
 toml = "^0.10.2"
 
