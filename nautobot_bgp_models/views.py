@@ -2,16 +2,79 @@
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import View
+from django.shortcuts import redirect, render
+from django.utils.html import format_html
 from django_tables2 import RequestConfig
+from nautobot.apps.ui import (
+    ButtonColorChoices,
+    ObjectTextPanel,
+    SectionChoices,
+)
 from nautobot.apps.views import NautobotUIViewSet
+from nautobot.core.choices import ButtonActionIconChoices
+from nautobot.core.ui import object_detail
 from nautobot.core.views import generic, mixins
 from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
-from nautobot.extras.utils import get_base_template
+from nautobot.core.views.utils import get_obj_from_context
 
 from . import filters, forms, helpers, models, tables
 from .api import serializers
+
+
+class BGPObjectsFieldPanel(object_detail.ObjectFieldsPanel):
+    """Object detail panel for BGP objects."""
+
+    def render_value(self, key, value, context):
+        """Wrapper to swap for inherited values and display inheritance information."""
+        obj = get_obj_from_context(context, self.context_object_key)
+
+        if not hasattr(obj, "property_inheritance"):
+            return super().render_value(key, value, context)
+
+        if key not in obj.property_inheritance:
+            return super().render_value(key, value, context)
+
+        value, inheritance_indicator, inheritance_source = obj.get_inherited_field(
+            field_name=key,
+            inheritance_path=obj.property_inheritance[key],
+        )
+
+        rendered_value = super().render_value(key, value, context)
+
+        if inheritance_indicator:
+            rendered_value = rendered_value + format_html(
+                """ <a href="{url}" class="btn btn-xs btn-info">
+                    <span class="mdi mdi-content-duplicate" aria-hidden="true"></span> {source_obj}
+                    </a>
+                """,
+                url=value.get_absolute_url(),
+                source_obj=inheritance_source,
+            )
+
+        return rendered_value
+
+
+extra_attributes_tab = object_detail.Tab(
+    weight=100,
+    tab_id="extra_attributes",
+    label="Extra Attributes",
+    panels=[
+        object_detail.ObjectTextPanel(
+            weight=100,
+            section=SectionChoices.LEFT_HALF,
+            label="Rendered BGP Extra Attributes (includes inherited)",
+            object_field="extra_attributes",
+            render_as=ObjectTextPanel.RenderOptions.JSON,
+        ),
+        object_detail.ObjectTextPanel(
+            weight=100,
+            section=SectionChoices.RIGHT_HALF,
+            label="BGP object's extra attributes (The local BGP object's extra attribute overwrite all inherited attributes.)",
+            object_field="extra_attributes_inherited",
+            render_as=ObjectTextPanel.RenderOptions.JSON,
+        ),
+    ],
+)
 
 
 class AutonomousSystemUIViewSet(NautobotUIViewSet):
@@ -26,6 +89,16 @@ class AutonomousSystemUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AutonomousSystemSerializer
     table_class = tables.AutonomousSystemTable
 
+    object_detail_content = object_detail.ObjectDetailContent(
+        panels=[
+            object_detail.ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields=["asn", "asn_asdot", "description", "status", "provider"],
+            ),
+        ],
+    )
+
 
 class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
     """UIViewset for AutonomousSystemRange model."""
@@ -38,6 +111,21 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
     queryset = models.AutonomousSystemRange.objects.all()
     serializer_class = serializers.AutonomousSystemRangeSerializer
     table_class = tables.AutonomousSystemRangeTable
+
+    object_detail_content = object_detail.ObjectDetailContent(
+        panels=[
+            object_detail.ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+            ),
+            object_detail.ObjectsTablePanel(
+                section=SectionChoices.RIGHT_HALF,
+                weight=100,
+                context_table_key="asn_range_table",
+            ),
+        ],
+    )
 
     def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
         """Return any additional context data for the template."""
@@ -78,6 +166,32 @@ class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.BGPRoutingInstanceSerializer
     table_class = tables.BGPRoutingInstanceTable
 
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            object_detail.ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+            object_detail.ObjectsTablePanel(
+                weight=100,
+                section=SectionChoices.RIGHT_HALF,
+                table_class=tables.PeerGroupTable,
+                table_filter="routing_instance",
+            ),
+            object_detail.ObjectsTablePanel(
+                weight=150,
+                section=SectionChoices.RIGHT_HALF,
+                table_class=tables.AddressFamilyTable,
+                table_filter="routing_instance",
+            ),
+        ],
+    )
+
 
 class PeerGroupUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroup model."""
@@ -91,12 +205,31 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerGroupSerializer
     table_class = tables.PeerGroupTable
 
-    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
-        """Return any additional context data for the template."""
-        context = super().get_extra_context(request, instance)
-        if self.action == "retrieve":
-            context["object_fields"] = instance.get_fields(include_inherited=True)
-        return context
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+            object_detail.ObjectsTablePanel(
+                weight=50,
+                section=SectionChoices.RIGHT_HALF,
+                table_class=tables.PeerEndpointTable,
+                table_filter="peer_group",
+            ),
+            object_detail.ObjectsTablePanel(
+                weight=100,
+                section=SectionChoices.RIGHT_HALF,
+                table_class=tables.PeerGroupAddressFamilyTable,
+                table_filter="peer_group",
+            ),
+        ],
+    )
 
 
 class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
@@ -111,6 +244,20 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerGroupTemplateSerializer
     table_class = tables.PeerGroupTemplateTable
 
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            object_detail.ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+        ],
+    )
+
 
 class PeerEndpointUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerEndpoint model."""
@@ -124,12 +271,19 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerEndpointSerializer
     table_class = tables.PeerEndpointTable
 
-    def get_extra_context(self, request, instance):  # pylint: disable=signature-differs
-        """Return any additional context data for the template."""
-        context = super().get_extra_context(request, instance)
-        if self.action == "retrieve":
-            context["object_fields"] = instance.get_fields(include_inherited=True)
-        return context
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+        ],
+    )
 
 
 class PeeringUIViewSet(  # pylint: disable=abstract-method
@@ -154,6 +308,67 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
     queryset = models.Peering.objects.all()
     serializer_class = serializers.PeeringSerializer
     table_class = tables.PeeringTable
+
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_buttons=[
+            object_detail.DropdownButton(
+                weight=100,
+                color=ButtonColorChoices.YELLOW,
+                label="Edit Peer Endpoint",
+                icon=ButtonActionIconChoices.EDIT,
+                required_permissions=["nautobot_bgp_models:edit_peerendpoint"],
+                # TODO(mzb): Below depends on #7610 in Nautobot.
+                children=(
+                    object_detail.Button(
+                        weight=100,
+                        link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
+                        label="Peer Endpoint A-side",
+                        icon="mdi-alpha-a-box",
+                    ),
+                    object_detail.Button(
+                        weight=200,
+                        link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
+                        label="Peer Endpoint Z-side",
+                        icon="mdi-alpha-z-box",
+                    ),
+                ),
+            ),
+        ],
+        panels=[
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.RIGHT_HALF,
+                label="BGP Peer Endpoint (A-side)",
+                context_object_key="endpoint_a",
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=150,
+                section=SectionChoices.RIGHT_HALF,
+                label="BGP Peer Endpoint (Z-side)",
+                context_object_key="endpoint_z",
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+        ],
+    )
+
+    def get_extra_context(self, request, instance=None):
+        """Get extra context data."""
+        context = super().get_extra_context(request, instance)
+
+        if instance:
+            context["endpoint_a"] = instance.endpoint_a
+            context["endpoint_z"] = instance.endpoint_z
+
+        return context
 
 
 # TODO: This needs to be moved to the UIViewSet
@@ -228,6 +443,20 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AddressFamilySerializer
     table_class = tables.AddressFamilyTable
 
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            object_detail.ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+        ],
+    )
+
 
 class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
     """UIViewset for PeerGroupAddressFamily model."""
@@ -240,6 +469,20 @@ class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
     queryset = models.PeerGroupAddressFamily.objects.all()
     serializer_class = serializers.PeerGroupAddressFamilySerializer
     table_class = tables.PeerGroupAddressFamilyTable
+
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+        ],
+    )
 
 
 class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
@@ -254,43 +497,16 @@ class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerEndpointAddressFamilySerializer
     table_class = tables.PeerEndpointAddressFamilyTable
 
-
-class BgpExtraAttributesView(View):
-    """BGP Extra Attributes View."""
-
-    base_template = None
-
-    def get(self, request, model, **kwargs):  # pylint: disable=missing-function-docstring
-        """Getter."""
-        # Handle QuerySet restriction of parent object if needed
-        if hasattr(model.objects, "restrict"):
-            obj = get_object_or_404(model.objects.restrict(request.user, "view"), **kwargs)
-        else:
-            obj = get_object_or_404(model, **kwargs)
-
-        self.base_template = get_base_template(self.base_template, model)
-
-        # Determine user's preferred output format
-        if request.GET.get("format") in ["json", "yaml"]:
-            _format = request.GET.get("format")
-            if request.user.is_authenticated:
-                request.user.set_config("nautobot_bgp_models.extraattributes.format", _format, commit=True)
-        elif request.user.is_authenticated:
-            _format = request.user.get_config("nautobot_bgp_models.extraattributes.format", "json")
-        else:
-            _format = "json"
-
-        return render(
-            request,
-            "nautobot_bgp_models/extra_attributes.html",
-            {
-                "object": obj,
-                "rendered_context": obj.get_extra_attributes(),
-                "verbose_name": obj._meta.verbose_name,
-                "verbose_name_plural": obj._meta.verbose_name_plural,
-                # "table": objectchanges_table,
-                "format": _format,
-                "base_template": self.base_template,
-                "active_tab": "extraattributes",
-            },
-        )
+    object_detail_content = object_detail.ObjectDetailContent(
+        extra_tabs=[
+            extra_attributes_tab,
+        ],
+        panels=[
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                exclude_fields=["extra_attributes"],
+            ),
+        ],
+    )
