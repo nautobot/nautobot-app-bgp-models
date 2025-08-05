@@ -228,15 +228,26 @@ class BGPRoutingInstance(PrimaryModel, BGPExtraAttributesMixin):
         on_delete=models.PROTECT,
     )
 
+    vrf = models.ForeignKey(
+        to="ipam.VRF",
+        verbose_name="VRF",
+        related_name="bgp_routing_instances",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
+
     status = StatusField(null=True)
 
     def __str__(self):
         """String representation of a BGPRoutingInstance."""
+        if self.vrf:
+            return f"{self.device} - {self.autonomous_system} (VRF {self.vrf})"
         return f"{self.device} - {self.autonomous_system}"
 
     class Meta:
         verbose_name = "BGP Routing Instance"
-        unique_together = [("device", "autonomous_system")]
+        unique_together = [("device", "autonomous_system", "vrf")]
 
     def clean(self):
         """Clean."""

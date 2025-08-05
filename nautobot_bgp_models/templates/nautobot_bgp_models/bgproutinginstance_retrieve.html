@@ -31,6 +31,16 @@
                             {% endif %}
                         </td>
                     </tr>
+                    <tr>
+                        <td>VRF</td>
+                        <td>
+                            {% if object.vrf %}
+                                <a href="{{ object.vrf.get_absolute_url }}">{{ object.vrf }}</a>
+                            {% else %}
+                                <span class="text-muted">Global</span>
+                            {% endif %}
+                        </td>
+                    </tr>
                 </table>
             </div>
 {% endblock content_left_page %}

@@ -191,7 +191,8 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
     choices_fields = []
 
     # Nautobot testing doesn't correctly handle the API representation of a Status as a slug instead of a PK yet.
-    validation_excluded_fields = ["status"]
+    # Nautobot not handling VRF field as optional even though it's nullable.
+    validation_excluded_fields = ["status", "vrf"]
 
     @classmethod
     def setUpTestData(cls):  # pylint: disable=too-many-locals
@@ -255,6 +256,7 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
                 "autonomous_system": asn_8545.pk,
                 "device": device_1.pk,
                 "router_id": address.pk,
+                "vrf": None,
                 "extra_attributes": {"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
                 "status": status_active.pk,
                 "tags": [tag.pk],
@@ -272,16 +274,19 @@ class BGPRoutingInstanceAPITestCase(APIViewTestCases.APIViewTestCase):
             autonomous_system=asn_5616,
             extra_attributes={"key1": 1, "key2": {"nested_key2": "nested_value2", "nk2": 2}},
             status=status_active,
+            vrf=vrf,
         )
         models.BGPRoutingInstance.objects.create(
             device=device_3,
             autonomous_system=asn_8545,
             status=status_active,
+            vrf=vrf,
         )
         models.BGPRoutingInstance.objects.create(
             device=device_4,
             autonomous_system=asn_15521,
             status=status_active,
+            vrf=vrf,
         )
 
         cls.maxDiff = None
@@ -392,6 +397,7 @@ class PeerGroupAPITestCase(APIViewTestCases.APIViewTestCase):
             device=device,
             extra_attributes={"ri_key": "ri_value", "ri_nk": {"ri_nk": "ri_nv", "ri_nk2": "ri_nv2"}},
             status=status_active,
+            vrf=vrf,
         )
 
         cls.create_data = [
@@ -685,6 +691,7 @@ class PeerEndpointAPITestCase(APIViewTestCases.APIViewTestCase):
             autonomous_system=cls.asn,
             device=device,
             status=cls.status_active,
+            vrf=None,
         )
 
         cls.pgt1 = models.PeerGroupTemplate.objects.create(
