@@ -1,6 +1,8 @@
 ---
 name: 🐛 Bug Report
 about: Report a reproducible bug in the current release of nautobot-bgp-models
+labels:
+  - "type: bug"
 ---
 
 ### Environment
