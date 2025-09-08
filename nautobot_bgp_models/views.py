@@ -317,19 +317,20 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                 label="Edit Peer Endpoint",
                 icon=ButtonActionIconChoices.EDIT,
                 required_permissions=["nautobot_bgp_models:edit_peerendpoint"],
-                # TODO(mzb): Below depends on #7610 in Nautobot.
                 children=(
                     object_detail.Button(
                         weight=100,
                         link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint A-side",
                         icon="mdi-alpha-a-box",
+                        context_object_key="endpoint_a",
                     ),
                     object_detail.Button(
                         weight=200,
                         link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint Z-side",
                         icon="mdi-alpha-z-box",
+                        context_object_key="endpoint_z",
                     ),
                 ),
             ),
