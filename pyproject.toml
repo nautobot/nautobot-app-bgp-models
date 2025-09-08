@@ -33,6 +33,7 @@ python = ">=3.9.2,<3.13"
 nautobot = "^2.4.15"
 netutils = "^1.6.0"
 toml = "^0.10.2"
+django-debug-toolbar = "<6"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
