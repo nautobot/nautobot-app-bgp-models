@@ -191,7 +191,7 @@ class PeerEndpointTable(BaseTable):
         model = models.PeerEndpoint
         fields = (
             # "pk",
-            # "id",
+            "id",
             "routing_instance",
             "role",
             "source_ip",
@@ -207,7 +207,7 @@ class PeerEndpointTable(BaseTable):
         )
         default_columns = (
             # "pk",
-            # "id",
+            "id",
             "routing_instance",
             "role",
             "source_ip",

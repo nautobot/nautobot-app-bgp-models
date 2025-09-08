@@ -316,6 +316,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                 color=ButtonColorChoices.YELLOW,
                 label="Edit Peer Endpoint",
                 icon=ButtonActionIconChoices.EDIT,
+                required_permissions=["nautobot_bgp_models.change_peerendpoint"],
                 children=(
                     object_detail.Button(
                         weight=100,
