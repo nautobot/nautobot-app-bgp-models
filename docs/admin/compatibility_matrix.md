@@ -1,6 +1,7 @@
 # Compatibility Matrix
 
 | BGP Models Version | Nautobot First Support Version | Nautobot Last Support Version |
+<<<<<<< HEAD
 |--------------------|--------------------------------|-------------------------------|
 | 0.7.0              | 1.3.0                          | 1.99.99                       |
 | 0.7.1              | 1.5.4                          | 1.99.99                       |
@@ -14,3 +15,7 @@
 | 2.1.0              | 2.0.3                          | 2.2.99                        |
 | 2.2.0              | 2.0.3                          | 2.99.99                       |
 | 2.3.0              | 2.0.3                          | 2.99.99                       |
+=======
+| ------------- | -------------------- | ------------- |
+| 1.0.X         | 2.4.2                | 2.99.99        |
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)

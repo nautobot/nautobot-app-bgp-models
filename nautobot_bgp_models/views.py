@@ -6,9 +6,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import View
 from django_tables2 import RequestConfig
 from nautobot.apps.views import NautobotUIViewSet
+<<<<<<< HEAD
 from nautobot.core.views import generic, mixins
 from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
 from nautobot.extras.utils import get_base_template
+=======
+from nautobot.apps.ui import ObjectDetailContent, ObjectFieldsPanel, ObjectTablePanel, SectionChoices
+from nautobot.core.templatetags import helpers
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
 from . import filters, forms, helpers, models, tables
 from .api import serializers
@@ -26,6 +31,7 @@ class AutonomousSystemUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AutonomousSystemSerializer
     table_class = tables.AutonomousSystemTable
 
+<<<<<<< HEAD
 
 class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
     """UIViewset for AutonomousSystemRange model."""
@@ -294,3 +300,35 @@ class BgpExtraAttributesView(View):
                 "active_tab": "extraattributes",
             },
         )
+=======
+    # Here is an example of using the UI  Component Framework for the detail view.
+    # More information can be found in the Nautobot documentation:
+    # https://docs.nautobot.com/projects/core/en/stable/development/core/ui-component-framework/
+    object_detail_content = ObjectDetailContent(
+        panels=[
+            ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+                # Alternatively, you can specify a list of field names:
+                # fields=[
+                #     "name",
+                #     "description",
+                # ],
+                # Some fields may require additional configuration, we can use value_transforms
+                # value_transforms={
+                #     "name": [helpers.bettertitle]
+                # },
+            ),
+            # If there is a ForeignKey or M2M with this model we can use ObjectTablePanel
+            # to display them in a table format.
+            # ObjectTablePanel(
+                # weight=200,
+                # section=SectionChoices.RIGHT_HALF,
+                # table_class=tables.AutonomousSystemTable,
+                # You will want to filter the table using the related_name
+                # filter="autonomoussystems",
+            # ),
+        ],
+    )
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)

@@ -2,6 +2,7 @@
 
 import nautobot.core.forms as utilities_forms
 from django import forms
+<<<<<<< HEAD
 from nautobot.apps.forms import (
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
@@ -16,6 +17,10 @@ from nautobot.extras.forms import NautobotFilterForm, RoleModelFilterFormMixin
 from nautobot.extras.models import Role, Secret, Tag
 from nautobot.ipam.models import VRF, IPAddress
 from nautobot.tenancy.models import Tenant
+=======
+from nautobot.apps.constants import CHARFIELD_MAX_LENGTH
+from nautobot.apps.forms import NautobotBulkEditForm, NautobotFilterForm, NautobotModelForm, TagsBulkEditFormMixin
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
 from . import choices, models
 
@@ -34,6 +39,7 @@ class AutonomousSystemForm(NautobotModelForm):
 class AutonomousSystemFilterForm(NautobotFilterForm):
     """Form for filtering AutonomousSystem records in combination with AutonomousSystemFilterSet."""
 
+<<<<<<< HEAD
     model = models.AutonomousSystem
     field_order = ["status", "tag"]
     tag = TagFilterField(model)
@@ -46,6 +52,10 @@ class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
         queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput()
     )
     description = forms.CharField(max_length=200, required=False)
+=======
+    pk = forms.ModelMultipleChoiceField(queryset=models.AutonomousSystem.objects.all(), widget=forms.MultipleHiddenInput)
+    description = forms.CharField(required=False, max_length=CHARFIELD_MAX_LENGTH)
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
     class Meta:
         nullable_fields = [

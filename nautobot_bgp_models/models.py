@@ -15,9 +15,16 @@ from nautobot.ipam.models import IPAddress
 from nautobot.tenancy.models import Tenant
 from netutils.asn import int_to_asdot
 
+<<<<<<< HEAD
 from nautobot_bgp_models.choices import AFISAFIChoices
+=======
+# Nautobot imports
+from nautobot.apps.constants import CHARFIELD_MAX_LENGTH
+from nautobot.apps.models import PrimaryModel, extras_features
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
 
+<<<<<<< HEAD
 def rgetattr(obj, attr, *args):
     """Recursive getattr helper."""
 
@@ -72,6 +79,11 @@ class InheritanceMixin(models.Model):
     def fields_inherited(self):
         """Wrapper intended to remove function call with attributes from within a jinja template."""
         return self.get_fields(include_inherited=True)
+=======
+    name = models.CharField(max_length=CHARFIELD_MAX_LENGTH, unique=True)
+    description = models.CharField(max_length=CHARFIELD_MAX_LENGTH, blank=True)
+    # additional model fields
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
     class Meta:
         abstract = True

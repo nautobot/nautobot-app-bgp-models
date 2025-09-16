@@ -10,8 +10,6 @@
         "project_slug": "nautobot-app-bgp-models",
         "repo_url": "https://github.com/nautobot/nautobot-app-bgp-models",
         "base_url": "bgp",
-        "min_nautobot_version": "2.0.3",
-        "max_nautobot_version": "2.9999",
         "camel_name": "NautobotBGPModels",
         "project_short_description": "Nautobot BGP Models App",
         "model_class_name": "AutonomousSystem",
@@ -21,6 +19,7 @@
         "_drift_manager": {
             "template": "https://github.com/nautobot/cookiecutter-nautobot-app.git",
             "template_dir": "nautobot-app",
+<<<<<<< HEAD
             "template_ref": "nautobot-app-v2.5.1",
             "cookie_dir": "",
             "branch_prefix": "drift-manager",
@@ -28,6 +27,15 @@
             "post_actions": [],
             "draft": false,
             "baked_commit_ref": "a4063373e496b7450d80c1d54221b1d7f040abfc"
+=======
+            "template_ref": "nautobot-app-v2.6.0",
+            "cookie_dir": "",
+            "branch_prefix": "drift-manager",
+            "pull_request_strategy": "update-or-create",
+            "post_actions": [],
+            "draft": false,
+            "baked_commit_ref": "e6adbaf7deaee9a7036ea88334fba591d12a5e74"
+>>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
         }
     }
 }
