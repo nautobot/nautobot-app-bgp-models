@@ -10,8 +10,6 @@
         "project_slug": "nautobot-app-bgp-models",
         "repo_url": "https://github.com/nautobot/nautobot-app-bgp-models",
         "base_url": "bgp",
-        "min_nautobot_version": "2.0.3",
-        "max_nautobot_version": "2.9999",
         "camel_name": "NautobotBGPModels",
         "project_short_description": "Nautobot BGP Models App",
         "model_class_name": "AutonomousSystem",
@@ -21,10 +19,10 @@
         "_drift_manager": {
             "template": "https://github.com/nautobot/cookiecutter-nautobot-app.git",
             "template_dir": "nautobot-app",
-            "template_ref": "nautobot-app-v2.5.1",
+            "template_ref": "nautobot-app-v2.6.0",
             "cookie_dir": "",
             "branch_prefix": "drift-manager",
-            "pull_request_strategy": "create",
+            "pull_request_strategy": "update-or-create",
             "post_actions": [],
             "draft": false,
             "baked_commit_ref": ""

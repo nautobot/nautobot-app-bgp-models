@@ -18,11 +18,10 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
     description = "Nautobot BGP Models App."
     base_url = "bgp"
     required_settings = []
-    min_version = "2.0.3"
-    max_version = "2.9999"
     default_settings = {}
     caching_config = {}
     docs_view_name = "plugins:nautobot_bgp_models:docs"
+    searchable_models = ["autonomoussystem"]
 
 
 config = NautobotBGPModelsConfig  # pylint:disable=invalid-name
