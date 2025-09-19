@@ -19,7 +19,6 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
     description = "Nautobot BGP Models App."
     base_url = "bgp"
     required_settings = []
-<<<<<<< HEAD
     min_version = "2.0.3"
     max_version = "2.9999"
     default_settings = {
@@ -29,9 +28,6 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
             "Peering": ["Active", "Decommissioned", "Deprovisioning", "Offline", "Planned", "Provisioning"],
         }
     }
-=======
-    default_settings = {}
->>>>>>> e1f478a (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
     caching_config = {}
     docs_view_name = "plugins:nautobot_bgp_models:docs"
     searchable_models = ["autonomoussystem"]
