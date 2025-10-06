@@ -376,7 +376,6 @@ class AddressFamilyTestCase(
         "retrieve": 1,
     }
 
-
     @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
     def test_list_objects_with_permission(self):
         super().test_list_objects_with_permission()
@@ -435,7 +434,6 @@ class PeerGroupAddressFamilyTestCase(ViewTestCases.PrimaryObjectViewTestCase):
     allowed_number_of_tree_queries_per_view_type = {
         "retrieve": 1,
     }
-
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string
