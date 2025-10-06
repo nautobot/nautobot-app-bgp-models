@@ -6,13 +6,12 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from nautobot.apps.models import extras_features
+from nautobot.apps.models import OrganizationalModel, PrimaryModel, extras_features
 from nautobot.circuits.models import Provider
-from nautobot.core.models.generics import OrganizationalModel, PrimaryModel
 from nautobot.core.utils.data import deepmerge
 from nautobot.dcim.fields import ASNField
 from nautobot.extras.models import RoleField, StatusField
-from nautobot.ipam.models import IPAddress, IPAddressToInterface
+from nautobot.ipam.models import IPAddress
 from nautobot.tenancy.models import Tenant
 from netutils.asn import int_to_asdot
 
@@ -575,9 +574,6 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
                 interfaces__in=self.routing_instance.device.vc_interfaces
             ):
                 raise ValidationError("Peer IP not associated with Routing Instance")
-        # Enforce Routing Instance if local IP belongs to the Device
-        elif not self.routing_instance and IPAddressToInterface.objects.filter(ip_address=local_ip_value).exists():
-            raise ValidationError("Must specify Routing Instance for this IP Address")
 
         # Enforce peer group VRF membership
         if self.peer_group is not None:

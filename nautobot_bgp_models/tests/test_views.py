@@ -128,6 +128,9 @@ class PeerGroupTestCase(
     model = models.PeerGroup
 
     test_create_object_with_constrained_permission = None  # TODO(mzb): FIXME
+    allowed_number_of_tree_queries_per_view_type = {
+        "retrieve": 1,
+    }
 
     @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
     def test_list_objects_with_permission(self):
@@ -369,6 +372,9 @@ class AddressFamilyTestCase(
     maxDiff = None
 
     test_create_object_with_constrained_permission = None  # TODO(mzb): FIXME
+    allowed_number_of_tree_queries_per_view_type = {
+        "retrieve": 1,
+    }
 
     @skipIf(_NAUTOBOT_VERSION in _FAILING_OBJECT_LIST_NAUTOBOT_VERSIONS, f"Skip Nautobot version {_NAUTOBOT_VERSION}")
     def test_list_objects_with_permission(self):
@@ -425,6 +431,9 @@ class PeerGroupAddressFamilyTestCase(ViewTestCases.PrimaryObjectViewTestCase):
     """Test views related to the PeerGroupAddressFamily model."""
 
     model = models.PeerGroupAddressFamily
+    allowed_number_of_tree_queries_per_view_type = {
+        "retrieve": 1,
+    }
 
     def _get_base_url(self):
         return "plugins:{}:{}_{{}}".format(  # pylint: disable=consider-using-f-string

@@ -1,1 +1,0 @@
-Fixed PeerEndpoint validation to allow all interfaces (including Virtual Chassis)
