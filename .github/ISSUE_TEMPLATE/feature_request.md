@@ -1,11 +1,12 @@
 ---
 name: ✨ Feature Request
 about: Propose a new feature or enhancement
-
+labels:
+  - "type: feature"
 ---
 
 ### Environment
-* Nautobot version:  <!-- Example: 2.0.3 -->
+* Nautobot version:  <!-- Example: 2.4.2 -->
 * nautobot-bgp-models version:  <!-- Example: 1.0.0 -->
 
 <!--
