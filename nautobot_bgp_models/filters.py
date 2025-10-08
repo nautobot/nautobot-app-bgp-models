@@ -7,11 +7,11 @@ from nautobot.apps.filters import (
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
     NautobotFilterSet,
+    RoleModelFilterSetMixin,
     SearchFilter,
     StatusModelFilterSetMixin,
 )
 from nautobot.dcim.models import Device
-from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role
 from nautobot.ipam.models import VRF
 

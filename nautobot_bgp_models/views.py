@@ -6,22 +6,37 @@ from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django_tables2 import RequestConfig
 from nautobot.apps.ui import (
+    Button,
     ButtonColorChoices,
+    DropdownButton,
+    ObjectDetailContent,
+    ObjectFieldsPanel,
+    ObjectsTablePanel,
     ObjectTextPanel,
     SectionChoices,
+    Tab,
 )
-from nautobot.apps.views import NautobotUIViewSet
+from nautobot.apps.views import (
+    EnhancedPaginator,
+    NautobotUIViewSet,
+    ObjectBulkDestroyViewMixin,
+    ObjectChangeLogViewMixin,
+    ObjectDestroyViewMixin,
+    ObjectDetailViewMixin,
+    ObjectEditView,
+    ObjectEditViewMixin,
+    ObjectListViewMixin,
+    ObjectNotesViewMixin,
+    get_obj_from_context,
+    get_paginate_count,
+)
 from nautobot.core.choices import ButtonActionIconChoices
-from nautobot.core.ui import object_detail
-from nautobot.core.views import generic, mixins
-from nautobot.core.views.paginator import EnhancedPaginator, get_paginate_count
-from nautobot.core.views.utils import get_obj_from_context
 
 from . import filters, forms, helpers, models, tables
 from .api import serializers
 
 
-class BGPObjectsFieldPanel(object_detail.ObjectFieldsPanel):
+class BGPObjectsFieldPanel(ObjectFieldsPanel):
     """Object detail panel for BGP objects."""
 
     def render_value(self, key, value, context):
@@ -54,19 +69,19 @@ class BGPObjectsFieldPanel(object_detail.ObjectFieldsPanel):
         return rendered_value
 
 
-extra_attributes_tab = object_detail.Tab(
+extra_attributes_tab = Tab(
     weight=100,
     tab_id="extra_attributes",
     label="Extra Attributes",
     panels=[
-        object_detail.ObjectTextPanel(
+        ObjectTextPanel(
             weight=100,
             section=SectionChoices.LEFT_HALF,
             label="Rendered BGP Extra Attributes (includes inherited)",
             object_field="extra_attributes",
             render_as=ObjectTextPanel.RenderOptions.JSON,
         ),
-        object_detail.ObjectTextPanel(
+        ObjectTextPanel(
             weight=100,
             section=SectionChoices.RIGHT_HALF,
             label="BGP object's extra attributes (The local BGP object's extra attribute overwrite all inherited attributes.)",
@@ -89,9 +104,9 @@ class AutonomousSystemUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AutonomousSystemSerializer
     table_class = tables.AutonomousSystemTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         panels=[
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 fields=["asn", "asn_asdot", "description", "status", "provider"],
@@ -112,14 +127,14 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AutonomousSystemRangeSerializer
     table_class = tables.AutonomousSystemRangeTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         panels=[
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
             ),
-            object_detail.ObjectsTablePanel(
+            ObjectsTablePanel(
                 section=SectionChoices.RIGHT_HALF,
                 weight=100,
                 context_table_key="asn_range_table",
@@ -168,18 +183,18 @@ class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.BGPRoutingInstanceSerializer
     table_class = tables.BGPRoutingInstanceTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
         panels=[
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
                 exclude_fields=["extra_attributes"],
             ),
-            object_detail.ObjectsTablePanel(
+            ObjectsTablePanel(
                 weight=100,
                 section=SectionChoices.RIGHT_HALF,
                 table_class=tables.PeerGroupTable,
@@ -189,7 +204,7 @@ class BGPRoutingInstanceUIViewSet(NautobotUIViewSet):
                 include_columns=["name"],
                 exclude_columns=set(tables.PeerGroupTable.Meta.default_columns).difference({"name"}),
             ),
-            object_detail.ObjectsTablePanel(
+            ObjectsTablePanel(
                 weight=150,
                 section=SectionChoices.RIGHT_HALF,
                 table_class=tables.AddressFamilyTable,
@@ -215,7 +230,7 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerGroupSerializer
     table_class = tables.PeerGroupTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
@@ -245,7 +260,7 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
                 label="Attributes",
                 fields=["source_ip", "source_interface", "description", "enabled", "autonomous_system"],
             ),
-            object_detail.ObjectsTablePanel(
+            ObjectsTablePanel(
                 weight=50,
                 section=SectionChoices.RIGHT_HALF,
                 table_class=tables.PeerEndpointTable,
@@ -256,7 +271,7 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
                 include_columns=["peering"],
                 exclude_columns=set(tables.PeerEndpointTable.Meta.default_columns).difference({"peering"}),
             ),
-            object_detail.ObjectsTablePanel(
+            ObjectsTablePanel(
                 weight=100,
                 section=SectionChoices.RIGHT_HALF,
                 table_class=tables.PeerGroupAddressFamilyTable,
@@ -284,12 +299,12 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerGroupTemplateSerializer
     table_class = tables.PeerGroupTemplateTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
         panels=[
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 label="BGP Peer Group Template",
@@ -323,7 +338,7 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerEndpointSerializer
     table_class = tables.PeerEndpointTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
@@ -370,13 +385,13 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
 
 
 class PeeringUIViewSet(  # pylint: disable=abstract-method
-    mixins.ObjectDestroyViewMixin,
-    mixins.ObjectBulkDestroyViewMixin,
-    mixins.ObjectEditViewMixin,
-    mixins.ObjectListViewMixin,
-    mixins.ObjectDetailViewMixin,
-    mixins.ObjectChangeLogViewMixin,
-    mixins.ObjectNotesViewMixin,
+    ObjectDestroyViewMixin,
+    ObjectBulkDestroyViewMixin,
+    ObjectEditViewMixin,
+    ObjectListViewMixin,
+    ObjectDetailViewMixin,
+    ObjectChangeLogViewMixin,
+    ObjectNotesViewMixin,
 ):
     """UIViewset for Peering model."""
 
@@ -392,23 +407,23 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
     serializer_class = serializers.PeeringSerializer
     table_class = tables.PeeringTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_buttons=[
-            object_detail.DropdownButton(
+            DropdownButton(
                 weight=100,
                 color=ButtonColorChoices.YELLOW,
                 label="Edit Peer Endpoint",
                 icon=ButtonActionIconChoices.EDIT,
                 required_permissions=["nautobot_bgp_models.change_peerendpoint"],
                 children=(
-                    object_detail.Button(
+                    Button(
                         weight=100,
                         link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint A-side",
                         icon="mdi-alpha-a-box",
                         context_object_key="endpoint_a",
                     ),
-                    object_detail.Button(
+                    Button(
                         weight=200,
                         link_name="plugins:nautobot_bgp_models:peerendpoint_edit",
                         label="Peer Endpoint Z-side",
@@ -456,7 +471,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
 
 
 # TODO: This needs to be moved to the UIViewSet
-class PeeringAddView(generic.ObjectEditView):
+class PeeringAddView(ObjectEditView):
     """Create view for a Peering."""
 
     queryset = models.Peering.objects.all()
@@ -527,12 +542,12 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.AddressFamilySerializer
     table_class = tables.AddressFamilyTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
         panels=[
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 label="BGP Address Family",
@@ -561,7 +576,7 @@ class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerGroupAddressFamilySerializer
     table_class = tables.PeerGroupAddressFamilyTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
@@ -588,7 +603,7 @@ class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
     serializer_class = serializers.PeerEndpointAddressFamilySerializer
     table_class = tables.PeerEndpointAddressFamilyTable
 
-    object_detail_content = object_detail.ObjectDetailContent(
+    object_detail_content = ObjectDetailContent(
         extra_tabs=[
             extra_attributes_tab,
         ],
