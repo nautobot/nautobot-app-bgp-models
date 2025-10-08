@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 {% load helpers %}
 {% load form_helpers %}
@@ -22,7 +22,7 @@
             </div>
         {% endif %}
     {% endfor %}
-        <h3>{% block title %}Create peering{% endblock %}</h3>
+        <h3>{% block title %}Create peering{% endblock title %}</h3>
         <div class="row">
             <div class="col-md-5">
                 <div class="panel panel-default">
@@ -61,4 +61,4 @@
             </div>
         </div>
 </form>
-{% endblock %}
+{% endblock content %}

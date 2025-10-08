@@ -7,10 +7,10 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <strong>Rendered BGP Extra Attributes</strong>
-                    {% include 'extras/inc/json_format.html' %}
+                    {% include "extras/inc/json_format.html" %}
                 </div>
                 <div class="panel-body">
-                    {% include 'extras/inc/json_data.html' with data=rendered_context format=format %}
+                    {% include "extras/inc/json_data.html" with data=rendered_context format=format %}
                 </div>
             </div>
         </div>
@@ -21,7 +21,7 @@
                 </div>
                 <div class="panel-body">
                     {% if object.extra_attributes %}
-                        {% include 'extras/inc/json_data.html' with data=object.extra_attributes format=format %}
+                        {% include "extras/inc/json_data.html" with data=object.extra_attributes format=format %}
                     {% else %}
                         <span class="text-muted">None</span>
                     {% endif %}
