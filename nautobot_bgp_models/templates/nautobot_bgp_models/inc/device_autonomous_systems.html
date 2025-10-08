@@ -1,0 +1,27 @@
+{% if autonomous_systems %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Autonomous Systems</strong></div>
+        <table class="table table-hover panel-body">
+        {% for autonomous_system in autonomous_systems %}
+            <tr>
+                <td>
+                    <a href="{{ autonomous_system.get_absolute_url }}">
+                        ASN {{ autonomous_system.asn }} ({{ autonomous_system.asn_asdot }}){% if autonomous_system.description %} - {{ autonomous_system.description }}{% endif %}
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+{% else %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>Autonomous Systems</strong></div>
+        <table class="table table-hover panel-body">
+            <tr>
+                <td>
+                    No autonomous systems
+                </td>
+            </tr>
+        </table>
+    </div>
+{% endif %}

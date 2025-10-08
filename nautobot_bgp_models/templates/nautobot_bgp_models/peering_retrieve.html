@@ -1,4 +1,4 @@
-{% extends 'generic/object_detail.html' %}
+{% extends "generic/object_detail.html" %}
 {% load helpers %}
 
 {% block content_left_page %}
@@ -19,6 +19,6 @@
             </div>
 {% endblock content_left_page %}
 {% block content_right_page %}
-            {% include 'nautobot_bgp_models/inc/peerendpoint.html' with endpoint=object.endpoint_a side='A' %}
-            {% include 'nautobot_bgp_models/inc/peerendpoint.html' with endpoint=object.endpoint_z side='Z' %}
+            {% include "nautobot_bgp_models/inc/peerendpoint.html" with endpoint=object.endpoint_a side="A" %}
+            {% include "nautobot_bgp_models/inc/peerendpoint.html" with endpoint=object.endpoint_z side="Z" %}
 {% endblock content_right_page %}
