@@ -47,7 +47,7 @@ class BGPObjectsFieldPanel(object_detail.ObjectFieldsPanel):
                     <span class="mdi mdi-content-duplicate" aria-hidden="true"></span> {source_obj}
                     </a>
                 """,
-                url=value.get_absolute_url(),
+                url=inheritance_source.get_absolute_url(),
                 source_obj=inheritance_source,
             )
 
