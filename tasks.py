@@ -988,7 +988,7 @@ def validate_app_config(context):
 def generate_test_data(context, flush=False, database=None):
     """Generate test data in Nautobot for this app."""
     # Run the core generate_test_data command first to populate the core models
-    command = "nautobot-server generate_test_data"
+    command = "nautobot-server generate_test_data --seed 'nautobot'"
     if database:
         command += f" --database {database}"
     if flush:
