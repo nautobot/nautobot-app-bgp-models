@@ -224,8 +224,8 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 label="BGP Peer Group",
-                # TODO: Add `source_interface__device` field after ObjectFieldsPanel adds support for nested lookups with nullable fields
-                fields=["name", "routing_instance", "vrf"],
+                fields=["name", "source_interface__parent", "routing_instance", "vrf"],
+                key_transforms={"source_interface__parent": "Device"},
             ),
             BGPObjectsFieldPanel(
                 weight=200,
@@ -332,8 +332,8 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 label="BGP Peer Endpoint",
-                # TODO: Add `source_interface__device` field after ObjectFieldsPanel adds support for nested lookups with nullable fields
-                fields=["routing_instance", "peer_group", "peering"],
+                fields=["source_interface__parent", "routing_instance", "peer_group", "peering"],
+                key_transforms={"source_interface__parent": "Device"},
             ),
             BGPObjectsFieldPanel(
                 weight=200,
@@ -537,6 +537,7 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
                 section=SectionChoices.LEFT_HALF,
                 label="BGP Address Family",
                 fields=["routing_instance__device", "routing_instance"],
+                key_transforms={"routing_instance__device": "Device"},
             ),
             object_detail.ObjectFieldsPanel(
                 weight=200,
