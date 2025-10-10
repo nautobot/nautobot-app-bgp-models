@@ -223,16 +223,38 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
             BGPObjectsFieldPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                label="BGP Peer Group",
+                # TODO: Add `source_interface__device` field after ObjectFieldsPanel adds support for nested lookups
+                fields=["name", "routing_instance", "vrf"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=200,
+                section=SectionChoices.LEFT_HALF,
+                label="Peer Group Template",
+                fields=["peergroup_template"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=300,
+                section=SectionChoices.LEFT_HALF,
+                label="Authentication",
+                fields=["secret"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=400,
+                section=SectionChoices.LEFT_HALF,
+                label="Attributes",
+                fields=["source_ip", "source_interface", "description", "enabled", "autonomous_system"],
             ),
             object_detail.ObjectsTablePanel(
                 weight=50,
                 section=SectionChoices.RIGHT_HALF,
                 table_class=tables.PeerEndpointTable,
                 table_filter="peer_group",
+                table_title="Peerings In This Group",
                 show_table_config_button=False,
                 paginate=False,
+                include_columns=["peering"],
+                exclude_columns=set(tables.PeerEndpointTable.Meta.default_columns).difference({"peering"}),
             ),
             object_detail.ObjectsTablePanel(
                 weight=100,
@@ -241,6 +263,10 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
                 table_filter="peer_group",
                 show_table_config_button=False,
                 paginate=False,
+                include_columns=["peer_group_address_family"],
+                exclude_columns=set(tables.PeerGroupAddressFamilyTable.Meta.default_columns).difference(
+                    {"peer_group_address_family"}
+                ),
             ),
         ],
     )
