@@ -697,6 +697,11 @@ class AddressFamily(OrganizationalModel, BGPExtraAttributesMixin):
 
         return f"{self.afi_safi} AF - {self.routing_instance.device}"
 
+    @property
+    def display(self):
+        """The string representation of the model as a model property."""
+        return str(self)
+
     def validate_unique(self, exclude=None):
         """Validate uniqueness."""
         if (

@@ -33,7 +33,7 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
 
     pk = ToggleColumn()
     asn = tables.TemplateColumn(template_code=ASN_LINK, verbose_name="ASN")
-    provider = tables.LinkColumn()
+    provider = tables.Column(linkify=True)
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystem_list")
     actions = ButtonsColumn(model=models.AutonomousSystem)
     asn_asdot = tables.Column(accessor=A("asn_asdot"), linkify=True, order_by=A("asn"), verbose_name="ASN ASDOT")
@@ -48,10 +48,10 @@ class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):
     """Table representation of AutonomousSystem records."""
 
     pk = ToggleColumn()
-    name = tables.LinkColumn()
-    asn_min = tables.LinkColumn()
-    asn_max = tables.LinkColumn()
-    tenant = tables.LinkColumn()
+    name = tables.Column(linkify=True)
+    asn_min = tables.Column(linkify=True)
+    asn_max = tables.Column(linkify=True)
+    tenant = tables.Column(linkify=True)
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:autonomoussystemrange_list")
     actions = ButtonsColumn(model=models.AutonomousSystemRange)
 
@@ -69,9 +69,9 @@ class BGPRoutingInstanceTable(StatusTableMixin, BaseTable):
         args=[A("pk")],
         text=str,
     )
-    device = tables.LinkColumn()
-    autonomous_system = tables.LinkColumn()
-    router_id = tables.LinkColumn()
+    device = tables.Column(linkify=True)
+    autonomous_system = tables.Column(linkify=True)
+    router_id = tables.Column(linkify=True)
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:bgproutinginstance_list")
     actions = ButtonsColumn(model=models.BGPRoutingInstance)
 
@@ -93,16 +93,16 @@ class PeerGroupTable(BaseTable):
     """Table representation of PeerGroup records."""
 
     pk = ToggleColumn()
-    name = tables.LinkColumn()
-    peergroup_template = tables.LinkColumn()
-    routing_instance = tables.LinkColumn()
-    vrf = tables.LinkColumn()
+    name = tables.Column(linkify=True)
+    peergroup_template = tables.Column(linkify=True)
+    routing_instance = tables.Column(linkify=True)
+    vrf = tables.Column(linkify=True)
     enabled = BooleanColumn()
     role = ColoredLabelColumn()
-    autonomous_system = tables.LinkColumn()
-    secret = tables.LinkColumn()
-    source_ip = tables.LinkColumn()
-    source_interface = tables.LinkColumn()
+    autonomous_system = tables.Column(linkify=True)
+    secret = tables.Column(linkify=True)
+    source_ip = tables.Column(linkify=True)
+    source_interface = tables.Column(linkify=True)
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:peergroup_list")
 
     actions = ButtonsColumn(model=models.PeerGroup)
@@ -140,11 +140,11 @@ class PeerGroupTemplateTable(BaseTable):
     """Table representation of PeerGroup records."""
 
     pk = ToggleColumn()
-    name = tables.LinkColumn()
+    name = tables.Column(linkify=True)
     enabled = BooleanColumn()
     role = ColoredLabelColumn()
-    autonomous_system = tables.LinkColumn()
-    secret = tables.LinkColumn()
+    autonomous_system = tables.Column(linkify=True)
+    secret = tables.Column(linkify=True)
     actions = ButtonsColumn(model=models.PeerGroupTemplate)
 
     class Meta(BaseTable.Meta):
@@ -172,18 +172,18 @@ class PeerEndpointTable(BaseTable):
     """Table representation of PeerEndpoint records."""
 
     pk = ToggleColumn()
-    id = tables.LinkColumn()
-    routing_instance = tables.LinkColumn()
+    id = tables.Column(linkify=True)
+    routing_instance = tables.Column(linkify=True)
     role = ColoredLabelColumn()
-    source_ip = tables.LinkColumn()
-    source_interface = tables.LinkColumn()
-    local_ip = tables.LinkColumn()
-    autonomous_system = tables.LinkColumn()
-    # remote_autonomous_system = tables.LinkColumn()
-    peer = tables.LinkColumn()
-    peering = tables.LinkColumn()
-    vrf = tables.LinkColumn()
-    peer_group = tables.LinkColumn()
+    source_ip = tables.Column(linkify=True)
+    source_interface = tables.Column(linkify=True)
+    local_ip = tables.Column(linkify=True)
+    autonomous_system = tables.Column(linkify=True)
+    # remote_autonomous_system = tables.Column(linkify=True)
+    peer = tables.Column(linkify=True)
+    peering = tables.Column(linkify=True)
+    vrf = tables.Column(linkify=True)
+    peer_group = tables.Column(linkify=True)
     tags = TagColumn(url_name="plugins:nautobot_bgp_models:peerendpoint_list")
     # actions = ButtonsColumn(model=models.PeerEndpoint)
 
@@ -259,14 +259,10 @@ class AddressFamilyTable(BaseTable):
     """Table representation of AddressFamily records."""
 
     pk = ToggleColumn()
-    address_family = tables.LinkColumn(
-        viewname="plugins:nautobot_bgp_models:addressfamily",
-        args=[A("pk")],
-        text=str,
-    )
-    routing_instance = tables.LinkColumn()
+    address_family = tables.Column(linkify=True, accessor="display")
+    routing_instance = tables.Column(linkify=True)
     afi_safi = tables.Column()
-    vrf = tables.LinkColumn()
+    vrf = tables.Column(linkify=True)
     actions = ButtonsColumn(model=models.AddressFamily)
 
     class Meta(BaseTable.Meta):
@@ -297,7 +293,7 @@ class PeerGroupAddressFamilyTable(BaseTable):
         args=[A("pk")],
         text=str,
     )
-    peer_group = tables.LinkColumn()
+    peer_group = tables.Column(linkify=True)
     afi_safi = tables.Column()
     actions = ButtonsColumn(model=models.PeerGroupAddressFamily)
 
@@ -333,7 +329,7 @@ class PeerEndpointAddressFamilyTable(BaseTable):
         args=[A("pk")],
         text=str,
     )
-    peer_endpoint = tables.LinkColumn()
+    peer_endpoint = tables.Column(linkify=True)
     afi_safi = tables.Column()
     actions = ButtonsColumn(model=models.PeerEndpointAddressFamily)
 
