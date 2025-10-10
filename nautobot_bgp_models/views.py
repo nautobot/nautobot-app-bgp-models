@@ -535,8 +535,15 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
             object_detail.ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                label="BGP Address Family",
+                # TODO: Add `routing_instance__device` field after ObjectFieldsPanel adds support for nested lookups
+                fields=["routing_instance"],
+            ),
+            object_detail.ObjectFieldsPanel(
+                weight=200,
+                section=SectionChoices.LEFT_HALF,
+                label="Attributes",
+                fields=["afi_safi", "vrf"],
             ),
         ],
     )
