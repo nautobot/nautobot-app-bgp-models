@@ -504,7 +504,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         blank=True,
         null=True,
         related_name="bgp_peer_endpoints",
-        verbose_name="BGP Peer IP",
+        verbose_name="Source IP Address",
     )
 
     source_interface = models.ForeignKey(  # update source

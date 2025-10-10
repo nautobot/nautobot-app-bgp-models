@@ -331,8 +331,39 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
             BGPObjectsFieldPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                label="BGP Peer Endpoint",
+                # TODO: Add `source_interface__device` field after ObjectFieldsPanel adds support for nested lookups
+                fields=["routing_instance", "peer_group", "peering"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=200,
+                section=SectionChoices.LEFT_HALF,
+                label="Authentication",
+                fields=["secret"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=300,
+                section=SectionChoices.LEFT_HALF,
+                label="Attributes",
+                fields=["source_ip", "source_interface", "description", "enabled", "autonomous_system"],
+            ),
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.RIGHT_HALF,
+                label="Remote Peer Information",
+                fields=["peer"],
+            ),
+            object_detail.ObjectsTablePanel(
+                weight=200,
+                section=SectionChoices.RIGHT_HALF,
+                table_class=tables.PeerEndpointAddressFamilyTable,
+                table_filter="peer_endpoint",
+                show_table_config_button=False,
+                paginate=False,
+                include_columns=["peer_endpoint_address_family"],
+                exclude_columns=set(tables.PeerEndpointAddressFamilyTable.Meta.default_columns).difference(
+                    {"peer_endpoint_address_family"}
+                ),
             ),
         ],
     )
