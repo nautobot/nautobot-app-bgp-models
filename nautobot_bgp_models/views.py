@@ -596,8 +596,19 @@ class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
             BGPObjectsFieldPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                fields=[
+                    "peer_endpoint__source_interface__parent",
+                    "peer_endpoint__routing_instance",
+                    "peer_endpoint",
+                    "afi_safi",
+                    "import_policy",
+                    "export_policy",
+                    "multipath",
+                ],
+                key_transforms={
+                    "peer_endpoint__source_interface__parent": "Device",
+                    "peer_endpoint__routing_instance": "Routing Instance",
+                },
             ),
         ],
     )
