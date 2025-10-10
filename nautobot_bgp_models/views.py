@@ -292,8 +292,20 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
             object_detail.ObjectFieldsPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                label="BGP Peer Group Template",
+                fields=["name"],
+            ),
+            object_detail.ObjectFieldsPanel(
+                weight=200,
+                section=SectionChoices.LEFT_HALF,
+                label="Authentication",
+                fields=["secret"],
+            ),
+            object_detail.ObjectFieldsPanel(
+                weight=300,
+                section=SectionChoices.LEFT_HALF,
+                label="Attributes",
+                fields=["description", "role", "enabled", "autonomous_system"],
             ),
         ],
     )
