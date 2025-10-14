@@ -5,7 +5,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 from nautobot.core.views.routers import NautobotUIViewSetRouter
 
-from . import models, views
+from . import views
 
 app_name = "nautobot_bgp_models"
 router = NautobotUIViewSetRouter()
@@ -21,49 +21,6 @@ router.register("peer-group-address-families", views.PeerGroupAddressFamilyUIVie
 router.register("peer-endpoint-address-families", views.PeerEndpointAddressFamilyUIViewSet)
 
 urlpatterns = [
-    # Extra Attribute views.
-    path(
-        "routing-instances/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="bgproutinginstance_extraattributes",
-        kwargs={"model": models.BGPRoutingInstance},
-    ),
-    path(
-        "peer-groups/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="peergroup_extraattributes",
-        kwargs={"model": models.PeerGroup},
-    ),
-    path(
-        "peer-group-templates/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="peergrouptemplate_extraattributes",
-        kwargs={"model": models.PeerGroupTemplate},
-    ),
-    path(
-        "peer-endpoints/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="peerendpoint_extraattributes",
-        kwargs={"model": models.PeerEndpoint},
-    ),
-    path(
-        "address-families/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="addressfamily_extraattributes",
-        kwargs={"model": models.AddressFamily},
-    ),
-    path(
-        "peer-group-address-families/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="peergroupaddressfamily_extraattributes",
-        kwargs={"model": models.PeerGroupAddressFamily},
-    ),
-    path(
-        "peer-endpoint-address-families/<uuid:pk>/extra-attributes/",
-        views.BgpExtraAttributesView.as_view(),
-        name="peerendpointaddressfamily_extraattributes",
-        kwargs={"model": models.PeerEndpointAddressFamily},
-    ),
     path("peerings/add/", views.PeeringAddView.as_view(), name="peering_add"),
     path("docs/", RedirectView.as_view(url=static("nautobot_bgp_models/docs/index.html")), name="docs"),
 ]

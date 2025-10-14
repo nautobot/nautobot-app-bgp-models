@@ -98,7 +98,8 @@ class BGPExtraAttributesMixin(models.Model):
 
         return [rgetattr(self, f"{x}.extra_attributes", None) for x in paths]
 
-    def get_extra_attributes(self):
+    @property
+    def extra_attributes_inherited(self):
         """Render extra attributes for an object."""
         # always manually query for extra attributes
         extra_attributes_data = [x for x in self.get_extra_attributes_paths if x]
@@ -163,8 +164,8 @@ class AutonomousSystemRange(PrimaryModel):
     """Autonomous System Range information."""
 
     name = models.CharField(max_length=255, unique=True, blank=False)
-    asn_min = ASNField(verbose_name="Start", help_text="Min value for 32-bit autonomous system number")
-    asn_max = ASNField(verbose_name="End", help_text="Max value for 32-bit autonomous system number")
+    asn_min = ASNField(verbose_name="Start ASN", help_text="Min value for 32-bit autonomous system number")
+    asn_max = ASNField(verbose_name="End ASN", help_text="Max value for 32-bit autonomous system number")
     description = models.CharField(max_length=255, blank=True)
     tenant = models.ForeignKey(to=Tenant, on_delete=models.PROTECT, blank=True, null=True)
 
@@ -191,6 +192,13 @@ class AutonomousSystemRange(PrimaryModel):
                 return i
 
         return None
+
+    @property
+    def asns(self):
+        """Return the first available ASN number in the range, or None if none are available."""
+        asn_nums = AutonomousSystem.objects.filter(asn__gte=self.asn_min, asn__lte=self.asn_max)
+
+        return asn_nums
 
 
 @extras_features(
@@ -496,7 +504,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         blank=True,
         null=True,
         related_name="bgp_peer_endpoints",
-        verbose_name="BGP Peer IP",
+        verbose_name="Source IP Address",
     )
 
     source_interface = models.ForeignKey(  # update source
@@ -688,6 +696,11 @@ class AddressFamily(OrganizationalModel, BGPExtraAttributesMixin):
             return f"{self.afi_safi} AF (VRF {self.vrf}) {self.routing_instance.device}"
 
         return f"{self.afi_safi} AF - {self.routing_instance.device}"
+
+    @property
+    def display(self):
+        """The string representation of the model as a model property."""
+        return str(self)
 
     def validate_unique(self, exclude=None):
         """Validate uniqueness."""
