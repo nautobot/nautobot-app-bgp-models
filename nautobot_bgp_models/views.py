@@ -310,13 +310,13 @@ class PeerGroupTemplateUIViewSet(NautobotUIViewSet):
                 label="BGP Peer Group Template",
                 fields=["name"],
             ),
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=200,
                 section=SectionChoices.LEFT_HALF,
                 label="Authentication",
                 fields=["secret"],
             ),
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=300,
                 section=SectionChoices.LEFT_HALF,
                 label="Attributes",
@@ -368,7 +368,7 @@ class PeerEndpointUIViewSet(NautobotUIViewSet):
                 label="Remote Peer Information",
                 fields=["peer"],
             ),
-            object_detail.ObjectsTablePanel(
+            ObjectsTablePanel(
                 weight=200,
                 section=SectionChoices.RIGHT_HALF,
                 table_class=tables.PeerEndpointAddressFamilyTable,
@@ -554,7 +554,7 @@ class AddressFamilyUIViewSet(NautobotUIViewSet):
                 fields=["routing_instance__device", "routing_instance"],
                 key_transforms={"routing_instance__device": "Device"},
             ),
-            object_detail.ObjectFieldsPanel(
+            ObjectFieldsPanel(
                 weight=200,
                 section=SectionChoices.LEFT_HALF,
                 label="Attributes",
