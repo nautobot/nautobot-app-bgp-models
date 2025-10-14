@@ -2,7 +2,6 @@
 
 from django import forms
 from nautobot.apps.forms import (
-    BOOLEAN_WITH_BLANK_CHOICES,
     BulkEditNullBooleanSelect,
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
@@ -16,6 +15,7 @@ from nautobot.apps.forms import (
     TagsBulkEditFormMixin,
 )
 from nautobot.circuits.models import Provider
+from nautobot.core.forms.constants import BOOLEAN_WITH_BLANK_CHOICES
 from nautobot.dcim.models import Device, Interface
 from nautobot.extras.models import Role, Secret, Tag
 from nautobot.ipam.models import VRF, IPAddress
