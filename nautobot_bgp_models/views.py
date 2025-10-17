@@ -5,6 +5,7 @@ from django.db import transaction
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django_tables2 import RequestConfig
+from nautobot.apps.choices import ButtonActionIconChoices
 from nautobot.apps.ui import (
     Button,
     ButtonColorChoices,
@@ -30,7 +31,6 @@ from nautobot.apps.views import (
     get_obj_from_context,
     get_paginate_count,
 )
-from nautobot.core.choices import ButtonActionIconChoices
 
 from . import filters, forms, helpers, models, tables
 from .api import serializers
