@@ -1,11 +1,11 @@
 """Extensions of baseline Nautobot views."""
 
-from nautobot.extras.plugins import PluginTemplateExtension
+from nautobot.apps.ui import TemplateExtension
 
 from .models import AddressFamily, AutonomousSystem, BGPRoutingInstance, PeerEndpoint
 
 
-class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-method
+class DevicePeerEndpoints(TemplateExtension):  # pylint: disable=abstract-method
     """Add PeerEndpoints to the right side of the Device page."""
 
     model = "dcim.device"
@@ -23,7 +23,7 @@ class DevicePeerEndpoints(PluginTemplateExtension):  # pylint: disable=abstract-
         return ""
 
 
-class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstract-method
+class DeviceAddressFamilies(TemplateExtension):  # pylint: disable=abstract-method
     """Add AddressFamilies to the right side of the Device page."""
 
     model = "dcim.device"
@@ -41,7 +41,7 @@ class DeviceAddressFamilies(PluginTemplateExtension):  # pylint: disable=abstrac
         return ""
 
 
-class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abstract-method
+class DeviceBgpRoutingInstances(TemplateExtension):  # pylint: disable=abstract-method
     """Add BGPRoutingInstance to the right side of the Device page."""
 
     model = "dcim.device"
@@ -59,7 +59,7 @@ class DeviceBgpRoutingInstances(PluginTemplateExtension):  # pylint: disable=abs
         return ""
 
 
-class DeviceAutonomousSystems(PluginTemplateExtension):  # pylint: disable=abstract-method
+class DeviceAutonomousSystems(TemplateExtension):  # pylint: disable=abstract-method
     """Add AutonomousSystems to the right side of the Device page."""
 
     model = "dcim.device"
