@@ -5,8 +5,8 @@ from importlib import metadata
 from unittest import skipIf
 
 from django.contrib.contenttypes.models import ContentType
+from nautobot.apps.testing import ViewTestCases
 from nautobot.circuits.models import Provider
-from nautobot.core.testing import ViewTestCases
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
 from nautobot.extras.models import Role, Status
 from nautobot.ipam.models import IPAddress, Namespace, Prefix

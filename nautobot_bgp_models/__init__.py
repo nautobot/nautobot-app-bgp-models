@@ -19,8 +19,6 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
     description = "Nautobot BGP Models App."
     base_url = "bgp"
     required_settings = []
-    min_version = "3.0.0.a1"  # TODO: Update to 3.0.0 when Nautobot v3.0.0 is released
-    max_version = "3.9999"
     default_settings = {
         "default_statuses": {
             "AutonomousSystem": ["Active", "Available", "Planned"],
