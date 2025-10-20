@@ -62,11 +62,11 @@ class ExtraAttributesSerializerMixin(serializers.Serializer):  # pylint: disable
     def to_representation(self, instance):
         """Render the model instance to a Python dict.
 
-        If `include_inherited` is specified as a request parameter, include object's get_extra_attributes().
+        If `include_inherited` is specified as a request parameter, include object's extra_attributes_inherited.
         """
         req = self.context["request"]
         if hasattr(req, "query_params") and is_truthy(req.query_params.get("include_inherited", False)):
-            setattr(instance, "extra_attributes", instance.get_extra_attributes())
+            setattr(instance, "extra_attributes", instance.extra_attributes_inherited)
         return super().to_representation(instance)
 
 
