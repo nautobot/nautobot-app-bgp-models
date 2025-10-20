@@ -1,18 +1,22 @@
 """Forms and FilterForms for nautobot_bgp_models."""
 
-import nautobot.core.forms as utilities_forms
 from django import forms
 from nautobot.apps.forms import (
+    BulkEditNullBooleanSelect,
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
     NautobotBulkEditForm,
+    NautobotFilterForm,
     NautobotModelForm,
+    RoleModelFilterFormMixin,
+    StaticSelect2,
+    StaticSelect2Multiple,
     TagFilterField,
     TagsBulkEditFormMixin,
 )
 from nautobot.circuits.models import Provider
+from nautobot.core.forms.constants import BOOLEAN_WITH_BLANK_CHOICES
 from nautobot.dcim.models import Device, Interface
-from nautobot.extras.forms import NautobotFilterForm, RoleModelFilterFormMixin
 from nautobot.extras.models import Role, Secret, Tag
 from nautobot.ipam.models import VRF, IPAddress
 from nautobot.tenancy.models import Tenant
@@ -320,9 +324,7 @@ class PeerGroupFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
 
     q = forms.CharField(required=False, label="Search")
 
-    enabled = forms.NullBooleanField(
-        required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
-    )
+    enabled = forms.NullBooleanField(required=False, widget=StaticSelect2(choices=BOOLEAN_WITH_BLANK_CHOICES))
 
     autonomous_system = DynamicModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
@@ -338,9 +340,7 @@ class PeerGroupTemplateFilterForm(NautobotFilterForm, RoleModelFilterFormMixin):
 
     q = forms.CharField(required=False, label="Search")
 
-    enabled = forms.NullBooleanField(
-        required=False, widget=utilities_forms.StaticSelect2(choices=utilities_forms.BOOLEAN_WITH_BLANK_CHOICES)
-    )
+    enabled = forms.NullBooleanField(required=False, widget=StaticSelect2(choices=BOOLEAN_WITH_BLANK_CHOICES))
 
     autonomous_system = DynamicModelMultipleChoiceField(
         queryset=models.AutonomousSystem.objects.all(), to_field_name="asn", required=False
@@ -497,7 +497,7 @@ class AddressFamilyForm(NautobotModelForm):
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
-        widget=utilities_forms.StaticSelect2(),
+        widget=StaticSelect2(),
     )
 
     vrf = DynamicModelChoiceField(
@@ -536,7 +536,7 @@ class AddressFamilyFilterForm(NautobotFilterForm):
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
-        widget=utilities_forms.StaticSelect2Multiple(),
+        widget=StaticSelect2Multiple(),
     )
 
     vrf = DynamicModelMultipleChoiceField(queryset=VRF.objects.all(), required=False)
@@ -555,10 +555,10 @@ class PeerGroupAddressFamilyForm(NautobotModelForm):
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
-        widget=utilities_forms.StaticSelect2(),
+        widget=StaticSelect2(),
     )
 
-    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+    multipath = forms.NullBooleanField(required=False, widget=BulkEditNullBooleanSelect())
 
     class Meta:
         model = models.PeerGroupAddressFamily
@@ -580,7 +580,7 @@ class PeerGroupAddressFamilyBulkEditForm(NautobotBulkEditForm):
     )
     import_policy = forms.CharField(max_length=100, required=False)
     export_policy = forms.CharField(max_length=100, required=False)
-    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+    multipath = forms.NullBooleanField(required=False, widget=BulkEditNullBooleanSelect())
 
     class Meta:
         nullable_fields = ["import_policy", "export_policy", "multipath"]
@@ -597,7 +597,7 @@ class PeerGroupAddressFamilyFilterForm(NautobotFilterForm):
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
-        widget=utilities_forms.StaticSelect2Multiple(),
+        widget=StaticSelect2Multiple(),
     )
 
 
@@ -614,10 +614,10 @@ class PeerEndpointAddressFamilyForm(NautobotModelForm):
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
-        widget=utilities_forms.StaticSelect2(),
+        widget=StaticSelect2(),
     )
 
-    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+    multipath = forms.NullBooleanField(required=False, widget=BulkEditNullBooleanSelect())
 
     class Meta:
         model = models.PeerEndpointAddressFamily
@@ -639,7 +639,7 @@ class PeerEndpointAddressFamilyBulkEditForm(NautobotBulkEditForm):
     )
     import_policy = forms.CharField(max_length=100, required=False)
     export_policy = forms.CharField(max_length=100, required=False)
-    multipath = forms.NullBooleanField(required=False, widget=utilities_forms.BulkEditNullBooleanSelect())
+    multipath = forms.NullBooleanField(required=False, widget=BulkEditNullBooleanSelect())
 
     class Meta:
         nullable_fields = ["import_policy", "export_policy", "multipath"]
@@ -656,5 +656,5 @@ class PeerEndpointAddressFamilyFilterForm(NautobotFilterForm):
         label="AFI-SAFI",
         choices=choices.AFISAFIChoices,
         required=False,
-        widget=utilities_forms.StaticSelect2Multiple(),
+        widget=StaticSelect2Multiple(),
     )

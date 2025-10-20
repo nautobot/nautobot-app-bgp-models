@@ -3,7 +3,7 @@
 from django.contrib.contenttypes.models import ContentType
 
 # from nautobot.circuits.models import Provider
-from nautobot.core.testing import FilterTestCases
+from nautobot.apps.testing import FilterTestCases
 from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
 from nautobot.extras.models import Role, Status

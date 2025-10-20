@@ -3,7 +3,7 @@
 from django.templatetags.static import static
 from django.urls import path
 from django.views.generic import RedirectView
-from nautobot.core.views.routers import NautobotUIViewSetRouter
+from nautobot.apps.urls import NautobotUIViewSetRouter
 
 from . import views
 
