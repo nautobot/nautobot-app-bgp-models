@@ -52,11 +52,7 @@ namespace = Collection("nautobot_bgp_models")
 namespace.configure(
     {
         "nautobot_bgp_models": {
-<<<<<<< HEAD
-            "nautobot_ver": "2.4.19",
-=======
             "nautobot_ver": "2.4.20",
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
             "project_name": "nautobot-bgp-models",
             "python_ver": "3.12",
             "local": False,

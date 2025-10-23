@@ -1,6 +1,5 @@
 """View classes for nautobot_bgp_models."""
 
-<<<<<<< HEAD
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import redirect, render
@@ -32,11 +31,6 @@ from nautobot.apps.views import (
     get_obj_from_context,
     get_paginate_count,
 )
-=======
-from nautobot.apps.views import NautobotUIViewSet
-from nautobot.apps.ui import ObjectDetailContent, ObjectFieldsPanel, ObjectsTablePanel, SectionChoices
-from nautobot.core.templatetags import helpers
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
 from . import filters, forms, helpers, models, tables
 from .api import serializers
@@ -140,7 +134,6 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
             ),
-<<<<<<< HEAD
             ObjectsTablePanel(
                 section=SectionChoices.RIGHT_HALF,
                 weight=100,
@@ -632,16 +625,5 @@ class PeerEndpointAddressFamilyUIViewSet(NautobotUIViewSet):
                     "peer_endpoint__routing_instance": "Routing Instance",
                 },
             ),
-=======
-            # If there is a ForeignKey or M2M with this model we can use ObjectsTablePanel
-            # to display them in a table format.
-            # ObjectsTablePanel(
-                # weight=200,
-                # section=SectionChoices.RIGHT_HALF,
-                # table_class=tables.AutonomousSystemTable,
-                # You will want to filter the table using the related_name
-                # filter="autonomoussystems",
-            # ),
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
         ],
     )

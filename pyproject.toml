@@ -28,13 +28,9 @@ include = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
 # Used for local development
-<<<<<<< HEAD
-nautobot = ">=2.4.19,<3.0.0"
+nautobot = ">=2.4.20,<3.0.0"
 netutils = "^1.6.0"
 toml = "^0.10.2"
-=======
-nautobot = ">=2.4.20,<3.0.0"
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -104,17 +100,9 @@ notes = """,
     XXX,
     """
 
-<<<<<<< HEAD
 [tool.pylint.similarities]
 min-similarity-lines = 15
 
-[tool.pylint-nautobot]
-supported_nautobot_versions = [
-    "2"
-]
-
-=======
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
 [tool.ruff]
 line-length = 120
 target-version = "py38"

@@ -105,11 +105,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.11"]
-<<<<<<< HEAD
-        nautobot-version: ["2.4.19"]
-=======
         nautobot-version: ["2.4.20"]
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
     env:
       INVOKE_NAUTOBOT_BGP_MODELS_PYTHON_VER: "${{ matrix.python-version }}"
       INVOKE_NAUTOBOT_BGP_MODELS_NAUTOBOT_VER: "${{ matrix.nautobot-version }}"
@@ -160,11 +156,7 @@ jobs:
         include:
           - python-version: "3.11"
             db-backend: "postgresql"
-<<<<<<< HEAD
-            nautobot-version: "2.4.19"
-=======
             nautobot-version: "2.4.20"
->>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
           - python-version: "3.12"
             db-backend: "mysql"
             nautobot-version: "stable"
