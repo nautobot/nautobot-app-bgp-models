@@ -52,9 +52,13 @@ namespace = Collection("nautobot_bgp_models")
 namespace.configure(
     {
         "nautobot_bgp_models": {
+<<<<<<< HEAD
             "nautobot_ver": "2.4.19",
+=======
+            "nautobot_ver": "2.4.20",
+>>>>>>> 2fa33a0 (Cookie updated by NetworkToCode Cookie Drift Manager Tool)
             "project_name": "nautobot-bgp-models",
-            "python_ver": "3.11",
+            "python_ver": "3.12",
             "local": False,
             "compose_dir": os.path.join(os.path.dirname(__file__), "development"),
             "compose_files": [
@@ -717,16 +721,24 @@ def help_task(context):
 
 @task(
     help={
-        "version": "Version of BGP Models to generate the release notes for.",
+        "version": "Version of Nautobot Dev Example App to generate the release notes for.",
+        "date": "Date of the release (default: today).",
+        "keep": "Keep existing release notes files. Useful for testing. (default: False).",
     }
 )
-def generate_release_notes(context, version=""):
+def generate_release_notes(context, version="", date="", keep=False):
     """Generate Release Notes using Towncrier."""
     command = "poetry run towncrier build"
-    if version:
-        command += f" --version {version}"
-    else:
-        command += " --version `poetry version -s`"
+    if not version:
+        version = context.run("poetry version --short", hide=True).stdout.strip()
+    command += f" --version {version}"
+    if date:
+        command += f" --date {date}"
+    command += " --keep" if keep else " --yes"
+
+    version_major_minor = ".".join(version.split(".")[:2])
+    context.run(f"poetry run python development/bin/ensure_release_notes.py --version {version_major_minor}")
+
     # Due to issues with git repo ownership in the containers, this must always run locally.
     context.run(command)
 
