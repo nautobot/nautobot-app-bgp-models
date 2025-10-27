@@ -21,7 +21,7 @@ ASN_LINK = """
 <a href="\
 {% url 'plugins:nautobot_bgp_models:autonomoussystem_add' %}\
 ?asn={{ record.asn }}\
-" class="btn btn-xs btn-success">{{ record.available }} ASN{{ record.available|pluralize }} available</a>\
+" class="btn btn-sm btn-success">{{ record.available }} ASN{{ record.available|pluralize }} available</a>\
 {% else %}
 {{ record.available }} ASN{{ record.available|pluralize }} available
 {% endif %}
