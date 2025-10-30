@@ -28,7 +28,6 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
             "Peering": ["Active", "Decommissioned", "Deprovisioning", "Offline", "Planned", "Provisioning"],
         }
     }
-    caching_config = {}
     docs_view_name = "plugins:nautobot_bgp_models:docs"
     searchable_models = ["autonomoussystem"]
 
