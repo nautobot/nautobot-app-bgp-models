@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-version = "3.0.0a0"
+version = "3.0.0a1"
 description = "Nautobot BGP Models App"
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 license = "Apache-2.0"
@@ -28,9 +28,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
-# Used for local development
-nautobot = {git = "https://github.com/nautobot/nautobot.git", rev = "next"}
-# nautobot = "^3.0.0"  # TODO: Uncomment after v3.0.0 is released
+nautobot = ">=3.0.0a2,<3.0.0rc99"
 netutils = "^1.6.0"
 toml = "^0.10.2"
 
@@ -174,7 +172,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.towncrier]
 package = "nautobot_bgp_models"
 directory = "changes"
-filename = "docs/admin/release_notes/version_2.3.md"
+filename = "docs/admin/release_notes/version_3.0.md"
 template = "development/towncrier_template.j2"
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/nautobot/nautobot-app-bgp-models/issues/{issue})"
