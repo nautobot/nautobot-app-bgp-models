@@ -92,7 +92,7 @@ menu_items = (
                     ),
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:addressfamily_list",
-                        name="Address-families (AFI-SAFI)",
+                        name="Address-Families (AFI-SAFI)",
                         weight=200,
                         permissions=["nautobot_bgp_models.view_addressfamily"],
                         buttons=(
@@ -124,7 +124,7 @@ menu_items = (
                     ),
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergroupaddressfamily_list",
-                        name="Peer Group Address-families (AFI-SAFI)",
+                        name="Peer Group Address-Families (AFI-SAFI)",
                         weight=400,
                         permissions=["nautobot_bgp_models.view_peergroupaddressfamily"],
                         buttons=(
@@ -158,7 +158,7 @@ menu_items = (
                     ),
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peerendpointaddressfamily_list",
-                        name="Peer Endpoint Address-families (AFI-SAFI)",
+                        name="Peer Endpoint Address-Families (AFI-SAFI)",
                         weight=200,
                         permissions=["nautobot_bgp_models.view_peerendpointaddressfamily"],
                         buttons=(
