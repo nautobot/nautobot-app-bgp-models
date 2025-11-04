@@ -1,11 +1,20 @@
 """Nautobot UI navigation elements for nautobot_bgp_models."""
 
-from nautobot.apps.ui import NavMenuAddButton, NavMenuGroup, NavMenuImportButton, NavMenuItem, NavMenuTab
+from nautobot.apps.ui import (
+    NavigationIconChoices,
+    NavigationWeightChoices,
+    NavMenuAddButton,
+    NavMenuGroup,
+    NavMenuImportButton,
+    NavMenuItem,
+    NavMenuTab,
+)
 
 menu_items = (
     NavMenuTab(
         name="Routing",
-        weight=350,
+        icon=NavigationIconChoices.ROUTING,
+        weight=NavigationWeightChoices.ROUTING,
         groups=(
             NavMenuGroup(
                 name="BGP - Global",
@@ -14,6 +23,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:autonomoussystem_list",
                         name="Autonomous Systems",
+                        weight=100,
                         permissions=["nautobot_bgp_models.view_autonomoussystem"],
                         buttons=(
                             NavMenuAddButton(
@@ -29,6 +39,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:autonomoussystemrange_list",
                         name="Autonomous System Ranges",
+                        weight=200,
                         permissions=["nautobot_bgp_models.view_autonomoussystemrange"],
                         buttons=(
                             NavMenuAddButton(
@@ -44,6 +55,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergrouptemplate_list",
                         name="Peer Group Templates",
+                        weight=300,
                         permissions=["nautobot_bgp_models.view_peergrouptemplate"],
                         buttons=(
                             NavMenuAddButton(
@@ -60,11 +72,12 @@ menu_items = (
             ),
             NavMenuGroup(
                 name="BGP - Instances",
-                weight=100,
+                weight=200,
                 items=(
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:bgproutinginstance_list",
                         name="Routing Instances",
+                        weight=100,
                         permissions=["nautobot_bgp_models.view_bgproutinginstance"],
                         buttons=(
                             NavMenuAddButton(
@@ -80,6 +93,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:addressfamily_list",
                         name="Address-families (AFI-SAFI)",
+                        weight=200,
                         permissions=["nautobot_bgp_models.view_addressfamily"],
                         buttons=(
                             NavMenuAddButton(
@@ -95,6 +109,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergroup_list",
                         name="Peer Groups",
+                        weight=300,
                         permissions=["nautobot_bgp_models.view_peergroup"],
                         buttons=(
                             NavMenuAddButton(
@@ -110,6 +125,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peergroupaddressfamily_list",
                         name="Peer Group Address-families (AFI-SAFI)",
+                        weight=400,
                         permissions=["nautobot_bgp_models.view_peergroupaddressfamily"],
                         buttons=(
                             NavMenuAddButton(
@@ -126,11 +142,12 @@ menu_items = (
             ),
             NavMenuGroup(
                 name="BGP - Peerings",
-                weight=100,
+                weight=300,
                 items=(
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peering_list",
                         name="Peerings",
+                        weight=100,
                         permissions=["nautobot_bgp_models.view_peering"],
                         buttons=(
                             NavMenuAddButton(
@@ -142,6 +159,7 @@ menu_items = (
                     NavMenuItem(
                         link="plugins:nautobot_bgp_models:peerendpointaddressfamily_list",
                         name="Peer Endpoint Address-families (AFI-SAFI)",
+                        weight=200,
                         permissions=["nautobot_bgp_models.view_peerendpointaddressfamily"],
                         buttons=(
                             NavMenuAddButton(
