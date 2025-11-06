@@ -8,6 +8,12 @@ This document describes all new features and changes in the release. The format 
 - Added support for Python 3.13.
 
 <!-- towncrier release notes start -->
+
+
+## [v3.0.0a2 (2025-11-06)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.0a2)
+
+- [#280](https://github.com/nautobot/nautobot-app-bgp-models/issues/280) - Updated navigation menu icon and weights to match Nautobot standard.
+
 ## [v3.0.0a1 (2025-11-03)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.0a1)
 
 ### Added
