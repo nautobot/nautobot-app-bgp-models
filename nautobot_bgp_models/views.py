@@ -452,7 +452,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                         context_object_key="endpoint_z",
                     ),
                 ),
-            )
+            ),
         ],
         panels=[
             BGPObjectsFieldPanel(
@@ -472,7 +472,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                     "peer_group",
                     "local_ip_address",
                 ],
-                key_transforms={"local_ip_address": "Local IP Address"}
+                key_transforms={"local_ip_address": "Local IP Address"},
             ),
             BGPObjectsFieldPanel(
                 weight=100,
@@ -485,7 +485,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                     "peer_group",
                     "local_ip_address",
                 ],
-                key_transforms={"local_ip_address": "Local IP Address"}
+                key_transforms={"local_ip_address": "Local IP Address"},
             ),
         ],
     )
@@ -641,7 +641,7 @@ class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
                 fields=[
                     "import_policy",
                     "export_policy",
-                ]
+                ],
             ),
         ],
     )

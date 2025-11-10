@@ -528,8 +528,12 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         The effective IP Address of an endpoint is based on the above order.
         """
-        inherited_source_ip, is_source_ip_inherited, source_ip_inheritance = self.get_inherited_field(field_name="source_ip")
-        inherited_source_interface, is_source_interface_inherited, source_interface_inheritance = self.get_inherited_field(field_name="source_interface")
+        inherited_source_ip, is_source_ip_inherited, source_ip_inheritance = self.get_inherited_field(
+            field_name="source_ip"
+        )
+        inherited_source_interface, is_source_interface_inherited, source_interface_inheritance = (
+            self.get_inherited_field(field_name="source_interface")
+        )
 
         if inherited_source_ip:
             if return_inheritance:
@@ -538,7 +542,11 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         if inherited_source_interface and inherited_source_interface.ip_addresses.count() == 1:
             if return_inheritance:
-                return inherited_source_interface.ip_addresses.first(), is_source_interface_inherited, source_interface_inheritance
+                return (
+                    inherited_source_interface.ip_addresses.first(),
+                    is_source_interface_inherited,
+                    source_interface_inheritance,
+                )
             return inherited_source_interface.ip_addresses.first()
 
         return (None, None, None) if return_inheritance else None
@@ -553,14 +561,16 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         """Get the local IP address as a string, or None if not set."""
         local_ip, inherited, inheritance_source = self.get_local_ip_address(return_inheritance=True)
         if inherited and inheritance_source:
-            return format_html("<a href='{url}'>{object}</a>", url=inheritance_source.get_absolute_url(), object=local_ip) + format_html(
-                    """ <a href="{url}" class="btn btn-xs btn-info">
+            return format_html(
+                "<a href='{url}'>{object}</a>", url=inheritance_source.get_absolute_url(), object=local_ip
+            ) + format_html(
+                """ <a href="{url}" class="btn btn-xs btn-info">
                         <span class="mdi mdi-content-duplicate" aria-hidden="true"></span> {source_obj}
                         </a>
                     """,
-                    url=inheritance_source.get_absolute_url(),
-                    source_obj=inheritance_source,
-                )
+                url=inheritance_source.get_absolute_url(),
+                source_obj=inheritance_source,
+            )
         return local_ip
 
     @property
@@ -570,7 +580,6 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
             return "Device", self.routing_instance.device
         else:
             return "Provider", self.autonomous_system.provider
-
 
     secret = models.ForeignKey(
         to="extras.Secret",
