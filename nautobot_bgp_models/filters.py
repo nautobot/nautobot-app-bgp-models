@@ -6,6 +6,7 @@ from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    NaturalKeyOrPKMultipleChoiceFilter,
     NautobotFilterSet,
     RoleModelFilterSetMixin,
     SearchFilter,
@@ -27,10 +28,21 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
             "description": "icontains",
         },
     )
+    autonomoussystemrange = django_filters.ModelChoiceFilter(
+        queryset=models.AutonomousSystemRange.objects.all(),
+        label="ASN Range",
+        method="filter_present_in_asn_range",
+    )
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ["id", "asn", "status", "tags"]
+        fields = ["id", "asn", "status", "tags", "autonomoussystemrange"]
+
+    def filter_present_in_asn_range(self, queryset, name, value):
+        """Filter Autonomous Systems that are present in the given ASN Range."""
+        if value is None:
+            return queryset.none()
+        return queryset.filter(asn__gte=value.asn_min, asn__lte=value.asn_max)
 
 
 class AutonomousSystemRangeFilterSet(NautobotFilterSet):
@@ -257,11 +269,9 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
         label="BGP Routing Instance ID",
     )
 
-    vrf = django_filters.ModelMultipleChoiceFilter(
-        field_name="vrf__name",
+    vrf = NaturalKeyOrPKMultipleChoiceFilter(
         queryset=VRF.objects.all(),
         to_field_name="name",
-        label="VRF (name)",
     )
 
     class Meta:
