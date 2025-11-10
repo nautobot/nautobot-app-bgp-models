@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
-from django_tables2 import RequestConfig
 from nautobot.apps.choices import ButtonActionIconChoices
 from nautobot.apps.ui import (
     Button,
@@ -18,7 +17,6 @@ from nautobot.apps.ui import (
     Tab,
 )
 from nautobot.apps.views import (
-    EnhancedPaginator,
     NautobotUIViewSet,
     ObjectBulkDestroyViewMixin,
     ObjectChangeLogViewMixin,
@@ -29,7 +27,6 @@ from nautobot.apps.views import (
     ObjectListViewMixin,
     ObjectNotesViewMixin,
     get_obj_from_context,
-    get_paginate_count,
 )
 
 from . import filters, forms, helpers, models, tables
@@ -42,6 +39,10 @@ class BGPObjectsFieldPanel(ObjectFieldsPanel):
     def render_value(self, key, value, context):
         """Wrapper to swap for inherited values and display inheritance information."""
         obj = get_obj_from_context(context, self.context_object_key)
+
+        if key == "device_or_provider":
+            _, value = value
+            return super().render_value(key, value, context)
 
         if not hasattr(obj, "property_inheritance"):
             return super().render_value(key, value, context)
@@ -67,6 +68,14 @@ class BGPObjectsFieldPanel(ObjectFieldsPanel):
             )
 
         return rendered_value
+
+    def render_key(self, key, value, context):
+        """Dynamically choice key based on value of device_or_provider."""
+        if key == "device_or_provider":
+            key, _ = value
+            return key
+
+        return super().render_key(key, value, context)
 
 
 extra_attributes_tab = Tab(
@@ -139,7 +148,7 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
                 weight=100,
                 context_table_key="asn_range_table",
                 show_table_config_button=False,
-                paginate=False,
+                include_paginator=True,
             ),
         ],
     )
@@ -148,25 +157,14 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
         """Return any additional context data for the template."""
         context = super().get_extra_context(request, instance)
         if self.action == "retrieve":
-            asns = models.AutonomousSystem.objects.filter(asn__gte=instance.asn_min, asn__lte=instance.asn_max)
+            asns = instance.asns.order_by("asn")
+            asn_count = len(asns)
             asns = helpers.add_available_asns(instance, asns)
 
             asn_table = tables.AutonomousSystemTable(asns)
-            asn_table.columns.hide("actions")
-
-            if request.user.has_perm("nautobot_bgp_models.change_autonomoussystem") or request.user.has_perm(
-                "nautobot_bgp_models.delete_autonomoussystem"
-            ):
-                asn_table.columns.show("pk")
-
-            paginate = {
-                "paginator_class": EnhancedPaginator,
-                "per_page": get_paginate_count(request),
-            }
-
-            RequestConfig(request, paginate).configure(asn_table)
 
             context["asn_range_table"] = asn_table
+            context["badge_count_override"] = asn_count
 
         return context
 
@@ -239,8 +237,8 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
                 label="BGP Peer Group",
-                fields=["name", "source_interface__parent", "routing_instance", "vrf"],
-                key_transforms={"source_interface__parent": "Device"},
+                fields=["name", "routing_instance__device", "routing_instance", "vrf"],
+                key_transforms={"routing_instance__device": "Device"},
             ),
             BGPObjectsFieldPanel(
                 weight=200,
@@ -263,17 +261,6 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
             ObjectsTablePanel(
                 weight=50,
                 section=SectionChoices.RIGHT_HALF,
-                table_class=tables.PeerEndpointTable,
-                table_filter="peer_group",
-                table_title="Peerings In This Group",
-                show_table_config_button=False,
-                paginate=False,
-                include_columns=["peering"],
-                exclude_columns=set(tables.PeerEndpointTable.Meta.default_columns).difference({"peering"}),
-            ),
-            ObjectsTablePanel(
-                weight=100,
-                section=SectionChoices.RIGHT_HALF,
                 table_class=tables.PeerGroupAddressFamilyTable,
                 table_filter="peer_group",
                 show_table_config_button=False,
@@ -282,6 +269,17 @@ class PeerGroupUIViewSet(NautobotUIViewSet):
                 exclude_columns=set(tables.PeerGroupAddressFamilyTable.Meta.default_columns).difference(
                     {"peer_group_address_family"}
                 ),
+            ),
+            ObjectsTablePanel(
+                weight=100,
+                section=SectionChoices.RIGHT_HALF,
+                table_class=tables.PeerEndpointTable,
+                table_filter="peer_group",
+                table_title="Peerings In This Group",
+                show_table_config_button=False,
+                paginate=False,
+                include_columns=["peering"],
+                exclude_columns=set(tables.PeerEndpointTable.Meta.default_columns).difference({"peering"}),
             ),
         ],
     )
@@ -410,7 +408,7 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
     object_detail_content = ObjectDetailContent(
         extra_buttons=[
             DropdownButton(
-                weight=100,
+                weight=200,
                 color=ButtonColorChoices.YELLOW,
                 label="Edit Peer Endpoint",
                 icon=ButtonActionIconChoices.EDIT,
@@ -432,29 +430,62 @@ class PeeringUIViewSet(  # pylint: disable=abstract-method
                     ),
                 ),
             ),
+            DropdownButton(
+                weight=100,
+                color=ButtonColorChoices.DEFAULT,
+                label="View Peer Endpoint",
+                icon=ButtonActionIconChoices.MAGNIFY,
+                required_permissions=["nautobot_bgp_models.view_peerendpoint"],
+                children=(
+                    Button(
+                        weight=100,
+                        link_name="plugins:nautobot_bgp_models:peerendpoint",
+                        label="Peer Endpoint A-side",
+                        icon="mdi-alpha-a-box",
+                        context_object_key="endpoint_a",
+                    ),
+                    Button(
+                        weight=200,
+                        link_name="plugins:nautobot_bgp_models:peerendpoint",
+                        label="Peer Endpoint Z-side",
+                        icon="mdi-alpha-z-box",
+                        context_object_key="endpoint_z",
+                    ),
+                ),
+            )
         ],
         panels=[
             BGPObjectsFieldPanel(
-                weight=100,
+                weight=200,
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
                 exclude_fields=["extra_attributes"],
             ),
             BGPObjectsFieldPanel(
                 weight=100,
-                section=SectionChoices.RIGHT_HALF,
+                section=SectionChoices.LEFT_HALF,
                 label="BGP Peer Endpoint (A-side)",
                 context_object_key="endpoint_a",
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                fields=[
+                    "device_or_provider",
+                    "autonomous_system",
+                    "peer_group",
+                    "local_ip_address",
+                ],
+                key_transforms={"local_ip_address": "Local IP Address"}
             ),
             BGPObjectsFieldPanel(
-                weight=150,
+                weight=100,
                 section=SectionChoices.RIGHT_HALF,
                 label="BGP Peer Endpoint (Z-side)",
                 context_object_key="endpoint_z",
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                fields=[
+                    "device_or_provider",
+                    "autonomous_system",
+                    "peer_group",
+                    "local_ip_address",
+                ],
+                key_transforms={"local_ip_address": "Local IP Address"}
             ),
         ],
     )
@@ -584,8 +615,33 @@ class PeerGroupAddressFamilyUIViewSet(NautobotUIViewSet):
             BGPObjectsFieldPanel(
                 weight=100,
                 section=SectionChoices.LEFT_HALF,
-                fields="__all__",
-                exclude_fields=["extra_attributes"],
+                fields=[
+                    "peer_group__routing_instance__device",
+                    "peer_group__routing_instance",
+                    "peer_group",
+                ],
+                key_transforms={
+                    "peer_group__routing_instance__device": "Device",
+                    "peer_group__routing_instance": "Routing Instance",
+                },
+            ),
+            BGPObjectsFieldPanel(
+                weight=200,
+                section=SectionChoices.LEFT_HALF,
+                label="Attributes",
+                fields=[
+                    "afi_safi",
+                    "multipath",
+                ],
+            ),
+            BGPObjectsFieldPanel(
+                weight=100,
+                section=SectionChoices.RIGHT_HALF,
+                label="Policy",
+                fields=[
+                    "import_policy",
+                    "export_policy",
+                ]
             ),
         ],
     )
