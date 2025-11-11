@@ -66,7 +66,7 @@ class AutonomousSystemTestCase(FilterTestCases.BaseFilterTestCase):
 
     def test_asn_range(self):
         """Test filtering by ASN Range."""
-        params = {"autonomoussystemrange": self.asn_range.pk}
+        params = {"autonomous_system_range": self.asn_range.pk}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
 

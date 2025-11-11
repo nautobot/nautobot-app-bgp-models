@@ -149,6 +149,7 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
                 context_table_key="asn_range_table",
                 show_table_config_button=False,
                 include_paginator=True,
+                related_field_name="autonomous_system_range",
             ),
         ],
     )

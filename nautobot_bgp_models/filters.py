@@ -28,7 +28,7 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
             "description": "icontains",
         },
     )
-    autonomoussystemrange = django_filters.ModelChoiceFilter(
+    autonomous_system_range = django_filters.ModelChoiceFilter(
         queryset=models.AutonomousSystemRange.objects.all(),
         label="ASN Range",
         method="filter_present_in_asn_range",
@@ -36,7 +36,7 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ["id", "asn", "status", "tags", "autonomoussystemrange"]
+        fields = ["id", "asn", "status", "tags", "autonomous_system_range"]
 
     def filter_present_in_asn_range(self, queryset, name, value):  # pylint: disable=unused-argument
         """Filter Autonomous Systems that are present in the given ASN Range."""
