@@ -578,8 +578,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         """Get the Device or the Provider for the BGP Peer Endpoint."""
         if self.routing_instance and self.routing_instance.device:
             return "Device", self.routing_instance.device
-        else:
-            return "Provider", self.autonomous_system.provider
+        return "Provider", self.autonomous_system.provider
 
     secret = models.ForeignKey(
         to="extras.Secret",

@@ -38,7 +38,7 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         model = models.AutonomousSystem
         fields = ["id", "asn", "status", "tags", "autonomoussystemrange"]
 
-    def filter_present_in_asn_range(self, queryset, name, value):
+    def filter_present_in_asn_range(self, queryset, name, value):  # pylint: disable=unused-argument
         """Filter Autonomous Systems that are present in the given ASN Range."""
         if value is None:
             return queryset.none()
