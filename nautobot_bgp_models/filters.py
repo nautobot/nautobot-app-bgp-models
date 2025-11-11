@@ -2,6 +2,7 @@
 """FilterSet definitions for nautobot_bgp_models."""
 
 import django_filters
+from django.db.models import Q
 from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
@@ -28,7 +29,7 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
             "description": "icontains",
         },
     )
-    autonomous_system_range = django_filters.ModelChoiceFilter(
+    autonomous_system_range = django_filters.ModelMultipleChoiceFilter(
         queryset=models.AutonomousSystemRange.objects.all(),
         label="ASN Range",
         method="filter_present_in_asn_range",
@@ -39,10 +40,13 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         fields = ["id", "asn", "status", "tags", "autonomous_system_range"]
 
     def filter_present_in_asn_range(self, queryset, name, value):  # pylint: disable=unused-argument
-        """Filter Autonomous Systems that are present in the given ASN Range."""
-        if value is None:
-            return queryset.none()
-        return queryset.filter(asn__gte=value.asn_min, asn__lte=value.asn_max)
+        """Filter Autonomous Systems that are present in any of the given ASN Ranges."""
+        if not value:
+            return queryset
+        q_obj = Q()
+        for asn_range in value:
+            q_obj |= Q(asn__gte=asn_range.asn_min, asn__lte=asn_range.asn_max)
+        return queryset.filter(q_obj)
 
 
 class AutonomousSystemRangeFilterSet(NautobotFilterSet):
@@ -270,6 +274,7 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
     )
 
     vrf = NaturalKeyOrPKMultipleChoiceFilter(
+        label="VRF (name or ID)",
         queryset=VRF.objects.all(),
         to_field_name="name",
     )
