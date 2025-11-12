@@ -315,7 +315,7 @@ class PeeringTestCase(
         )
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
         """One-time class data setup."""
         status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
@@ -324,9 +324,66 @@ class PeeringTestCase(
         peeringrole_customer = Role.objects.create(name="Customer", color="ffffff")
         peeringrole_customer.content_types.add(ContentType.objects.get_for_model(models.Peering))
 
-        models.Peering.objects.create(status=status_active)
-        models.Peering.objects.create(status=status_active)
-        models.Peering.objects.create(status=status_active)
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        device = Device.objects.create(
+            device_type=devicetype,
+            role=devicerole,
+            name="Device 1",
+            location=location,
+            status=status_active,
+        )
+        asn_1 = models.AutonomousSystem.objects.create(asn=4294967294, status=status_active)
+        bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+            description="Hello World!",
+            autonomous_system=asn_1,
+            device=device,
+            status=status_active,
+        )
+
+        peering1 = models.Peering.objects.create(status=status_active)
+        peering2 = models.Peering.objects.create(status=status_active)
+        peering3 = models.Peering.objects.create(status=status_active)
+
+        models.PeerEndpoint.objects.create(
+            peering=peering1,
+            description="Endpoint 1a",
+            routing_instance=bgp_routing_instance,
+        )
+        models.PeerEndpoint.objects.create(
+            peering=peering1,
+            description="Endpoint 1z",
+            routing_instance=None,
+            autonomous_system=asn_1,
+        )
+
+        models.PeerEndpoint.objects.create(
+            peering=peering2,
+            description="Endpoint 2a",
+            routing_instance=bgp_routing_instance,
+        )
+        models.PeerEndpoint.objects.create(
+            peering=peering2,
+            description="Endpoint 2z",
+            routing_instance=None,
+            autonomous_system=asn_1,
+        )
+
+        models.PeerEndpoint.objects.create(
+            peering=peering3,
+            description="Endpoint 3a",
+            routing_instance=bgp_routing_instance,
+        )
+        models.PeerEndpoint.objects.create(
+            peering=peering3,
+            description="Endpoint 3z",
+            routing_instance=None,
+            autonomous_system=asn_1,
+        )
 
         namespace = Namespace.objects.first()
         prefix_status = Status.objects.get_for_model(Prefix).first()
