@@ -26,3 +26,5 @@ We will continue to support the previous major release for users of Nautobot LTM
 - [#280](https://github.com/nautobot/nautobot-app-bgp-models/issues/280) - Updated navigation menu icon and weights to match Nautobot standard.
 
 ## [v3.0.0a2 (2025-11-06)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.0a2)
+
+## [v3.0.0a1 (2025-11-03)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.0a1)
