@@ -21,7 +21,7 @@ ASN_LINK = """
 <a href="\
 {% url 'plugins:nautobot_bgp_models:autonomoussystem_add' %}\
 ?asn={{ record.asn }}\
-" class="btn btn-xs btn-success">{{ record.available }} ASN{{ record.available|pluralize }} available</a>\
+" class="btn btn-sm btn-success">{{ record.available }} ASN{{ record.available|pluralize }} available</a>\
 {% else %}
 {{ record.available }} ASN{{ record.available|pluralize }} available
 {% endif %}
@@ -40,8 +40,8 @@ class AutonomousSystemTable(StatusTableMixin, BaseTable):
 
     class Meta(BaseTable.Meta):
         model = models.AutonomousSystem
-        fields = ("pk", "asn", "asn_asdot", "status", "provider", "description", "tags")
-        default_columns = ("pk", "asn", "status", "provider", "description", "tags")
+        fields = ("pk", "asn", "asn_asdot", "status", "provider", "description", "tags", "actions")
+        default_columns = ("pk", "asn", "status", "provider", "description", "tags", "actions")
 
 
 class AutonomousSystemRangeTable(StatusTableMixin, BaseTable):
@@ -164,7 +164,7 @@ class PeerGroupTemplateTable(BaseTable):
             "role",
             "autonomous_system",
             "secret",
-            # "actions",
+            "actions",
         )
 
 

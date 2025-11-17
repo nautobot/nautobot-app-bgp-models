@@ -6,6 +6,7 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+from django.utils.html import format_html
 from nautobot.apps.models import OrganizationalModel, PrimaryModel, extras_features
 from nautobot.apps.utils import deepmerge
 from nautobot.circuits.models import Provider
@@ -195,7 +196,7 @@ class AutonomousSystemRange(PrimaryModel):
 
     @property
     def asns(self):
-        """Return the first available ASN number in the range, or None if none are available."""
+        """Return the AS Numbers in the range."""
         asn_nums = AutonomousSystem.objects.filter(asn__gte=self.asn_min, asn__lte=self.asn_max)
 
         return asn_nums
@@ -516,8 +517,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         verbose_name="Source Interface",
     )
 
-    @property
-    def local_ip(self):
+    def get_local_ip_address(self, return_inheritance=False):
         """Compute effective peering endpoint IP address.
 
         Peering endpoint IP address value can be sourced from:
@@ -528,16 +528,57 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
         The effective IP Address of an endpoint is based on the above order.
         """
-        inherited_source_ip, _, _ = self.get_inherited_field(field_name="source_ip")
-        inherited_source_interface, _, _ = self.get_inherited_field(field_name="source_interface")
+        inherited_source_ip, is_source_ip_inherited, source_ip_inheritance = self.get_inherited_field(
+            field_name="source_ip"
+        )
+        inherited_source_interface, is_source_interface_inherited, source_interface_inheritance = (
+            self.get_inherited_field(field_name="source_interface")
+        )
 
         if inherited_source_ip:
+            if return_inheritance:
+                return inherited_source_ip, is_source_ip_inherited, source_ip_inheritance
             return inherited_source_ip
 
         if inherited_source_interface and inherited_source_interface.ip_addresses.count() == 1:
+            if return_inheritance:
+                return (
+                    inherited_source_interface.ip_addresses.first(),
+                    is_source_interface_inherited,
+                    source_interface_inheritance,
+                )
             return inherited_source_interface.ip_addresses.first()
 
-        return None
+        return (None, None, None) if return_inheritance else None
+
+    @property
+    def local_ip(self):
+        """Get the local IP address object, or None if not set."""
+        return self.get_local_ip_address()
+
+    @property
+    def local_ip_address(self):
+        """Get the local IP address as a string, or None if not set."""
+        local_ip, inherited, inheritance_source = self.get_local_ip_address(return_inheritance=True)
+        if inherited and inheritance_source:
+            return format_html(
+                "<a href='{url}'>{object}</a>", url=inheritance_source.get_absolute_url(), object=local_ip
+            ) + format_html(
+                """ <a href="{url}" class="btn btn-xs btn-info">
+                        <span class="mdi mdi-content-duplicate" aria-hidden="true"></span> {source_obj}
+                        </a>
+                    """,
+                url=inheritance_source.get_absolute_url(),
+                source_obj=inheritance_source,
+            )
+        return local_ip
+
+    @property
+    def device_or_provider(self):
+        """Get the Device or the Provider for the BGP Peer Endpoint."""
+        if self.routing_instance and self.routing_instance.device:
+            return "Device", self.routing_instance.device
+        return "Provider", self.autonomous_system.provider
 
     secret = models.ForeignKey(
         to="extras.Secret",
