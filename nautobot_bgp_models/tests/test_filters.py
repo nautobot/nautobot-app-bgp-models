@@ -7,7 +7,7 @@ from nautobot.apps.testing import FilterTestCases
 from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
 from nautobot.extras.models import Role, Status
-from nautobot.ipam.models import IPAddress, Namespace, Prefix
+from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
 
 from nautobot_bgp_models import choices, filters, models
 
@@ -40,6 +40,10 @@ class AutonomousSystemTestCase(FilterTestCases.BaseFilterTestCase):
             asn=4200000002, status=cls.status_remote_asn, description="Another reserved for private use"
         )
 
+        cls.asn_range = models.AutonomousSystemRange.objects.create(
+            name="Private Use ASNs", asn_min=4200000001, asn_max=4294967295, description="Private Use Range"
+        )
+
     def test_id(self):
         """Test filtering by ID (primary key)."""
         params = {"id": self.queryset.values_list("pk", flat=True)[:2]}
@@ -59,6 +63,11 @@ class AutonomousSystemTestCase(FilterTestCases.BaseFilterTestCase):
         """Test filtering by Q search value."""
         self.assertEqual(self.filterset({"q": "420"}, self.queryset).qs.count(), 3)
         self.assertEqual(self.filterset({"q": "another"}, self.queryset).qs.count(), 1)
+
+    def test_asn_range(self):
+        """Test filtering by ASN Range."""
+        params = {"autonomous_system_range": [self.asn_range.pk]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
 
 
 class AutonomousSystemRangeTestCase(FilterTestCases.BaseFilterTestCase):
@@ -727,9 +736,12 @@ class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
             peering=peering,
         )
 
+        cls.vrf = VRF.objects.create(name="VRF 1", rd="65000:1", status=status_active)
+
         models.AddressFamily.objects.create(
             routing_instance=cls.bgp_routing_instance,
             afi_safi=choices.AFISAFIChoices.AFI_IPV4_UNICAST,
+            vrf=cls.vrf,
         )
 
         models.AddressFamily.objects.create(
@@ -759,6 +771,11 @@ class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
     def test_search(self):
         """Test filtering by Q search value."""
         self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 3)
+
+    def test_vrf(self):
+        """Test filtering by VRF."""
+        params = {"vrf": [self.vrf.pk]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
 
 class PeerGroupAddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):

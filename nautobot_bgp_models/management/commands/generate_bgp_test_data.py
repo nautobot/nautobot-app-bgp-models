@@ -213,6 +213,8 @@ class Command(BaseCommand):
             secret = random.choice([*secrets, None])  # noqa: S311
             routing_instance = random.choice(bgp_routing_instances)  # noqa: S311
             peer_group_template = random.choice([*peer_group_templates, None])  # noqa: S311
+            ip_address = random.choice([*ip_addresses, None])  # noqa: S311
+            interface = random.choice([*interfaces, None])  # noqa: S311
             peer_groups.append(
                 PeerGroup.objects.using(db).create(
                     name=f"PeerGroup{i}",
@@ -223,6 +225,8 @@ class Command(BaseCommand):
                     secret=secret,
                     routing_instance=routing_instance,
                     peergroup_template=peer_group_template,
+                    source_ip=ip_address,
+                    source_interface=interface,
                 )
             )
 
@@ -242,33 +246,42 @@ class Command(BaseCommand):
 
         # Create PeerEndpoints
         peer_endpoints = []
-        message = "Creating 8 PeerEndpoints..."
+        message = "Creating 16 PeerEndpoints..."
         self.stdout.write(message)
-        for i in range(1, 9):
-            role = random.choice([*roles, None])  # noqa: S311
-            routing_instance = random.choice([*bgp_routing_instances, None])  # noqa: S311
-            autonomous_system = random.choice([*autonomous_systems, None])  # noqa: S311
-            peer = random.choice([*peer_endpoints, None])  # noqa: S311
-            peering = random.choice(peerings)  # noqa: S311
-            peer_group = random.choice([*peer_groups, None])  # noqa: S311
-            ip_address = random.choice([*ip_addresses, None])  # noqa: S311
-            interface = random.choice([*interfaces, None])  # noqa: S311
-            secret = random.choice([*secrets, None])  # noqa: S311
-            peer_endpoints.append(
-                PeerEndpoint.objects.using(db).create(
-                    description=f"Peer Endpoint {i}",
-                    role=role,
-                    enabled=random.choice([True, False]),  # noqa: S311
-                    routing_instance=routing_instance,
-                    autonomous_system=autonomous_system,
-                    peer=peer,
-                    peering=peering,
-                    peer_group=peer_group,
-                    source_ip=ip_address,
-                    source_interface=interface,
-                    secret=secret,
+        for peering in peerings:
+            # Create two peer endpoints per peering.
+            peers = []
+            for endpoint_letter in ["a", "z"]:
+                role = random.choice([*roles, None])  # noqa: S311
+                routing_instance = random.choice([*bgp_routing_instances, None])  # noqa: S311
+                # Ensure that either a routing_instance or autonomous_system is set
+                autonomous_system = None
+                if not routing_instance:
+                    autonomous_system = random.choice([*autonomous_systems])  # noqa: S311
+                peer_group = random.choice([*peer_groups, None])  # noqa: S311
+                ip_address = random.choice([*ip_addresses, None])  # noqa: S311
+                interface = random.choice([*interfaces, None])  # noqa: S311
+                secret = random.choice([*secrets, None])  # noqa: S311
+                peers.append(
+                    PeerEndpoint.objects.using(db).create(
+                        description=f"{peering} Peer Endpoint {endpoint_letter}",
+                        role=role,
+                        enabled=random.choice([True, False]),  # noqa: S311
+                        routing_instance=routing_instance,
+                        autonomous_system=autonomous_system,
+                        peering=peering,
+                        peer_group=peer_group,
+                        source_ip=ip_address,
+                        source_interface=interface,
+                        secret=secret,
+                    )
                 )
-            )
+            # Peers should be pointed at each other.
+            peers[0].peer = peers[1]
+            peers[0].save()
+            peers[1].peer = peers[0]
+            peers[1].save()
+            peer_endpoints.extend(peers)
 
         # Create PeerEndpointAddressFamilys
         peer_endpoint_address_families = []
