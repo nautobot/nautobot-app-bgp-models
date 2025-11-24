@@ -165,7 +165,7 @@ class AutonomousSystemRangeUIViewSet(NautobotUIViewSet):
             asn_table = tables.AutonomousSystemTable(asns)
 
             asn_table.columns.hide("actions")
-            
+
             context["asn_range_table"] = asn_table
             context["badge_count_override"] = asn_count
 
