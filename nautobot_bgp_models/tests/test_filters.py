@@ -326,8 +326,7 @@ class PeerEndpointTestCase(FilterTestCases.BaseFilterTestCase):
 
     def test_search(self):
         """Test text search."""
-        self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 2)
-        self.assertEqual(self.filterset({"q": "dev"}, self.queryset).qs.count(), 0)
+        self.assertEqual(self.filterset({"q": "dev"}, self.queryset).qs.count(), 2)
 
     def test_id(self):
         """Test filtering by ID (primary key)."""
@@ -700,6 +699,9 @@ class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
         device1 = Device.objects.create(
             device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
         )
+        device2 = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Router-8", location=location, status=status_active
+        )
         interface_status = Status.objects.get_for_model(Interface).first()
         interface = Interface.objects.create(device=device1, name="Loopback1", status=interface_status)
 
@@ -716,22 +718,28 @@ class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
 
         asn1 = models.AutonomousSystem.objects.create(asn=65000, status=status_active)
 
-        cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+        cls.bgp_routing_instance1 = models.BGPRoutingInstance.objects.create(
             description="Hello World!",
             autonomous_system=asn1,
             device=device1,
             status=status_active,
         )
+        cls.bgp_routing_instance2 = models.BGPRoutingInstance.objects.create(
+            description="Hello World!",
+            autonomous_system=asn1,
+            device=device2,
+            status=status_active,
+        )
 
         cls.peergroup = models.PeerGroup.objects.create(
-            routing_instance=cls.bgp_routing_instance,
+            routing_instance=cls.bgp_routing_instance1,
             name="Group B",
             role=peeringrole,
         )
 
         peering = models.Peering.objects.create(status=status_active)
         cls.endpoint = models.PeerEndpoint.objects.create(
-            routing_instance=cls.bgp_routing_instance,
+            routing_instance=cls.bgp_routing_instance1,
             source_ip=address,
             peering=peering,
         )
@@ -739,18 +747,18 @@ class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
         cls.vrf = VRF.objects.create(name="VRF 1", rd="65000:1", status=status_active)
 
         models.AddressFamily.objects.create(
-            routing_instance=cls.bgp_routing_instance,
+            routing_instance=cls.bgp_routing_instance1,
             afi_safi=choices.AFISAFIChoices.AFI_IPV4_UNICAST,
             vrf=cls.vrf,
         )
 
         models.AddressFamily.objects.create(
-            routing_instance=cls.bgp_routing_instance,
+            routing_instance=cls.bgp_routing_instance1,
             afi_safi=choices.AFISAFIChoices.AFI_IPV4_FLOWSPEC,
         )
 
         models.AddressFamily.objects.create(
-            routing_instance=cls.bgp_routing_instance,
+            routing_instance=cls.bgp_routing_instance2,
             afi_safi=choices.AFISAFIChoices.AFI_VPNV4_UNICAST,
         )
 
@@ -770,7 +778,7 @@ class AddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
 
     def test_search(self):
         """Test filtering by Q search value."""
-        self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": "dev"}, self.queryset).qs.count(), 2)
 
     def test_vrf(self):
         """Test filtering by VRF."""
@@ -988,7 +996,7 @@ class PeerEndpointAddressFamilyTestCase(FilterTestCases.BaseFilterTestCase):
         """Test text search."""
         self.assertEqual(self.filterset({"q": "ipv4_uni"}, self.queryset).qs.count(), 3)
         self.assertEqual(self.filterset({"q": "endpoint"}, self.queryset).qs.count(), 2)
-        self.assertEqual(self.filterset({"q": "Device 1"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": "dev"}, self.queryset).qs.count(), 3)
 
     def test_id(self):
         """Test filtering by ID (primary key)."""

@@ -169,7 +169,7 @@ class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
 
     q = SearchFilter(
         filter_predicates={
-            "routing_instance__device__name": "iexact",
+            "routing_instance__device__name": "icontains",
             "description": "icontains",
         },
     )
@@ -260,7 +260,7 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
 
     q = SearchFilter(
         filter_predicates={
-            "routing_instance__device__name": "iexact",
+            "routing_instance__device__name": "icontains",
         },
     )
 
@@ -324,7 +324,7 @@ class PeerEndpointAddressFamilyFilterSet(
     q = SearchFilter(
         filter_predicates={
             "afi_safi": "icontains",
-            "peer_endpoint__routing_instance__device__name": "iexact",
+            "peer_endpoint__routing_instance__device__name": "icontains",
             "peer_endpoint__description": "icontains",
         },
     )
