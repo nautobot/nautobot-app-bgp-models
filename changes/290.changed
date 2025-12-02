@@ -1,1 +1,1 @@
-Changed q filtering on PeerEndpoint, AddressFamily, and PeerEndpointAddressFamily to perform substring matching on device names instead of exact matching.
+Changed search filter on PeerEndpoint, AddressFamily, and PeerEndpointAddressFamily to perform "contains" filtering on device names instead of "exact" matching.
