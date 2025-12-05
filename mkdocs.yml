@@ -120,6 +120,7 @@ nav:
       - Compatibility Matrix: "admin/compatibility_matrix.md"
       - Release Notes:
           - "admin/release_notes/index.md"
+          - v2.4: "admin/release_notes/version_2.4.md"
           - v0.7: "admin/release_notes/version_0.7.md"
           - v0.8: "admin/release_notes/version_0.8.md"
           - v0.9: "admin/release_notes/version_0.9.md"
