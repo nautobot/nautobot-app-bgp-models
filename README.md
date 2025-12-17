@@ -13,7 +13,7 @@
 
 ## Overview
 
-An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core models with BGP-specific models. They enable modeling and management of BGP peerings, whether or not the peer device is present in Nautobot111.
+An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core models with BGP-specific models. They enable modeling and management of BGP peerings, whether or not the peer device is present in Nautobot.
 
 > The initial development of this app was sponsored by Riot Games, Inc.
 
@@ -21,23 +21,17 @@ An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core 
 
 More screenshots can be found in the [Using the App](https://docs.nautobot.com/projects/bgp-models/en/latest/user/app_use_cases/) page in the documentation. Here's a quick overview of some of the app's added functionality:
 
-![Menu](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_main-page-menu_light.png)
-![Menu](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_main-page-menu_dark.png)
+![Menu](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/main-page-menu.png)
 
-![Autonomous System](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_autonomous_system_01_light.png)
-![Autonomous System](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_autonomous_system_01_dark.png)
+![Autonomous System](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/autonomous_system_01.png)
 
-![Peering List](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peering_list_light.png)
-![Peering List](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peering_list_dark.png)
+![Peering List](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peering_list.png)
 
-![Peering](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peering_01_light.png)
-![Peering](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peering_01_dark.png)
+![Peering](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peering_01.png)
 
-![Peer Endpoint](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peer_endpoint_01_light.png)
-![Peer Endpoint](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peer_endpoint_01_dark.png)
+![Peer Endpoint](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peer_endpoint_01.png)
 
-![Peer Group](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peer_group_01_light.png)
-![Peer Group](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peer_group_01_dark.png)
+![Peer Group](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peer_group_01.png)
 
 
 ## Try it out!
