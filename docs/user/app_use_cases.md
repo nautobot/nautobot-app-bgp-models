@@ -18,24 +18,30 @@ Navigate to [Juniper Example Use Case](juniper_use_case.md) for detailed instruc
 
 ### Routing Menu
 
-![Menu](../images/main-page-menu.png)
+![Menu](../images/ss_main-page-menu_light.png#only-light){ .on-glb }
+![Menu](../images/ss_main-page-menu_dark.png#only-dark){ .on-glb }
 
 ### Autonomous System
 
-![Autonomous System](../images/autonomous_system_01.png)
+![Autonomous System](../images/ss_autonomous_system_01_light.png#only-light){ .on-glb }
+![Autonomous System](../images/ss_autonomous_system_01_dark.png#only-dark){ .on-glb }
 
 ### Peering List
 
-![Peering List](../images/peering_list.png)
+![Peering List](../images/ss_peering_list_light.png#only-light){ .on-glb }
+![Peering List](../images/ss_peering_list_dark.png#only-dark){ .on-glb }
 
 ### BGP Peering
 
-![Peering](../images/peering_01.png)
+![Peering](../images/ss_peering_01_light.png#only-light){ .on-glb }
+![Peering](../images/ss_peering_01_dark.png#only-dark){ .on-glb }
 
 ### Peer Endpoint
 
-![Peer Endpoint](../images/peer_endpoint_01.png)
+![Peer Endpoint](../images/ss_peer_endpoint_01_light.png#only-light){ .on-glb }
+![Peer Endpoint](../images/ss_peer_endpoint_01_dark.png#only-dark){ .on-glb }
 
 ### Peer Group
 
-![Peer Group](../images/peer_group_01.png)
+![Peer Group](../images/ss_peer_group_01_light.png#only-light){ .on-glb }
+![Peer Group](../images/ss_peer_group_01_dark.png#only-dark){ .on-glb }
