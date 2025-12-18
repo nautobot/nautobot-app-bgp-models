@@ -33,8 +33,9 @@ First, navigate to **Routing → BGP Global → Autonomous Systems**, then click
 
 Fill the object details:
 
-![Autonomous System Form](../images/ss_add_asn_12345_light.png#only-light "Autonomous System Form")
-![Autonomous System Form](../images/ss_add_asn_12345_dark.png#only-dark "Autonomous System Form")
+![Autonomous System Form](../images/ss_add_asn_12345_light.png#only-light "Autonomous System Form"){ .on-glb }
+![Autonomous System Form](../images/ss_add_asn_12345_dark.png#only-dark "Autonomous System Form"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/autonomous-systems/add/`"
 
 #### BGP Routing Instances creation
 
@@ -43,13 +44,15 @@ A BGP Routing Instance itself is a representation (or a declaration) of a BGP pr
 
 Fill the object details:
 
-![BGP Routing Instance Form](../images/ss_add_new_ri_light.png#only-light "BGP Routing Instance Form")
-![BGP Routing Instance Form](../images/ss_add_new_ri_dark.png#only-dark "BGP Routing Instance Form")
+![BGP Routing Instance Form](../images/ss_add_new_ri_light.png#only-light "BGP Routing Instance Form"){ .on-glb }
+![BGP Routing Instance Form](../images/ss_add_new_ri_dark.png#only-dark "BGP Routing Instance Form"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/routing-instances/add/`"
 
 Repeat for next devices and check the overall result in the BGP Routing Instance list view:
 
-![BGP Routing Instances List](../images/ss_ri_list_view_light.png#only-light "BGP Routing Instances List")
-![BGP Routing Instances List](../images/ss_ri_list_view_dark.png#only-dark "BGP Routing Instances List")
+![BGP Routing Instances List](../images/ss_ri_list_view_light.png#only-light "BGP Routing Instances List"){ .on-glb }
+![BGP Routing Instances List](../images/ss_ri_list_view_dark.png#only-dark "BGP Routing Instances List"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/routing-instances/`"
 
 #### Peering creation
 
@@ -57,8 +60,9 @@ Navigate to **Routing → BGP Peerings → Peerings**, then click **+ Add BGP Pe
 You will be redirected to a view with two columns in a table, each column representing one side of a BGP peering.
 To create a BGP Peering, you have to complete information for two sides.
 
-![BGP Peering Form](../images/ss_add_internal_peering_light.png#only-light "BGP Peering Form")
-![BGP Peering Form](../images/ss_add_internal_peering_dark.png#only-dark "BGP Peering Form")
+![BGP Peering Form](../images/ss_add_internal_peering_light.png#only-light "BGP Peering Form"){ .on-glb }
+![BGP Peering Form](../images/ss_add_internal_peering_dark.png#only-dark "BGP Peering Form"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/peerings/add/`"
 
 To create an internal BGP Peering, you only need to specify an existing BGP Routing Instance and an IP Address.
 
@@ -66,8 +70,9 @@ To create an internal BGP Peering, you only need to specify an existing BGP Rout
 
 Once the BGP Peering is created, you could review its details.
 
-![BGP Peering Details](../images/ss_internal_peering_created_light.png#only-light "BGP Peering Details")
-![BGP Peering Details](../images/ss_internal_peering_created_dark.png#only-dark "BGP Peering Details")
+![BGP Peering Details](../images/ss_internal_peering_created_light.png#only-light "BGP Peering Details"){ .on-glb }
+![BGP Peering Details](../images/ss_internal_peering_created_dark.png#only-dark "BGP Peering Details"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/peerings/3bead6b0-09ba-4939-8949-ebe64ad68cb4/`"
 
 
 ### External Peering Creation
@@ -96,8 +101,9 @@ Under **Routing → BGP Peerings → Peerings**, click **+ Add BGP Peering** to 
 You will be redirected to a view with two columns in a table, each column representing one side of a BGP peering.
 To create a BGP Peering, You have to complete information for both sides.
 
-![BGP Peering Form](../images/ss_add_external_peering_light.png#only-light "BGP Peering Form")
-![BGP Peering Form](../images/ss_add_external_peering_dark.png#only-dark "BGP Peering Form")
+![BGP Peering Form](../images/ss_add_external_peering_light.png#only-light "BGP Peering Form"){ .on-glb }
+![BGP Peering Form](../images/ss_add_external_peering_dark.png#only-dark "BGP Peering Form"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/peerings/add/`"
 
 To create an external BGP Peering, for the Provider's side You have to fill in the information with the Provider's ASN and IP Address of the provider's endpoint.
 
@@ -105,8 +111,9 @@ To create an external BGP Peering, for the Provider's side You have to fill in t
 
 Once the BGP Peering is created, you could review its details.
 
-![BGP Peering Details](../images/ss_external_peering_created_light.png#only-light "BGP Peering Details")
-![BGP Peering Details](../images/ss_external_peering_created_dark.png#only-dark "BGP Peering Details")
+![BGP Peering Details](../images/ss_external_peering_created_light.png#only-light "BGP Peering Details"){ .on-glb }
+![BGP Peering Details](../images/ss_external_peering_created_dark.png#only-dark "BGP Peering Details"){ .on-glb }
+[//]: # "`https://next.demo.nautobot.com/plugins/bgp/peerings/7e11cf5a-e5f2-4d7c-8098-3a543b87c81c/`"
 
 
 
