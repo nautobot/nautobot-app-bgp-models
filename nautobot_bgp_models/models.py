@@ -627,10 +627,17 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
         # Enforce peer group VRF membership
         if self.peer_group is not None:
             if self.peer_group.vrf and (self.peer_group.vrf not in local_ip_value.parent.vrfs.all()):
-                raise ValidationError(
-                    f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.parent.vrfs.all().first()}) "
-                    f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
-                )
+                source_interface = self.source_interface or self.peer_group.source_interface
+                if not source_interface:
+                    raise ValidationError(
+                        f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.parent.vrfs.all().first()}) "
+                        f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
+                    )
+                if not source_interface and source_interface.vrf != self.peer_group.vrf:
+                    raise ValidationError(
+                        f"VRF mismatch between {source_interface} (VRF {source_interface.vrf}) "
+                        f" and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
+                    )
 
 
 @extras_features(
