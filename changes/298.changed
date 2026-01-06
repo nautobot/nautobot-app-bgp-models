@@ -1,0 +1,1 @@
+Replaced device_id filters with device, which now supports filtering by both device name and ID.
