@@ -531,7 +531,7 @@ class PeeringTestCase(FilterTestCases.FilterTestCase):
     )
 
     @classmethod
-    def setUpTestData(cls):  # pylint: disable=too-many-locals
+    def setUpTestData(cls):  # pylint: disable=too-many-statements,too-many-locals
         """One-time class setup to prepopulate required data for tests."""
         status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.Peering))
