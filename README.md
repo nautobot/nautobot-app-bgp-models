@@ -21,17 +21,17 @@ An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core 
 
 More screenshots can be found in the [Using the App](https://docs.nautobot.com/projects/bgp-models/en/latest/user/app_use_cases/) page in the documentation. Here's a quick overview of some of the app's added functionality:
 
-![Menu](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/main-page-menu.png)
+![Menu](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_main-page-menu_dark.png)
 
-![Autonomous System](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/autonomous_system_01.png)
+![Autonomous System](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_autonomous_system_01_dark.png)
 
-![Peering List](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peering_list.png)
+![Peering List](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peering_list_dark.png)
 
-![Peering](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peering_01.png)
+![Peering](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peering_01_dark.png)
 
-![Peer Endpoint](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peer_endpoint_01.png)
+![Peer Endpoint](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peer_endpoint_01_dark.png)
 
-![Peer Group](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/peer_group_01.png)
+![Peer Group](https://raw.githubusercontent.com/nautobot/nautobot-app-bgp-models/develop/docs/images/ss_peer_group_01_dark.png)
 
 
 ## Try it out!
