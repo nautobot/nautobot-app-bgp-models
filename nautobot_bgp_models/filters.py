@@ -2,16 +2,18 @@
 """FilterSet definitions for nautobot_bgp_models."""
 
 import django_filters
+from django.db.models import Q
 from nautobot.apps.filters import (
     BaseFilterSet,
     CreatedUpdatedModelFilterSetMixin,
     CustomFieldModelFilterSetMixin,
+    NaturalKeyOrPKMultipleChoiceFilter,
     NautobotFilterSet,
+    RoleModelFilterSetMixin,
     SearchFilter,
     StatusModelFilterSetMixin,
 )
 from nautobot.dcim.models import Device
-from nautobot.extras.filters.mixins import RoleModelFilterSetMixin
 from nautobot.extras.models import Role
 from nautobot.ipam.models import VRF
 
@@ -27,10 +29,24 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
             "description": "icontains",
         },
     )
+    autonomous_system_range = django_filters.ModelMultipleChoiceFilter(
+        queryset=models.AutonomousSystemRange.objects.all(),
+        label="ASN Range",
+        method="filter_present_in_asn_range",
+    )
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ["id", "asn", "status", "tags"]
+        fields = ["id", "asn", "status", "tags", "autonomous_system_range"]
+
+    def filter_present_in_asn_range(self, queryset, name, value):  # pylint: disable=unused-argument
+        """Filter Autonomous Systems that are present in any of the given ASN Ranges."""
+        if not value:
+            return queryset
+        q_obj = Q()
+        for asn_range in value:
+            q_obj |= Q(asn__gte=asn_range.asn_min, asn__lte=asn_range.asn_max)
+        return queryset.filter(q_obj)
 
 
 class AutonomousSystemRangeFilterSet(NautobotFilterSet):
@@ -257,11 +273,10 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
         label="BGP Routing Instance ID",
     )
 
-    vrf = django_filters.ModelMultipleChoiceFilter(
-        field_name="vrf__name",
+    vrf = NaturalKeyOrPKMultipleChoiceFilter(
+        label="VRF (name or ID)",
         queryset=VRF.objects.all(),
         to_field_name="name",
-        label="VRF (name)",
     )
 
     class Meta:

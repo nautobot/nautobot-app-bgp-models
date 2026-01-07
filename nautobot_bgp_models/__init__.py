@@ -19,8 +19,6 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
     description = "Nautobot BGP Models App."
     base_url = "bgp"
     required_settings = []
-    min_version = "2.0.3"
-    max_version = "2.9999"
     default_settings = {
         "default_statuses": {
             "AutonomousSystem": ["Active", "Available", "Planned"],
@@ -28,8 +26,8 @@ class NautobotBGPModelsConfig(NautobotAppConfig):
             "Peering": ["Active", "Decommissioned", "Deprovisioning", "Offline", "Planned", "Provisioning"],
         }
     }
-    caching_config = {}
     docs_view_name = "plugins:nautobot_bgp_models:docs"
+    searchable_models = ["autonomoussystem"]
 
     def ready(self):
         """Callback invoked after the app is loaded."""
