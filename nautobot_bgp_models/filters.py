@@ -191,7 +191,7 @@ class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
         fields = ["id", "enabled", "tags"]
 
 
-class PeeringFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
+class PeeringFilterSet(StatusModelFilterSetMixin, NautobotFilterSet):
     """Filtering of Peering records."""
 
     # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
