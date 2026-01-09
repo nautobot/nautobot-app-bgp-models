@@ -9,6 +9,8 @@ from nautobot.dcim.choices import InterfaceTypeChoices
 from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
 from nautobot.extras.models import Role, Status
 from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
+from nautobot.tenancy.models import Tenant
+
 
 from nautobot_bgp_models import choices, filters, models
 
@@ -20,6 +22,7 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
     filterset = filters.AutonomousSystemFilterSet
 
     generic_filter_tests = (
+        ["description"],
         ["asn"],
         ["provider", "provider__id"],
         ["provider", "provider__name"],
@@ -44,7 +47,10 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
         provider_3 = Provider.objects.create(name="Test Provider3")
 
         models.AutonomousSystem.objects.create(
-            asn=4200000000, status=status_active, provider=provider_1, description="Reserved for private use"
+            asn=4200000000, 
+            status=status_active, 
+            provider=provider_1, 
+            description="Reserved for private use",
         )
         models.AutonomousSystem.objects.create(
             asn=4200000001,
@@ -84,21 +90,28 @@ class AutonomousSystemRangeTestCase(FilterTestCases.FilterTestCase):
         ["name"],
         ["asn_min"],
         ["asn_max"],
+        ["description"],
+        ["tenant", "tenant__name"],
+        ["tenant", "tenant__id"],
     )
 
     @classmethod
     def setUpTestData(cls):
         """One-time class setup to prepopulate required data for tests."""
+        tenant1 = Tenant.objects.create(name="Tenant-1")
+        tenant2 = Tenant.objects.create(name="Tenant-2")
+        tenant3 = Tenant.objects.create(name="Tenant-3")
+
         cls.asn_range_1 = models.AutonomousSystemRange.objects.create(
-            name="Public asns", asn_min=100, asn_max=125, description="Test Range 1"
+            name="Public asns", asn_min=100, asn_max=125, tenant=tenant1, description="Test Range 1"
         )
 
         cls.asn_range_2 = models.AutonomousSystemRange.objects.create(
-            name="DC asns", asn_min=1000, asn_max=2000, description="asns for dc"
+            name="DC asns", asn_min=1000, asn_max=2000, tenant=tenant2, description="asns for dc"
         )
 
         cls.asn_range_3 = models.AutonomousSystemRange.objects.create(
-            name="DC asns 2", asn_min=2001, asn_max=3000, description="asns for dc"
+            name="DC asns 2", asn_min=2001, asn_max=3000, tenant=tenant3, description="Hello World"
         )
 
     def test_search(self):
@@ -113,9 +126,13 @@ class BGPRoutingInstanceTestCase(FilterTestCases.FilterTestCase):
     filterset = filters.BGPRoutingInstanceFilterSet
 
     generic_filter_tests = (
+        ["description"],
         ["autonomous_system", "autonomous_system__asn"],
         ["device", "device__name"],
         ["device", "device__id"],
+        ["device_id", "device__id"],  #TODO: Remove this when deprecated `device_id` filter id removed
+        ["status", "status__id"],
+        ["status", "status__name"],
     )
 
     @classmethod
@@ -124,6 +141,13 @@ class BGPRoutingInstanceTestCase(FilterTestCases.FilterTestCase):
 
         status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        status_reserved = Status.objects.get(name__iexact="reserved")
+        status_reserved.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
+        status_planned = Status.objects.get(name__iexact="planned")
+        status_planned.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
+
         manufacturer = Manufacturer.objects.create(name="Cisco")
         devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
         location_type = LocationType.objects.create(name="site")
@@ -167,7 +191,7 @@ class BGPRoutingInstanceTestCase(FilterTestCases.FilterTestCase):
             device=device_2,
             autonomous_system=asn2,
             router_id=router_id_2,
-            status=status_active,
+            status=status_reserved,
         )
 
         models.BGPRoutingInstance.objects.create(
@@ -175,7 +199,7 @@ class BGPRoutingInstanceTestCase(FilterTestCases.FilterTestCase):
             device=device_3,
             autonomous_system=asn3,
             router_id=router_id_3,
-            status=status_active,
+            status=status_planned,
         )
 
     def test_search(self):
@@ -193,11 +217,14 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
 
     generic_filter_tests = (
         ["name"],
+        ["role"],
+        ["vrf"],
+        ["description"],
         ["autonomous_system", "autonomous_system__asn"],
         ["routing_instance", "routing_instance__id"],
         ["device", "routing_instance__device__name"],
         ["device", "routing_instance__device__id"],
-        ["role"],
+        ["device_id", "routing_instance__device__id"],  #TODO: Remove this when deprecated `device_id` filter id removed
     )
 
     @classmethod
@@ -254,12 +281,28 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
             status=status_active,
         )
 
+        vrf_1 = VRF.objects.create(name="VRF 1", rd="65000:1", status=status_active)
+        vrf_2 = VRF.objects.create(name="VRF 2", rd="65000:100", status=status_active)
+        vrf_3 = VRF.objects.create(name="VRF 3", rd="65000:200", status=status_active)
+
+        namespace = Namespace.objects.first()
+        prefix_status = Status.objects.get_for_model(Prefix).first()
+        Prefix.objects.create(prefix="1.0.0.0/8", namespace=namespace, status=prefix_status)
+
+        
+        source_ip_1 = IPAddress.objects.create(address="1.1.1.1/32", status=status_active, namespace=namespace)
+        source_ip_2 = IPAddress.objects.create(address="1.1.1.2/32", status=status_active, namespace=namespace)
+        source_ip_3 = IPAddress.objects.create(address="1.1.1.3/32", status=status_active, namespace=namespace)
+        
+
         models.PeerGroup.objects.create(
             routing_instance=cls.bgp_routing_instance_1,
             name="Group A",
             role=cls.peeringrole_internal,
             autonomous_system=cls.asn_1,
             description="Internal Group",
+            vrf=vrf_1,
+            source_ip=source_ip_1,
         )
         models.PeerGroup.objects.create(
             routing_instance=cls.bgp_routing_instance_1,
@@ -268,14 +311,17 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
             autonomous_system=cls.asn_1,
             enabled=False,
             description="External Group",
+            vrf=vrf_2,
+            source_ip=source_ip_2
         )
         models.PeerGroup.objects.create(
             routing_instance=cls.bgp_routing_instance_2,
             name="Group C",
             role=cls.peeringrole_internal,
             autonomous_system=asn_2,
-            description="Internal Group",
-            # vrf=cls.vrf
+            description="Hello World",
+            vrf=vrf_3,
+            source_ip=source_ip_3,
         )
         models.PeerGroup.objects.create(
             routing_instance=cls.bgp_routing_instance_3,
@@ -291,7 +337,7 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
         # Match on name (case-insensitive)
         self.assertEqual(self.filterset({"q": "Group A"}, self.queryset).qs.count(), 1)
         self.assertEqual(self.filterset({"q": "group a"}, self.queryset).qs.count(), 1)
-        self.assertEqual(self.filterset({"q": "Internal Group"}, self.queryset).qs.count(), 3)
+        self.assertEqual(self.filterset({"q": "Internal Group"}, self.queryset).qs.count(), 2)
         self.assertEqual(self.filterset({"q": "External Group"}, self.queryset).qs.count(), 1)
 
     def test_enabled(self):
@@ -308,6 +354,8 @@ class PeerGroupTemplateTestCase(FilterTestCases.FilterTestCase):
 
     generic_filter_tests = (
         ["name"],
+        ["description"],
+        ["role"],
         ["autonomous_system", "autonomous_system__asn"],
     )
 
@@ -331,7 +379,7 @@ class PeerGroupTemplateTestCase(FilterTestCases.FilterTestCase):
         cls.peer_group_template_1 = models.PeerGroupTemplate.objects.create(
             name="Template 1",
             role=role_internal,
-            description="Hello World",
+            description="Group Template 1",
             autonomous_system=asn1,
         )
 
@@ -380,8 +428,11 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
     filterset = filters.PeerEndpointFilterSet
 
     generic_filter_tests = (
+        ["description"],
+        ["role"],
         ["device", "routing_instance__device__name"],
         ["device", "routing_instance__device__id"],
+        ["device", "routing_instance__device__id"],  #TODO: Remove this when deprecated `device_id` filter id removed
         ["autonomous_system", "autonomous_system__asn"],
         ["peer_group", "peer_group__id"],
         ["peer_group", "peer_group__name"],
@@ -396,8 +447,12 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
         asn_1 = models.AutonomousSystem.objects.create(asn=4294967295, status=status_active)
         asn_2 = models.AutonomousSystem.objects.create(asn=4294967296, status=status_active)
         asn_3 = models.AutonomousSystem.objects.create(asn=4294967297, status=status_active)
-        peeringrole = Role.objects.create(name="Internal", color="ffffff")
-        peeringrole.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
+        role_internal = Role.objects.create(name="Internal", color="ffffff")
+        role_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
+        role_external = Role.objects.create(name="External", color="ffffff")
+        role_external.content_types.add(ContentType.objects.get_for_model(models.PeerEndpoint))
+        role_transit = Role.objects.create(name="Transit", color="ffffff")
+        role_transit.content_types.add(ContentType.objects.get_for_model(models.PeerEndpoint))
         manufacturer = Manufacturer.objects.create(name="Cisco")
         cls.devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
         location_type = LocationType.objects.create(name="site")
@@ -464,17 +519,17 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
 
         peergroup_1 = models.PeerGroup.objects.create(
             name="Group B",
-            role=peeringrole,
+            role=role_internal,
             routing_instance=bgp_routing_instance_1,
         )
         peergroup_2 = models.PeerGroup.objects.create(
             name="Group C",
-            role=peeringrole,
+            role=role_internal,
             routing_instance=bgp_routing_instance_2,
         )
         peergroup_3 = models.PeerGroup.objects.create(
             name="Group D",
-            role=peeringrole,
+            role=role_internal,
             routing_instance=bgp_routing_instance_3,
         )
 
@@ -482,27 +537,34 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
         peering2 = models.Peering.objects.create(status=status_active)
         peering3 = models.Peering.objects.create(status=status_active)
 
+
         models.PeerEndpoint.objects.create(
+            description="Peer Endpoint 1",
             routing_instance=bgp_routing_instance_1,
             source_ip=addresses[0],
             autonomous_system=asn_1,
             peer_group=peergroup_1,
             peering=peering1,
+            role=role_internal,
         )
         models.PeerEndpoint.objects.create(
+            description="This is a Peer Endpoint",
             routing_instance=bgp_routing_instance_2,
             source_ip=addresses[1],
             autonomous_system=asn_2,
             peer_group=peergroup_2,
             peering=peering2,
+            role=role_external,
         )
         models.PeerEndpoint.objects.create(
+            description="Hello World",
             routing_instance=bgp_routing_instance_3,
             source_ip=addresses[2],
             autonomous_system=asn_3,
             peer_group=peergroup_3,
             enabled=False,
             peering=peering3,
+            role=role_transit,
         )
 
     def test_search(self):
@@ -817,7 +879,7 @@ class AddressFamilyTestCase(FilterTestCases.FilterTestCase):
         ["afi_safi"],
         ["routing_instance", "routing_instance__id"],
         ["device", "routing_instance__device__name"],
-        ["device", "routing_instance__device__id"],
+        ["device_id", "routing_instance__device__id"],
     )
 
     @classmethod
@@ -906,6 +968,8 @@ class PeerGroupAddressFamilyTestCase(FilterTestCases.FilterTestCase):
 
     generic_filter_tests = (
         ["afi_safi"],
+        ["import_policy"],
+        ["export_policy"],
         ["peer_group", "peer_group__id"],
         ["peer_group", "peer_group__name"],
     )
@@ -970,14 +1034,23 @@ class PeerGroupAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         models.PeerGroupAddressFamily.objects.create(
             peer_group=cls.peergroup_1,
             afi_safi="ipv4_unicast",
+            import_policy="Import Policy 1",
+            export_policy="Export Policy 1",
+            multipath=True,
         )
         models.PeerGroupAddressFamily.objects.create(
             peer_group=peergroup_2,
             afi_safi="ipv6_unicast",
+            import_policy="This is an Import Policy",
+            export_policy="This is an Export Policy",
+            multipath=True,
         )
         models.PeerGroupAddressFamily.objects.create(
             peer_group=peergroup_3,
             afi_safi="ipv4_multicast",
+            import_policy="Hello World",
+            export_policy="Hello World",
+            multipath=False,
         )
 
     def test_search(self):
@@ -986,6 +1059,12 @@ class PeerGroupAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         self.assertEqual(self.filterset({"q": self.peergroup_1.name}, self.queryset).qs.count(), 1)
         self.assertEqual(self.filterset({"q": self.peergroup_1.description}, self.queryset).qs.count(), 1)
 
+    def test_multipath(self):
+        """Test Multipath"""
+        number_of_groups_with_multipath = models.PeerGroupAddressFamily.objects.filter(multipath=True).count()
+        number_of_groups_without_multipath = models.PeerGroupAddressFamily.objects.filter(multipath=False).count()
+        self.assertEqual(self.filterset({"multipath": True}, self.queryset).qs.count(), number_of_groups_with_multipath)
+        self.assertEqual(self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath)
 
 class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
     """Test filtering of PeerEndpointAddressFamily records."""
@@ -996,6 +1075,8 @@ class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
     generic_filter_tests = (
         ["afi_safi"],
         ["peer_endpoint", "peer_endpoint__id"],
+        ["import_policy"],
+        ["export_policy"],
     )
 
     @classmethod
@@ -1094,14 +1175,23 @@ class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         models.PeerEndpointAddressFamily.objects.create(
             peer_endpoint=cls.pe1,
             afi_safi="ipv4_unicast",
+            import_policy="Import Policy 1",
+            export_policy="Export Policy 1",
+            multipath=True,
         )
         models.PeerEndpointAddressFamily.objects.create(
             peer_endpoint=cls.pe1,
             afi_safi="ipv6_unicast",
+            import_policy="This is an Import Policy",
+            export_policy="This is an Export Policy",
+            multipath=True,
         )
         models.PeerEndpointAddressFamily.objects.create(
             peer_endpoint=cls.pe2,
             afi_safi="ipv4_unicast",
+            import_policy="Hello World",
+            export_policy="Hello World",
+            multipath=False,
         )
         models.PeerEndpointAddressFamily.objects.create(
             peer_endpoint=cls.pe3,
@@ -1113,3 +1203,10 @@ class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         self.assertEqual(self.filterset({"q": "ipv4_uni"}, self.queryset).qs.count(), 2)
         self.assertEqual(self.filterset({"q": "endpoint"}, self.queryset).qs.count(), 2)
         self.assertEqual(self.filterset({"q": "dev"}, self.queryset).qs.count(), 3)
+
+    def test_multipath(self):
+        """Test Multipath"""
+        number_of_groups_with_multipath = models.PeerEndpointAddressFamily.objects.filter(multipath=True).count()
+        number_of_groups_without_multipath = models.PeerEndpointAddressFamily.objects.filter(multipath=False).count()
+        self.assertEqual(self.filterset({"multipath": True}, self.queryset).qs.count(), number_of_groups_with_multipath)
+        self.assertEqual(self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath)
