@@ -99,13 +99,12 @@ class BGPRoutingInstanceFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         queryset=Device.objects.all(),
         label="Device (ID)",
     )
-    
+
     device = NaturalKeyOrPKMultipleChoiceFilter(
         queryset=Device.objects.all(),
         to_field_name="name",
         label="Device (name or ID)",
     )
-
 
     class Meta:
         model = models.BGPRoutingInstance

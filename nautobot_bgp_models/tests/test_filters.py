@@ -11,7 +11,6 @@ from nautobot.extras.models import Role, Status
 from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
 from nautobot.tenancy.models import Tenant
 
-
 from nautobot_bgp_models import choices, filters, models
 
 
@@ -47,9 +46,9 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
         provider_3 = Provider.objects.create(name="Test Provider3")
 
         models.AutonomousSystem.objects.create(
-            asn=4200000000, 
-            status=status_active, 
-            provider=provider_1, 
+            asn=4200000000,
+            status=status_active,
+            provider=provider_1,
             description="Reserved for private use",
         )
         models.AutonomousSystem.objects.create(
@@ -130,7 +129,7 @@ class BGPRoutingInstanceTestCase(FilterTestCases.FilterTestCase):
         ["autonomous_system", "autonomous_system__asn"],
         ["device", "device__name"],
         ["device", "device__id"],
-        ["device_id", "device__id"],  #TODO: Remove this when deprecated `device_id` filter id removed
+        ["device_id", "device__id"],  # TODO: Remove this when deprecated `device_id` filter id removed
         ["status", "status__id"],
         ["status", "status__name"],
     )
@@ -224,11 +223,14 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
         ["routing_instance", "routing_instance__id"],
         ["device", "routing_instance__device__name"],
         ["device", "routing_instance__device__id"],
-        ["device_id", "routing_instance__device__id"],  #TODO: Remove this when deprecated `device_id` filter id removed
+        [
+            "device_id",
+            "routing_instance__device__id",
+        ],  # TODO: Remove this when deprecated `device_id` filter id removed
     )
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
         """One-time class setup."""
         status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
@@ -289,11 +291,9 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
         prefix_status = Status.objects.get_for_model(Prefix).first()
         Prefix.objects.create(prefix="1.0.0.0/8", namespace=namespace, status=prefix_status)
 
-        
         source_ip_1 = IPAddress.objects.create(address="1.1.1.1/32", status=status_active, namespace=namespace)
         source_ip_2 = IPAddress.objects.create(address="1.1.1.2/32", status=status_active, namespace=namespace)
         source_ip_3 = IPAddress.objects.create(address="1.1.1.3/32", status=status_active, namespace=namespace)
-        
 
         models.PeerGroup.objects.create(
             routing_instance=cls.bgp_routing_instance_1,
@@ -312,7 +312,7 @@ class PeerGroupTestCase(FilterTestCases.FilterTestCase):
             enabled=False,
             description="External Group",
             vrf=vrf_2,
-            source_ip=source_ip_2
+            source_ip=source_ip_2,
         )
         models.PeerGroup.objects.create(
             routing_instance=cls.bgp_routing_instance_2,
@@ -432,7 +432,7 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
         ["role"],
         ["device", "routing_instance__device__name"],
         ["device", "routing_instance__device__id"],
-        ["device", "routing_instance__device__id"],  #TODO: Remove this when deprecated `device_id` filter id removed
+        ["device", "routing_instance__device__id"],  # TODO: Remove this when deprecated `device_id` filter id removed
         ["autonomous_system", "autonomous_system__asn"],
         ["peer_group", "peer_group__id"],
         ["peer_group", "peer_group__name"],
@@ -536,7 +536,6 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
         peering1 = models.Peering.objects.create(status=status_active)
         peering2 = models.Peering.objects.create(status=status_active)
         peering3 = models.Peering.objects.create(status=status_active)
-
 
         models.PeerEndpoint.objects.create(
             description="Peer Endpoint 1",
@@ -1064,7 +1063,10 @@ class PeerGroupAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         number_of_groups_with_multipath = models.PeerGroupAddressFamily.objects.filter(multipath=True).count()
         number_of_groups_without_multipath = models.PeerGroupAddressFamily.objects.filter(multipath=False).count()
         self.assertEqual(self.filterset({"multipath": True}, self.queryset).qs.count(), number_of_groups_with_multipath)
-        self.assertEqual(self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath)
+        self.assertEqual(
+            self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath
+        )
+
 
 class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
     """Test filtering of PeerEndpointAddressFamily records."""
@@ -1209,4 +1211,6 @@ class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         number_of_groups_with_multipath = models.PeerEndpointAddressFamily.objects.filter(multipath=True).count()
         number_of_groups_without_multipath = models.PeerEndpointAddressFamily.objects.filter(multipath=False).count()
         self.assertEqual(self.filterset({"multipath": True}, self.queryset).qs.count(), number_of_groups_with_multipath)
-        self.assertEqual(self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath)
+        self.assertEqual(
+            self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath
+        )
