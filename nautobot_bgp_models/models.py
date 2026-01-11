@@ -633,7 +633,7 @@ class PeerEndpoint(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
                         f"VRF mismatch between {local_ip_value} (VRF {local_ip_value.parent.vrfs.all().first()}) "
                         f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"
                     )
-                elif source_interface.vrf != self.peer_group.vrf:
+                if source_interface.vrf != self.peer_group.vrf:
                     raise ValidationError(
                         f"VRF mismatch between {source_interface} (VRF {source_interface.vrf}) "
                         f"and peer-group {self.peer_group.name} (VRF {self.peer_group.vrf})"

@@ -180,7 +180,7 @@ class PeerGroupTestCase(TestCase):
     #     self.assertEqual(self.peergroup.vrf, vrf)
 
 
-class PeerEndpointTestCase(TestCase):
+class PeerEndpointTestCase(TestCase):  # pylint: disable=too-many-instance-attributes
     """Test the PeerEndpoint model."""
 
     @classmethod
