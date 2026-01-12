@@ -187,6 +187,14 @@ class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
         },
     )
 
+    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        field_name="routing_instance__device__id",
+        queryset=Device.objects.all(),
+        to_field_name="id",
+        label="Device (ID)",
+    )
+
     device = NaturalKeyOrPKMultipleChoiceFilter(
         field_name="routing_instance__device",
         queryset=Device.objects.all(),
@@ -222,6 +230,14 @@ class PeeringFilterSet(StatusModelFilterSetMixin, NautobotFilterSet):
         filter_predicates={
             "endpoints__routing_instance__device__name": "icontains",
         },
+    )
+
+    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        field_name="endpoints__routing_instance__device__id",
+        queryset=Device.objects.all(),
+        to_field_name="id",
+        label="Device (ID)",
     )
 
     device = NaturalKeyOrPKMultipleChoiceFilter(
@@ -260,21 +276,6 @@ class AddressFamilyFilterSet(NautobotFilterSet):
     )
 
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
-
-    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
-    device_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="routing_instance__device__id",
-        queryset=Device.objects.all(),
-        to_field_name="id",
-        label="Device (ID)",
-    )
-
-    device = NaturalKeyOrPKMultipleChoiceFilter(
-        field_name="routing_instance__device",
-        queryset=Device.objects.all(),
-        to_field_name="name",
-        label="Device (name or ID)",
-    )
 
     routing_instance = django_filters.ModelMultipleChoiceFilter(
         field_name="routing_instance__id",

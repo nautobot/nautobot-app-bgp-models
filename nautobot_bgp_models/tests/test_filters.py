@@ -432,7 +432,10 @@ class PeerEndpointTestCase(FilterTestCases.FilterTestCase):
         ["role"],
         ["device", "routing_instance__device__name"],
         ["device", "routing_instance__device__id"],
-        ["device", "routing_instance__device__id"],  # TODO: Remove this when deprecated `device_id` filter id removed
+        [
+            "device_id",
+            "routing_instance__device__id",
+        ],  # TODO: Remove this when deprecated `device_id` filter id removed
         ["autonomous_system", "autonomous_system__asn"],
         ["peer_group", "peer_group__id"],
         ["peer_group", "peer_group__name"],
@@ -587,6 +590,10 @@ class PeeringTestCase(FilterTestCases.FilterTestCase):
         ["status", "status__name"],
         ["device", "endpoints__routing_instance__device__name"],
         ["device", "endpoints__routing_instance__device__id"],
+        [
+            "device_id",
+            "endpoints__routing_instance__device__id",
+        ],  # TODO: Remove this when deprecated `device_id` filter id removed
         ["device_role", "endpoints__routing_instance__device__role__name"],
         ["peer_endpoint_role", "endpoints__role__name"],
     )
@@ -877,8 +884,6 @@ class AddressFamilyTestCase(FilterTestCases.FilterTestCase):
         ["vrf"],
         ["afi_safi"],
         ["routing_instance", "routing_instance__id"],
-        ["device", "routing_instance__device__name"],
-        ["device_id", "routing_instance__device__id"],
     )
 
     @classmethod
