@@ -1,0 +1,1 @@
+Updated PeerEndpoint VRF validation to include related interface as a source for VRF configuration.

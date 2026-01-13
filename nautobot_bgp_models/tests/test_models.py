@@ -180,7 +180,7 @@ class PeerGroupTestCase(TestCase):
     #     self.assertEqual(self.peergroup.vrf, vrf)
 
 
-class PeerEndpointTestCase(TestCase):
+class PeerEndpointTestCase(TestCase):  # pylint: disable=too-many-instance-attributes
     """Test the PeerEndpoint model."""
 
     @classmethod
@@ -197,15 +197,14 @@ class PeerEndpointTestCase(TestCase):
         location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
         devicerole = Role.objects.create(name="Router", color="ff0000")
         devicerole.content_types.add(ContentType.objects.get_for_model(Device))
-        device_1 = Device.objects.create(
+        cls.device_1 = Device.objects.create(
             device_type=devicetype, role=devicerole, name="Device 1", location=location, status=cls.status_active
         )
-        interface_status = Status.objects.get_for_model(Interface).first()
-        cls.interface_1 = Interface.objects.create(device=device_1, name="Loopback1", status=interface_status)
+        cls.interface_status = Status.objects.get_for_model(Interface).first()
         device_2 = Device.objects.create(
             device_type=devicetype, role=devicerole, name="Device 2", location=location, status=cls.status_active
         )
-        cls.interface_2 = Interface.objects.create(device=device_2, name="Loopback1", status=interface_status)
+        cls.interface_2 = Interface.objects.create(device=device_2, name="Loopback1", status=cls.interface_status)
 
         cls.peeringrole_internal = Role.objects.create(name="Internal", color="333333")
         cls.peeringrole_internal.content_types.add(ContentType.objects.get_for_model(models.PeerGroup))
@@ -225,7 +224,7 @@ class PeerEndpointTestCase(TestCase):
         bgp_routing_instance_1 = models.BGPRoutingInstance.objects.create(
             description="BGP Routing Instance for device 1",
             autonomous_system=autonomous_system_12345,
-            device=device_1,
+            device=cls.device_1,
             status=status_active,
         )
         cls.bgp_routing_instance_1 = bgp_routing_instance_1
@@ -238,11 +237,6 @@ class PeerEndpointTestCase(TestCase):
         )
         cls.bgp_routing_instance_2 = bgp_routing_instance_2
 
-        cls.peergroup_1 = models.PeerGroup.objects.create(
-            name="Peer Group A",
-            role=cls.peeringrole_internal,
-            routing_instance=bgp_routing_instance_1,
-        )
         cls.peergroup_2 = models.PeerGroup.objects.create(
             name="Peer Group A",
             role=cls.peeringrole_internal,
@@ -250,33 +244,51 @@ class PeerEndpointTestCase(TestCase):
         )
 
         cls.namespace = Namespace.objects.first()
-        prefix_status = Status.objects.get_for_model(Prefix).first()
-        Prefix.objects.create(prefix="1.0.0.0/8", namespace=cls.namespace, status=prefix_status)
+        cls.prefix_status = Status.objects.get_for_model(Prefix).first()
 
-        cls.ipaddress_2 = IPAddress.objects.create(
-            address="1.1.1.2/32",
-            status=status_active,
-            namespace=cls.namespace,
-        )
         vm_cluster_type = ClusterType.objects.create(name="vShpere")
         vm_cluster = Cluster.objects.create(name="VM Test Cluster", cluster_type=vm_cluster_type)
         cls.virtual_machine_1 = VirtualMachine.objects.create(name="VM 1", cluster=vm_cluster, status=cls.status_active)
         cls.vm_interface_1 = VMInterface.objects.create(
             name="Loopback1", virtual_machine=cls.virtual_machine_1, status=status_active
         )
+        cls.vrf = VRF.objects.create(name="VRF")
 
     def setUp(self):
         """Per-test data setup."""
 
         self.peering = models.Peering.objects.create(status=self.status_active)
 
+        self.interface_1 = Interface.objects.create(
+            device=self.device_1,
+            name="Loopback1",
+            status=self.interface_status,
+        )
+
+        self.prefix_1 = Prefix.objects.create(
+            prefix="1.0.0.0/8",
+            namespace=self.namespace,
+            status=self.prefix_status,
+        )
+
         self.ipaddress_1 = IPAddress.objects.create(
             address="1.1.1.1/32",
             status=self.status_active,
             namespace=self.namespace,
         )
+        self.ipaddress_2 = IPAddress.objects.create(
+            address="1.1.1.2/32",
+            status=self.status_active,
+            namespace=self.namespace,
+        )
 
         self.interface_1.add_ip_addresses(self.ipaddress_1)
+
+        self.peergroup_1 = models.PeerGroup.objects.create(
+            name="Peer Group A",
+            role=self.peeringrole_internal,
+            routing_instance=self.bgp_routing_instance_1,
+        )
 
         self.peerendpoint_1 = models.PeerEndpoint.objects.create(
             source_ip=self.ipaddress_1,
@@ -303,29 +315,107 @@ class PeerEndpointTestCase(TestCase):
     #
     # # TODO VRF fixup from router_id?
     #
-    # def test_local_ip_vrf_mismatch(self):
-    #     """Clean should fail if local_ip is assigned to a different VRF than the specified one."""
-    #     self.peerendpoint_1.vrf = VRF.objects.create(name="Some other VRF")
-    #     with self.assertRaises(ValidationError) as context:
-    #         self.peerendpoint_1.validated_save()
-    #     self.assertEqual(
-    #         context.exception.messages[0],
-    #         "VRF Some other VRF was specified, but one or more attributes refer instead to Ark B",
-    #     )
-    #
-    # def test_peer_group_vrf_mismatch(self):
-    #     """The specified peer-group must belong to the specified VRF if any."""
-    #     self.peerendpoint_1.peer_group = models.PeerGroup.objects.create(
-    #         name="Group B",
-    #         role=self.peeringrole_internal,
-    #         vrf=None,
-    #     )
-    #     with self.assertRaises(ValidationError) as context:
-    #         self.peerendpoint_1.validated_save()
-    #     self.assertIn(
-    #         "Various attributes refer to different VRFs",
-    #         context.exception.messages[0],
-    #     )
+
+    def test_peer_group_no_vrf(self):
+        """Test endpoint VRF passes when peer-group doesn't have VRF assigned."""
+        self.assertIsNone(self.peergroup_1.vrf)
+
+        self.peerendpoint_1.peer_group = self.peergroup_1
+        self.peerendpoint_1.validated_save()
+
+    def test_peer_group_vrf_ip_match(self):
+        """Test peer-group IP VRF countst for matching VRF."""
+        self.assertIsNone(self.interface_1.vrf)
+
+        self.peergroup_1.vrf = self.vrf
+        self.peergroup_1.save()
+        self.prefix_1.vrfs.add(self.vrf)
+        self.prefix_1.save()
+
+        self.peerendpoint_1.peer_group = self.peergroup_1
+        self.peerendpoint_1.validated_save()
+
+    def test_peer_group_vrf_ip_mismatch(self):
+        """Test endpoint VRF mismatch raises error when no interface defined."""
+        self.assertIsNone(self.peerendpoint_1.source_interface)
+        self.assertIsNone(self.peergroup_1.source_interface)
+        self.assertTrue(self.vrf not in self.prefix_1.vrfs.all())
+
+        self.peergroup_1.vrf = self.vrf
+        self.peergroup_1.save()
+
+        self.peerendpoint_1.peer_group = self.peergroup_1
+
+        with self.assertRaises(ValidationError) as context:
+            self.peerendpoint_1.validated_save()
+
+        self.assertEqual(
+            context.exception.messages[0],
+            f"VRF mismatch between {self.ipaddress_1} (VRF None) "
+            f"and peer-group {self.peergroup_1.name} (VRF {self.peergroup_1.vrf})",
+        )
+
+    def test_vrf_interface_match(self):
+        """Test endpoint interface VRF counts for matching VRF."""
+        self.assertIsNone(self.peergroup_1.source_interface)
+
+        self.interface_1.vrf = self.vrf
+        self.interface_1.save()
+        self.peergroup_1.vrf = self.vrf
+        self.peergroup_1.save()
+        self.peerendpoint_1.source_interface = self.interface_1
+        self.peerendpoint_1.peer_group = self.peergroup_1
+        self.peerendpoint_1.validated_save()
+
+    def test_vrf_interface_mismatch(self):
+        """Test endpoint interface VRF mismatch raises error."""
+        self.assertIsNone(self.peergroup_1.source_interface)
+        self.assertIsNone(self.interface_1.vrf)
+
+        self.peergroup_1.vrf = self.vrf
+        self.peergroup_1.save()
+        self.peerendpoint_1.source_interface = self.interface_1
+        self.peerendpoint_1.peer_group = self.peergroup_1
+
+        with self.assertRaises(ValidationError) as context:
+            self.peerendpoint_1.validated_save()
+
+        self.assertEqual(
+            context.exception.messages[0],
+            f"VRF mismatch between {self.interface_1} (VRF None) "
+            f"and peer-group {self.peergroup_1.name} (VRF {self.peergroup_1.vrf})",
+        )
+
+    def test_peer_group_vrf_interface_match(self):
+        """Test peer-group interface VRF counts for matching VRF."""
+        self.assertIsNone(self.peerendpoint_1.source_interface)
+
+        self.interface_1.vrf = self.vrf
+        self.interface_1.save()
+        self.peergroup_1.vrf = self.vrf
+        self.peergroup_1.source_interface = self.interface_1
+        self.peergroup_1.save()
+        self.peerendpoint_1.peer_group = self.peergroup_1
+        self.peerendpoint_1.validated_save()
+
+    def test_peer_group_vrf_interface_mismatch(self):
+        """Test peer-group interface VRF mismatch raises error."""
+        self.assertIsNone(self.peerendpoint_1.source_interface)
+        self.assertIsNone(self.interface_1.vrf)
+
+        self.peergroup_1.source_interface = self.interface_1
+        self.peergroup_1.vrf = self.vrf
+        self.peergroup_1.save()
+        self.peerendpoint_1.peer_group = self.peergroup_1
+
+        with self.assertRaises(ValidationError) as context:
+            self.peerendpoint_1.validated_save()
+
+        self.assertEqual(
+            context.exception.messages[0],
+            f"VRF mismatch between {self.interface_1} (VRF None) "
+            f"and peer-group {self.peergroup_1.name} (VRF {self.peergroup_1.vrf})",
+        )
 
     def test_deleting_ip_address_protects_endpoint(self):
         """Deleting an IPAddress should protect the associated PeerEndpoint(s)."""
