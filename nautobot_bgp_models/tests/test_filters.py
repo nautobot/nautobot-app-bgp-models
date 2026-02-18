@@ -1333,3 +1333,99 @@ class FilterExtensionTestCase(TestCase):
         self.assertIn(self.interface_on_device, filtered)
         self.assertIn(self.interface_on_module, filtered)
         self.assertEqual(filtered.count(), 2)
+
+    def test_ip_address_filter_with_empty_value_returns_all(self):
+        """Filtering IPAddress with empty value returns unfiltered queryset."""
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        queryset = IPAddress.objects.all()
+        original_count = queryset.count()
+
+        # Test with empty list
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": []}
+        filtered = filterset_class(params, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+        # Test with None (simulated by not providing the param)
+        filtered = filterset_class({}, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+    def test_interface_filter_with_empty_value_returns_all(self):
+        """Filtering Interface with empty value returns unfiltered queryset."""
+        filterset_class = get_filterset_for_model("dcim.interface")
+        queryset = Interface.objects.all()
+        original_count = queryset.count()
+
+        # Test with empty list
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": []}
+        filtered = filterset_class(params, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+        # Test with None (simulated by not providing the param)
+        filtered = filterset_class({}, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+    def test_ip_address_filter_with_string_value(self):
+        """Filtering IPAddress with string value (instead of list) works correctly."""
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        queryset = IPAddress.objects.all()
+
+        # Test with string value (should be converted to list internally)
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": str(self.bgp_routing_instance.pk)}
+        filtered = filterset_class(params, queryset).qs
+
+        self.assertIn(self.ip_on_device_interface, filtered)
+        self.assertIn(self.ip_on_module_interface, filtered)
+        self.assertNotIn(self.ip_other, filtered)
+        self.assertEqual(filtered.count(), 2)
+
+    def test_interface_filter_with_string_value(self):
+        """Filtering Interface with string value (instead of list) works correctly."""
+        filterset_class = get_filterset_for_model("dcim.interface")
+        queryset = Interface.objects.all()
+
+        # Test with string value (should be converted to list internally)
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": str(self.bgp_routing_instance.pk)}
+        filtered = filterset_class(params, queryset).qs
+
+        self.assertIn(self.interface_on_device, filtered)
+        self.assertIn(self.interface_on_module, filtered)
+        self.assertEqual(filtered.count(), 2)
+
+    def test_ip_address_filter_with_whitespace_only_values(self):
+        """Filtering IPAddress with whitespace-only values returns no results."""
+        from nautobot_bgp_models.filter_extensions import _q_routing_instance_ids_via_parent_device
+
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        queryset = IPAddress.objects.all()
+
+        # Test with list containing only whitespace/empty strings (gets filtered out, resulting in empty list)
+        # This tests the edge case where value becomes empty after processing
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": ["", "   ", "\t"]}
+        filtered = filterset_class(params, queryset).qs
+        # After filtering out empty strings, the helper receives an empty list
+        # This should result in no matches
+        self.assertEqual(filtered.count(), 0)
+
+        # Test the helper directly with empty list to cover line 17
+        q = _q_routing_instance_ids_via_parent_device([], "interfaces__")
+        filtered_direct = queryset.filter(q)
+        self.assertEqual(filtered_direct.count(), 0)
+
+    def test_interface_filter_with_whitespace_only_values(self):
+        """Filtering Interface with whitespace-only values returns no results."""
+        from nautobot_bgp_models.filter_extensions import _q_routing_instance_ids_via_parent_device
+
+        filterset_class = get_filterset_for_model("dcim.interface")
+        queryset = Interface.objects.all()
+
+        # Test with list containing only whitespace/empty strings (gets filtered out, resulting in empty list)
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": ["", "   ", "\t"]}
+        filtered = filterset_class(params, queryset).qs
+        # After filtering out empty strings, the helper receives an empty list
+        # This should result in no matches
+        self.assertEqual(filtered.count(), 0)
+
+        # Test the helper directly with empty list to cover line 17
+        q = _q_routing_instance_ids_via_parent_device([], "")
+        filtered_direct = queryset.filter(q)
+        self.assertEqual(filtered_direct.count(), 0)
