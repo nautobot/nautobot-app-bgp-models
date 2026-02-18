@@ -26,7 +26,11 @@ from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
 from nautobot.tenancy.models import Tenant
 
 from nautobot_bgp_models import choices, filters, models
-from nautobot_bgp_models.filter_extensions import _q_routing_instance_ids_via_parent_device
+from nautobot_bgp_models.filter_extensions import (
+    _filter_interfaces_by_routing_instance,
+    _filter_ips_by_routing_instance,
+    _q_routing_instance_ids_via_parent_device,
+)
 
 
 class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
@@ -1405,10 +1409,24 @@ class FilterExtensionTestCase(TestCase):
         # This should result in no matches
         self.assertEqual(filtered.count(), 0)
 
-        # Test the helper directly with empty list to cover line 17
+        # Test the helper directly with empty list
         q = _q_routing_instance_ids_via_parent_device([], "interfaces__")
         filtered_direct = queryset.filter(q)
         self.assertEqual(filtered_direct.count(), 0)
+
+        # Test the helper directly with string value
+        q = _q_routing_instance_ids_via_parent_device(str(self.bgp_routing_instance.pk), "interfaces__")
+        filtered_string = queryset.filter(q).distinct()
+        self.assertIn(self.ip_on_device_interface, filtered_string)
+        self.assertIn(self.ip_on_module_interface, filtered_string)
+
+        # Test filter function directly with empty value
+        result = _filter_ips_by_routing_instance(queryset, "test", [])
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_ips_by_routing_instance(queryset, "test", None)
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_ips_by_routing_instance(queryset, "test", "")
+        self.assertEqual(result.count(), queryset.count())
 
     def test_interface_filter_with_whitespace_only_values(self):
         """Filtering Interface with whitespace-only values returns no results."""
@@ -1422,7 +1440,21 @@ class FilterExtensionTestCase(TestCase):
         # This should result in no matches
         self.assertEqual(filtered.count(), 0)
 
-        # Test the helper directly with empty list to cover line 17
+        # Test the helper directly with empty list
         q = _q_routing_instance_ids_via_parent_device([], "")
         filtered_direct = queryset.filter(q)
         self.assertEqual(filtered_direct.count(), 0)
+
+        # Test the helper directly with string value
+        q = _q_routing_instance_ids_via_parent_device(str(self.bgp_routing_instance.pk), "")
+        filtered_string = queryset.filter(q)
+        self.assertIn(self.interface_on_device, filtered_string)
+        self.assertIn(self.interface_on_module, filtered_string)
+
+        # Test filter function directly with empty value
+        result = _filter_interfaces_by_routing_instance(queryset, "test", [])
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_interfaces_by_routing_instance(queryset, "test", None)
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_interfaces_by_routing_instance(queryset, "test", "")
+        self.assertEqual(result.count(), queryset.count())
