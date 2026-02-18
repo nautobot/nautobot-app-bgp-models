@@ -1,17 +1,36 @@
 """Unit test automation for FilterSet classes in nautobot_bgp_models."""
 
 from django.contrib.contenttypes.models import ContentType
+from django.test import TestCase
 
 # from nautobot.circuits.models import Provider
 from nautobot.apps.testing import FilterTestCases
 from nautobot.circuits.models import Provider
+from nautobot.core.utils.lookup import get_filterset_for_model
 from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Device, DeviceType, Interface, Location, LocationType, Manufacturer
+from nautobot.dcim.models import (
+    Device,
+    DeviceType,
+    Interface,
+    InterfaceTemplate,
+    Location,
+    LocationType,
+    Manufacturer,
+    Module,
+    ModuleBay,
+    ModuleBayTemplate,
+    ModuleType,
+)
 from nautobot.extras.models import Role, Status
 from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
 from nautobot.tenancy.models import Tenant
 
 from nautobot_bgp_models import choices, filters, models
+from nautobot_bgp_models.filter_extensions import (
+    _filter_interfaces_by_routing_instance,
+    _filter_ips_by_routing_instance,
+    _q_routing_instance_ids_via_parent_device,
+)
 
 
 class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
@@ -1219,3 +1238,223 @@ class PeerEndpointAddressFamilyTestCase(FilterTestCases.FilterTestCase):
         self.assertEqual(
             self.filterset({"multipath": False}, self.queryset).qs.count(), number_of_groups_without_multipath
         )
+
+
+class FilterExtensionTestCase(TestCase):
+    """Test filter extensions."""
+
+    @classmethod
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
+        """Create device with direct interface and device with module + interface on module; BGP instance on device."""
+        status_active = Status.objects.get(name__iexact="active")
+
+        manufacturer = Manufacturer.objects.create(name="Cisco-Test")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        InterfaceTemplate.objects.create(
+            device_type=devicetype, name="Loopback0", type=InterfaceTypeChoices.TYPE_VIRTUAL
+        )
+        ModuleBayTemplate.objects.create(device_type=devicetype, name="Slot1", position="1")
+
+        location_type = LocationType.objects.create(name="Site")
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=status_active)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
+
+        cls.device = Device.objects.create(
+            device_type=devicetype,
+            role=devicerole,
+            name="Device-With-Module",
+            location=location,
+            status=status_active,
+        )
+        module_bay = ModuleBay.objects.get(parent_device=cls.device, name="Slot1")
+
+        module_type = ModuleType.objects.create(manufacturer=manufacturer, model="Linecard")
+        InterfaceTemplate.objects.create(
+            module_type=module_type,
+            name="Ethernet0",
+            type=InterfaceTypeChoices.TYPE_OTHER,
+        )
+        cls.module = Module.objects.create(module_type=module_type, parent_module_bay=module_bay, status=status_active)
+
+        cls.interface_on_device = Interface.objects.get(device=cls.device, name="Loopback0")
+        cls.interface_on_module = Interface.objects.get(module=cls.module, name="Ethernet0")
+
+        cls.bgp_routing_instance = models.BGPRoutingInstance.objects.create(
+            device=cls.device,
+            autonomous_system=models.AutonomousSystem.objects.create(asn=65001, status=status_active),
+            status=status_active,
+        )
+
+        namespace = Namespace.objects.first()
+        if not Prefix.objects.filter(namespace=namespace, prefix="10.0.0.0/8").exists():
+            Prefix.objects.create(prefix="10.0.0.0/8", namespace=namespace, status=status_active)
+        cls.ip_on_device_interface = IPAddress.objects.create(
+            address="10.1.1.1/32", status=status_active, namespace=namespace
+        )
+        cls.ip_on_module_interface = IPAddress.objects.create(
+            address="10.1.1.2/32", status=status_active, namespace=namespace
+        )
+        cls.interface_on_device.add_ip_addresses([cls.ip_on_device_interface])
+        cls.interface_on_module.add_ip_addresses([cls.ip_on_module_interface])
+
+        # Another device with no BGP instance (to ensure filter excludes its IP/interface)
+        device_other = Device.objects.create(
+            device_type=devicetype,
+            role=devicerole,
+            name="Device-Other",
+            location=location,
+            status=status_active,
+        )
+        if_other = Interface.objects.get(device=device_other, name="Loopback0")
+        cls.ip_other = IPAddress.objects.create(address="10.2.2.2/32", status=status_active, namespace=namespace)
+        if_other.add_ip_addresses([cls.ip_other])
+
+    def test_ip_address_filter_by_routing_instance_includes_direct_and_module_interfaces(self):
+        """Filtering IPAddress by routing instance UUID returns IPs on device and on module interfaces."""
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        self.assertIsNotNone(filterset_class)
+        self.assertIn("nautobot_bgp_models_ips_bgp_routing_instance", filterset_class().filters)
+
+        queryset = IPAddress.objects.all()
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": [str(self.bgp_routing_instance.pk)]}
+        filtered = filterset_class(params, queryset).qs
+
+        self.assertIn(self.ip_on_device_interface, filtered)
+        self.assertIn(self.ip_on_module_interface, filtered)
+        self.assertNotIn(self.ip_other, filtered)
+        self.assertEqual(filtered.count(), 2)
+
+    def test_interface_filter_by_routing_instance_includes_direct_and_module_interfaces(self):
+        """Filtering Interface by routing instance UUID returns interfaces on device and on module."""
+        filterset_class = get_filterset_for_model("dcim.interface")
+        self.assertIsNotNone(filterset_class)
+        self.assertIn("nautobot_bgp_models_interfaces_bgp_routing_instance", filterset_class().filters)
+
+        queryset = Interface.objects.all()
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": [str(self.bgp_routing_instance.pk)]}
+        filtered = filterset_class(params, queryset).qs
+
+        self.assertIn(self.interface_on_device, filtered)
+        self.assertIn(self.interface_on_module, filtered)
+        self.assertEqual(filtered.count(), 2)
+
+    def test_ip_address_filter_with_empty_value_returns_all(self):
+        """Filtering IPAddress with empty value returns unfiltered queryset."""
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        queryset = IPAddress.objects.all()
+        original_count = queryset.count()
+
+        # Test with empty list
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": []}
+        filtered = filterset_class(params, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+        # Test with None (simulated by not providing the param)
+        filtered = filterset_class({}, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+    def test_interface_filter_with_empty_value_returns_all(self):
+        """Filtering Interface with empty value returns unfiltered queryset."""
+        filterset_class = get_filterset_for_model("dcim.interface")
+        queryset = Interface.objects.all()
+        original_count = queryset.count()
+
+        # Test with empty list
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": []}
+        filtered = filterset_class(params, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+        # Test with None (simulated by not providing the param)
+        filtered = filterset_class({}, queryset).qs
+        self.assertEqual(filtered.count(), original_count)
+
+    def test_ip_address_filter_with_string_value(self):
+        """Filtering IPAddress with string value (instead of list) works correctly."""
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        queryset = IPAddress.objects.all()
+
+        # Test with string value (should be converted to list internally)
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": str(self.bgp_routing_instance.pk)}
+        filtered = filterset_class(params, queryset).qs
+
+        self.assertIn(self.ip_on_device_interface, filtered)
+        self.assertIn(self.ip_on_module_interface, filtered)
+        self.assertNotIn(self.ip_other, filtered)
+        self.assertEqual(filtered.count(), 2)
+
+    def test_interface_filter_with_string_value(self):
+        """Filtering Interface with string value (instead of list) works correctly."""
+        filterset_class = get_filterset_for_model("dcim.interface")
+        queryset = Interface.objects.all()
+
+        # Test with string value (should be converted to list internally)
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": str(self.bgp_routing_instance.pk)}
+        filtered = filterset_class(params, queryset).qs
+
+        self.assertIn(self.interface_on_device, filtered)
+        self.assertIn(self.interface_on_module, filtered)
+        self.assertEqual(filtered.count(), 2)
+
+    def test_ip_address_filter_with_whitespace_only_values(self):
+        """Filtering IPAddress with whitespace-only values returns no results."""
+        filterset_class = get_filterset_for_model("ipam.ipaddress")
+        queryset = IPAddress.objects.all()
+
+        # Test with list containing only whitespace/empty strings (gets filtered out, resulting in empty list)
+        # This tests the edge case where value becomes empty after processing
+        params = {"nautobot_bgp_models_ips_bgp_routing_instance": ["", "   ", "\t"]}
+        filtered = filterset_class(params, queryset).qs
+        # After filtering out empty strings, the helper receives an empty list
+        # This should result in no matches
+        self.assertEqual(filtered.count(), 0)
+
+        # Test the helper directly with empty list
+        q = _q_routing_instance_ids_via_parent_device([], "interfaces__")
+        filtered_direct = queryset.filter(q)
+        self.assertEqual(filtered_direct.count(), 0)
+
+        # Test the helper directly with string value
+        q = _q_routing_instance_ids_via_parent_device(str(self.bgp_routing_instance.pk), "interfaces__")
+        filtered_string = queryset.filter(q).distinct()
+        self.assertIn(self.ip_on_device_interface, filtered_string)
+        self.assertIn(self.ip_on_module_interface, filtered_string)
+
+        # Test filter function directly with empty value
+        result = _filter_ips_by_routing_instance(queryset, "test", [])
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_ips_by_routing_instance(queryset, "test", None)
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_ips_by_routing_instance(queryset, "test", "")
+        self.assertEqual(result.count(), queryset.count())
+
+    def test_interface_filter_with_whitespace_only_values(self):
+        """Filtering Interface with whitespace-only values returns no results."""
+        filterset_class = get_filterset_for_model("dcim.interface")
+        queryset = Interface.objects.all()
+
+        # Test with list containing only whitespace/empty strings (gets filtered out, resulting in empty list)
+        params = {"nautobot_bgp_models_interfaces_bgp_routing_instance": ["", "   ", "\t"]}
+        filtered = filterset_class(params, queryset).qs
+        # After filtering out empty strings, the helper receives an empty list
+        # This should result in no matches
+        self.assertEqual(filtered.count(), 0)
+
+        # Test the helper directly with empty list
+        q = _q_routing_instance_ids_via_parent_device([], "")
+        filtered_direct = queryset.filter(q)
+        self.assertEqual(filtered_direct.count(), 0)
+
+        # Test the helper directly with string value
+        q = _q_routing_instance_ids_via_parent_device(str(self.bgp_routing_instance.pk), "")
+        filtered_string = queryset.filter(q)
+        self.assertIn(self.interface_on_device, filtered_string)
+        self.assertIn(self.interface_on_module, filtered_string)
+
+        # Test filter function directly with empty value
+        result = _filter_interfaces_by_routing_instance(queryset, "test", [])
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_interfaces_by_routing_instance(queryset, "test", None)
+        self.assertEqual(result.count(), queryset.count())
+        result = _filter_interfaces_by_routing_instance(queryset, "test", "")
+        self.assertEqual(result.count(), queryset.count())
