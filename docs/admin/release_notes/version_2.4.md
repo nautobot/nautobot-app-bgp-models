@@ -8,6 +8,19 @@ This document describes all new features and changes in the release. The format 
 - Dropped support for Python 3.9.
 
 <!-- towncrier release notes start -->
+
+
+## [v2.4.1 (2026-02-18)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v2.4.1)
+
+### Added
+
+- [#296](https://github.com/nautobot/nautobot-app-bgp-models/issues/296) - Updated PeerEndpoint VRF validation to include related interface as a source for VRF configuration.
+
+### Fixed
+
+- [#304](https://github.com/nautobot/nautobot-app-bgp-models/issues/304) - Fixed an issue where Interfaces on a module were not being presented to apply to a BGP Peering or Peer Groups.
+- [#304](https://github.com/nautobot/nautobot-app-bgp-models/issues/304) - Fixed an issue where IP Addresses assigned to interfaces on a module were not being presented to apply to a BGP Peering or Peer Groups.
+
 ## [v2.4.0 (2025-12-12)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v2.4.0)
 
 ### Fixed
