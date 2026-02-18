@@ -1,0 +1,2 @@
+Fixed an issue where Interfaces on a module were not being presented to apply to a BGP Peering or Peer Groups.
+Fixed an issue where IP Addresses assigned to interfaces on a module were not being presented to apply to a BGP Peering or Peer Groups.
