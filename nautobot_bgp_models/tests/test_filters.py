@@ -26,6 +26,7 @@ from nautobot.ipam.models import VRF, IPAddress, Namespace, Prefix
 from nautobot.tenancy.models import Tenant
 
 from nautobot_bgp_models import choices, filters, models
+from nautobot_bgp_models.filter_extensions import _q_routing_instance_ids_via_parent_device
 
 
 class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
@@ -1393,8 +1394,6 @@ class FilterExtensionTestCase(TestCase):
 
     def test_ip_address_filter_with_whitespace_only_values(self):
         """Filtering IPAddress with whitespace-only values returns no results."""
-        from nautobot_bgp_models.filter_extensions import _q_routing_instance_ids_via_parent_device
-
         filterset_class = get_filterset_for_model("ipam.ipaddress")
         queryset = IPAddress.objects.all()
 
@@ -1413,8 +1412,6 @@ class FilterExtensionTestCase(TestCase):
 
     def test_interface_filter_with_whitespace_only_values(self):
         """Filtering Interface with whitespace-only values returns no results."""
-        from nautobot_bgp_models.filter_extensions import _q_routing_instance_ids_via_parent_device
-
         filterset_class = get_filterset_for_model("dcim.interface")
         queryset = Interface.objects.all()
 
