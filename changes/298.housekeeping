@@ -1,1 +1,0 @@
-Updated tests to use `FilterTestCase` instead of `BaseFilterTestCase` and `generic_filter_tests` to replace repetitive test cases.
