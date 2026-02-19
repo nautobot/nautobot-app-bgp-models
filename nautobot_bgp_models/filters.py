@@ -4,18 +4,17 @@
 import django_filters
 from django.db.models import Q
 from nautobot.apps.filters import (
-    BaseFilterSet,
-    CreatedUpdatedModelFilterSetMixin,
-    CustomFieldModelFilterSetMixin,
     NaturalKeyOrPKMultipleChoiceFilter,
     NautobotFilterSet,
     RoleModelFilterSetMixin,
     SearchFilter,
     StatusModelFilterSetMixin,
 )
+from nautobot.circuits.models import Provider
 from nautobot.dcim.models import Device
 from nautobot.extras.models import Role
 from nautobot.ipam.models import VRF
+from nautobot.tenancy.models import Tenant
 
 from . import choices, models
 
@@ -29,6 +28,13 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
             "description": "icontains",
         },
     )
+
+    provider = NaturalKeyOrPKMultipleChoiceFilter(
+        queryset=Provider.objects.all(),
+        label="Provider (name or ID)",
+        to_field_name="name",
+    )
+
     autonomous_system_range = django_filters.ModelMultipleChoiceFilter(
         queryset=models.AutonomousSystemRange.objects.all(),
         label="ASN Range",
@@ -37,7 +43,7 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
 
     class Meta:
         model = models.AutonomousSystem
-        fields = ["id", "asn", "status", "tags", "autonomous_system_range"]
+        fields = "__all__"
 
     def filter_present_in_asn_range(self, queryset, name, value):  # pylint: disable=unused-argument
         """Filter Autonomous Systems that are present in any of the given ASN Ranges."""
@@ -61,9 +67,15 @@ class AutonomousSystemRangeFilterSet(NautobotFilterSet):
         },
     )
 
+    tenant = NaturalKeyOrPKMultipleChoiceFilter(
+        queryset=Tenant.objects.all(),
+        to_field_name="name",
+        label="Tenant (name or ID)",
+    )
+
     class Meta:
         model = models.AutonomousSystemRange
-        fields = ["id", "name", "asn_min", "asn_max", "tags"]
+        fields = "__all__"
 
 
 class BGPRoutingInstanceFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
@@ -82,21 +94,21 @@ class BGPRoutingInstanceFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         label="Autonomous System Number",
     )
 
+    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
     device_id = django_filters.ModelMultipleChoiceFilter(
         queryset=Device.objects.all(),
         label="Device (ID)",
     )
 
-    device = django_filters.ModelMultipleChoiceFilter(
-        field_name="device__name",
+    device = NaturalKeyOrPKMultipleChoiceFilter(
         queryset=Device.objects.all(),
         to_field_name="name",
-        label="Device (name)",
+        label="Device (name or ID)",
     )
 
     class Meta:
         model = models.BGPRoutingInstance
-        fields = ["id", "autonomous_system", "tags"]
+        fields = "__all__"
 
 
 class PeerGroupFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
@@ -123,13 +135,7 @@ class PeerGroupFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
         label="BGP Routing Instance ID",
     )
 
-    device = django_filters.ModelMultipleChoiceFilter(
-        field_name="routing_instance__device__name",
-        queryset=Device.objects.all(),
-        to_field_name="name",
-        label="Device (name)",
-    )
-
+    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
     device_id = django_filters.ModelMultipleChoiceFilter(
         field_name="routing_instance__device__id",
         queryset=Device.objects.all(),
@@ -137,9 +143,16 @@ class PeerGroupFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
         label="Device (ID)",
     )
 
+    device = NaturalKeyOrPKMultipleChoiceFilter(
+        field_name="routing_instance__device",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name or ID)",
+    )
+
     class Meta:
         model = models.PeerGroup
-        fields = ["id", "name", "enabled"]
+        fields = "__all__"
 
 
 class PeerGroupTemplateFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
@@ -161,7 +174,7 @@ class PeerGroupTemplateFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
 
     class Meta:
         model = models.PeerGroupTemplate
-        fields = ["id", "name", "enabled"]
+        fields = "__all__"
 
 
 class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
@@ -169,23 +182,24 @@ class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
 
     q = SearchFilter(
         filter_predicates={
-            "routing_instance__device__name": "iexact",
+            "routing_instance__device__name": "icontains",
             "description": "icontains",
         },
     )
 
-    device = django_filters.ModelMultipleChoiceFilter(
-        field_name="routing_instance__device__name",
-        queryset=Device.objects.all(),
-        to_field_name="name",
-        label="Device (name)",
-    )
-
+    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
     device_id = django_filters.ModelMultipleChoiceFilter(
         field_name="routing_instance__device__id",
         queryset=Device.objects.all(),
         to_field_name="id",
         label="Device (ID)",
+    )
+
+    device = NaturalKeyOrPKMultipleChoiceFilter(
+        field_name="routing_instance__device",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name or ID)",
     )
 
     autonomous_system = django_filters.ModelMultipleChoiceFilter(
@@ -195,22 +209,18 @@ class PeerEndpointFilterSet(NautobotFilterSet, RoleModelFilterSetMixin):
         label="Autonomous System Number",
     )
 
-    peer_group = django_filters.ModelMultipleChoiceFilter(
+    peer_group = NaturalKeyOrPKMultipleChoiceFilter(
         queryset=models.PeerGroup.objects.all(),
-        label="Peer Group (id)",
+        to_field_name="name",
+        label="Peer Group (name or ID)",
     )
 
     class Meta:
         model = models.PeerEndpoint
-        fields = ["id", "enabled"]
+        fields = "__all__"
 
 
-class PeeringFilterSet(
-    BaseFilterSet,
-    CreatedUpdatedModelFilterSetMixin,
-    CustomFieldModelFilterSetMixin,
-    StatusModelFilterSetMixin,
-):
+class PeeringFilterSet(StatusModelFilterSetMixin, NautobotFilterSet):
     """Filtering of Peering records."""
 
     # TODO(mzb): Add in-memory filtering for Provider, ASN, IP Address, ...
@@ -222,18 +232,19 @@ class PeeringFilterSet(
         },
     )
 
-    device = django_filters.ModelMultipleChoiceFilter(
-        field_name="endpoints__routing_instance__device__name",
-        queryset=Device.objects.all(),
-        to_field_name="name",
-        label="Device (name)",
-    )
-
+    # TODO: Remove this filter. Deprecated in favor of below NaturalKeyOrPKMultipleChoiceFilter `device`
     device_id = django_filters.ModelMultipleChoiceFilter(
         field_name="endpoints__routing_instance__device__id",
         queryset=Device.objects.all(),
         to_field_name="id",
         label="Device (ID)",
+    )
+
+    device = NaturalKeyOrPKMultipleChoiceFilter(
+        field_name="endpoints__routing_instance__device",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name or ID)",
     )
 
     device_role = django_filters.ModelMultipleChoiceFilter(
@@ -252,15 +263,15 @@ class PeeringFilterSet(
 
     class Meta:
         model = models.Peering
-        fields = ["id"]
+        fields = "__all__"
 
 
-class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
+class AddressFamilyFilterSet(NautobotFilterSet):
     """Filtering of AddressFamily records."""
 
     q = SearchFilter(
         filter_predicates={
-            "routing_instance__device__name": "iexact",
+            "routing_instance__device__name": "icontains",
         },
     )
 
@@ -281,15 +292,10 @@ class AddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, C
 
     class Meta:
         model = models.AddressFamily
-        fields = [
-            "id",
-            "routing_instance",
-            "afi_safi",
-            "vrf",
-        ]
+        fields = "__all__"
 
 
-class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin):
+class PeerGroupAddressFamilyFilterSet(NautobotFilterSet):
     """Filtering of PeerGroupAddressFamily records."""
 
     q = SearchFilter(
@@ -302,29 +308,24 @@ class PeerGroupAddressFamilyFilterSet(BaseFilterSet, CreatedUpdatedModelFilterSe
 
     afi_safi = django_filters.MultipleChoiceFilter(choices=choices.AFISAFIChoices)
 
-    peer_group = django_filters.ModelMultipleChoiceFilter(
-        label="Peer Group (ID)",
+    peer_group = NaturalKeyOrPKMultipleChoiceFilter(
+        label="Peer Group (name or ID)",
         queryset=models.PeerGroup.objects.all(),
+        to_field_name="name",
     )
 
     class Meta:
         model = models.PeerGroupAddressFamily
-        fields = [
-            "id",
-            "afi_safi",
-            "peer_group",
-        ]
+        fields = "__all__"
 
 
-class PeerEndpointAddressFamilyFilterSet(
-    BaseFilterSet, CreatedUpdatedModelFilterSetMixin, CustomFieldModelFilterSetMixin
-):
+class PeerEndpointAddressFamilyFilterSet(NautobotFilterSet):
     """Filtering of PeerEndpointAddressFamily records."""
 
     q = SearchFilter(
         filter_predicates={
             "afi_safi": "icontains",
-            "peer_endpoint__routing_instance__device__name": "iexact",
+            "peer_endpoint__routing_instance__device__name": "icontains",
             "peer_endpoint__description": "icontains",
         },
     )
@@ -338,8 +339,4 @@ class PeerEndpointAddressFamilyFilterSet(
 
     class Meta:
         model = models.PeerEndpointAddressFamily
-        fields = [
-            "id",
-            "afi_safi",
-            "peer_endpoint",
-        ]
+        fields = "__all__"
