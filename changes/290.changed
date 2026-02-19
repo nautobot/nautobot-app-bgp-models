@@ -1,1 +1,0 @@
-Changed search filter on PeerEndpoint, AddressFamily, and PeerEndpointAddressFamily to perform "contains" filtering on device names instead of "exact" matching.

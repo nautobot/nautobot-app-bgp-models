@@ -14,6 +14,33 @@ We will continue to support the previous major release for users of Nautobot LTM
 
 <!-- towncrier release notes start -->
 
+
+## [v3.0.1 (2026-02-18)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.1)
+
+### Added
+
+- [#298](https://github.com/nautobot/nautobot-app-bgp-models/issues/298) - Added missing filter definitions to applicable models.
+- [#301](https://github.com/nautobot/nautobot-app-bgp-models/issues/301) - Updated PeerEndpoint VRF validation to include related interface as a source for VRF configuration.
+
+### Changed
+
+- [#290](https://github.com/nautobot/nautobot-app-bgp-models/issues/290) - Changed search filter on PeerEndpoint, AddressFamily, and PeerEndpointAddressFamily to perform "contains" filtering on device names instead of "exact" matching.
+
+### Fixed
+
+- [#304](https://github.com/nautobot/nautobot-app-bgp-models/issues/304) - Fixed an issue where Interfaces on a module were not being presented to apply to a BGP Peering or Peer Groups.
+- [#304](https://github.com/nautobot/nautobot-app-bgp-models/issues/304) - Fixed an issue where IP Addresses assigned to interfaces on a module were not being presented to apply to a BGP Peering or Peer Groups.
+
+### Documentation
+
+- [#295](https://github.com/nautobot/nautobot-app-bgp-models/issues/295) - Updated documentation to include 3.0 screenshots.
+
+### Housekeeping
+
+- [#290](https://github.com/nautobot/nautobot-app-bgp-models/issues/290) - Updated tests to reflect the new substring based device name filtering.
+- [#298](https://github.com/nautobot/nautobot-app-bgp-models/issues/298) - Updated tests to use `FilterTestCase` instead of `BaseFilterTestCase` and `generic_filter_tests` to replace repetitive test cases.
+- Rebaked from the cookie `nautobot-app-v3.0.0`.
+
 ## [v3.0.0 (2025-11-17)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.0)
 
 ### Added
