@@ -7,6 +7,7 @@ This document provides an overview of the App including critical information and
 
 ## Description
 
+<<<<<<< HEAD
 An app for [Nautobot](https://github.com/nautobot/nautobot), extending the core models with BGP-specific models. They enable modeling and management of BGP peerings, whether or not the peer device is present in Nautobot.
 
 This application adds the following new data models into Nautobot:
@@ -24,6 +25,10 @@ This application adds the following new data models into Nautobot:
 With these new models, it's now possible to populate the Source of Truth (SoT) with any BGP peerings, internal or external, regardless of whether both endpoints are fully defined in the Source of Truth.
 
 The minimum requirement to define a BGP peering is two IP addresses and one or two autonomous systems (one ASN for iBGP, two ASNs for eBGP).
+=======
+![Main Page](../media/ss_main_page_light.png#only-light)
+![Main Page](../media/ss_main_page_dark.png#only-dark)
+>>>>>>> 1f53384 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 
 ## Audience (User Personas) - Who should use this App?
 
