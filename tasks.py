@@ -603,7 +603,7 @@ def dbshell(context, db_name="", input_file="", output_file="", query=""):
 def import_db(context, db_name="", input_file="dump.sql"):
     """Stop Nautobot containers and replace the current database with the dump into `db` container."""
     docker_compose(context, "stop -- nautobot worker beat")
-    start(context, "db")
+    start(context, ["db"])
     _await_healthy_service(context, "db")
 
     command = ["exec -- db sh -c '"]
@@ -658,7 +658,7 @@ def import_db(context, db_name="", input_file="dump.sql"):
 )
 def backup_db(context, db_name="", output_file="dump.sql", readable=True):
     """Dump database into `output_file` file from `db` container."""
-    start(context, "db")
+    start(context, ["db"])
     _await_healthy_service(context, "db")
 
     command = ["exec -- db sh -c '"]
@@ -711,7 +711,7 @@ def docs(context):
         print(">>> Serving Documentation at http://localhost:8001")
         run_command(context, command)
     else:
-        start(context, service="docs")
+        start(context, service=["docs"])
 
 
 @task
@@ -1041,7 +1041,7 @@ def generate_app_config_schema(context):
     - `NautobotAppConfig.default_settings`
     - `NautobotAppConfig.required_settings`
     """
-    start(context, service="nautobot")
+    start(context, service=["nautobot"])
     nbshell(
         context,
         file="development/app_config_schema.py",
@@ -1052,7 +1052,7 @@ def generate_app_config_schema(context):
 @task
 def validate_app_config(context):
     """Validate the app config based on the app config schema."""
-    start(context, service="nautobot")
+    start(context, service=["nautobot"])
     nbshell(
         context,
         plain=True,
