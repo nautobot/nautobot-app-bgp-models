@@ -1,10 +1,6 @@
 [tool.poetry]
 name = "nautobot-bgp-models"
-<<<<<<< HEAD
 version = "3.0.2a0"
-=======
-version = "0.1.0a0"
->>>>>>> 66f009b (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 description = "Nautobot BGP Models App"
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 license = "Apache-2.0"
@@ -32,13 +28,9 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-<<<<<<< HEAD
-python = ">=3.10,<3.14"
+python = ">=3.10,<3.15"
 netutils = "^1.6.0"
 toml = "^0.10.2"
-=======
-python = ">=3.10,<3.15"
->>>>>>> 66f009b (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 # Used for local development
 nautobot = ">=3.0.0,<4.0.0"
 
