@@ -283,7 +283,12 @@ def lock(context, check=False, constrain_nautobot_ver=False, constrain_python_ve
 # ------------------------------------------------------------------------------
 # START / STOP / DEBUG
 # ------------------------------------------------------------------------------
-@task(help={"service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."}, iterable=["service"])
+@task(
+    help={
+        "service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."
+    },
+    iterable=["service"],
+)
 def debug(context, service=None):
     """Start specified or all services and its dependencies in debug mode."""
     service = " ".join(service) if service else ""
@@ -291,7 +296,12 @@ def debug(context, service=None):
     docker_compose(context, "up", service=service)
 
 
-@task(help={"service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."}, iterable=["service"])
+@task(
+    help={
+        "service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."
+    },
+    iterable=["service"],
+)
 def start(context, service=None):
     """Start specified service(s) or all services and its dependencies in detached mode."""
     service = " ".join(service) if service else ""
@@ -299,7 +309,12 @@ def start(context, service=None):
     docker_compose(context, "up --detach", service=service)
 
 
-@task(help={"service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."}, iterable=["service"])
+@task(
+    help={
+        "service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."
+    },
+    iterable=["service"],
+)
 def restart(context, service=None):
     """Gracefully restart specified or all services."""
     service = " ".join(service) if service else ""
@@ -307,7 +322,12 @@ def restart(context, service=None):
     docker_compose(context, "restart", service=service)
 
 
-@task(help={"service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."}, iterable=["service"])
+@task(
+    help={
+        "service": "If specified, only affect the specified service(s); can be provided multiple times (i.e. -s nautobot -s worker)."
+    },
+    iterable=["service"],
+)
 def stop(context, service=None):
     """Stop specified or all services, if service is not specified, remove all containers."""
     service = " ".join(service) if service else ""
