@@ -4,8 +4,7 @@ This document describes all new features and changes in the release. The format 
 
 ## Release Overview
 
-- Major features or milestones
-- Changes to compatibility with Nautobot and/or other apps, libraries etc.
+- Added support for Python 3.14.
 
 <!-- towncrier release notes start -->
 
