@@ -31,7 +31,7 @@ class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
         ]
 
 
-class AutonomousSystemFilterForm(NautobotFilterForm):
+class AutonomousSystemFilterForm(NautobotFilterForm):  # pylint: disable=too-many-ancestors
     """Filter form to filter searches."""
 
     model = models.AutonomousSystem

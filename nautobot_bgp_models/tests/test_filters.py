@@ -6,7 +6,7 @@ from nautobot_bgp_models import filters, models
 from nautobot_bgp_models.tests import fixtures
 
 
-class AutonomousSystemFilterTestCase(FilterTestCases.FilterTestCase):
+class AutonomousSystemFilterTestCase(FilterTestCases.FilterTestCase):  # pylint: disable=too-many-ancestors
     """AutonomousSystem Filter Test Case."""
 
     queryset = models.AutonomousSystem.objects.all()
