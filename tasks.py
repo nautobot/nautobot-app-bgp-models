@@ -1042,22 +1042,13 @@ def generate_app_config_schema(context):
     - `NautobotAppConfig.required_settings`
     """
     start(context, service=["nautobot"])
-<<<<<<< HEAD
-    nbshell(
-        context,
-        file="development/app_config_schema.py",
-        env={"APP_CONFIG_SCHEMA_COMMAND": "generate"},
-    )
-=======
     nbshell(context, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "generate"})
->>>>>>> 55c9cfa (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 
 
 @task
 def validate_app_config(context):
     """Validate the app config based on the app config schema."""
     start(context, service=["nautobot"])
-<<<<<<< HEAD
     nbshell(
         context,
         plain=True,
@@ -1083,6 +1074,3 @@ def generate_test_data(context, flush=False, database=None):
     if flush:
         command += " --flush"
     run_command(context, command)
-=======
-    nbshell(context, plain=True, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "validate"})
->>>>>>> 55c9cfa (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)

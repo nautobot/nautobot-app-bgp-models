@@ -33,13 +33,8 @@ from nautobot_bgp_models.filter_extensions import (
 )
 
 
-<<<<<<< HEAD
 class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
     """Test filtering of AutonomousSystem records."""
-=======
-class AutonomousSystemFilterTestCase(FilterTestCases.FilterTestCase):  # pylint: disable=too-many-ancestors
-    """AutonomousSystem Filter Test Case."""
->>>>>>> 55c9cfa (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 
     queryset = models.AutonomousSystem.objects.all()
     filterset = filters.AutonomousSystemFilterSet
