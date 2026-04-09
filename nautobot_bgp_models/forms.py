@@ -57,8 +57,13 @@ class AutonomousSystemBulkEditForm(TagsBulkEditFormMixin, NautobotBulkEditForm):
         ]
 
 
+<<<<<<< HEAD
 class AutonomousSystemRangeForm(NautobotModelForm):
     """Form for creating/updating AutonomousSystem records."""
+=======
+class AutonomousSystemFilterForm(NautobotFilterForm):  # pylint: disable=too-many-ancestors
+    """Filter form to filter searches."""
+>>>>>>> 55c9cfa (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 
     tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
     tenant = DynamicModelChoiceField(queryset=Tenant.objects.all(), required=False)
