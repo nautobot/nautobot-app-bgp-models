@@ -1042,11 +1042,7 @@ def generate_app_config_schema(context):
     - `NautobotAppConfig.required_settings`
     """
     start(context, service=["nautobot"])
-    nbshell(
-        context,
-        file="development/app_config_schema.py",
-        env={"APP_CONFIG_SCHEMA_COMMAND": "generate"},
-    )
+    nbshell(context, file="development/app_config_schema.py", env={"APP_CONFIG_SCHEMA_COMMAND": "generate"})
 
 
 @task
