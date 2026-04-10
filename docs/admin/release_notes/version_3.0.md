@@ -14,6 +14,12 @@ We will continue to support the previous major release for users of Nautobot LTM
 
 <!-- towncrier release notes start -->
 
+## [v3.0.2 (2026-04-10)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.2)
+
+### Housekeeping
+
+- Rebaked from the cookie `nautobot-app-v3.1.1`.
+- Rebaked from the cookie `nautobot-app-v3.1.3`.
 
 ## [v3.0.1 (2026-02-18)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.0.1)
 
