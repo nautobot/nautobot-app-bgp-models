@@ -8,6 +8,12 @@ This release adds support for Python 3.14.
 
 <!-- towncrier release notes start -->
 
+## [v3.1.1 (2026-04-10)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.1.1)
+
+### Housekeeping
+
+- Rebaked from the cookie `nautobot-app-v3.1.3`.
+
 ## [v3.1.0 (2026-03-17)](https://github.com/nautobot/nautobot-app-bgp-models/releases/tag/v3.1.0)
 
 ### Added
