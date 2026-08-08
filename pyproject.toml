@@ -94,6 +94,9 @@ disable = """,
     too-few-public-methods,
     too-many-ancestors,
     too-many-lines,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
 """
 
 [tool.pylint.miscellaneous]
