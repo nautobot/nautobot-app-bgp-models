@@ -1167,7 +1167,7 @@ def generate_test_data(context, flush=False, database=None):
         command += " --flush"
     run_command(context, command)
 
-    command = "nautobot-server generate_bgp_test_data"
+    command = "nautobot-server generate_nautobot_bgp_models_test_data"
     if database:
         command += f" --database {database}"
     if flush:
