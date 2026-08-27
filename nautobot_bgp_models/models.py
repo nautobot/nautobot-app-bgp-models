@@ -366,7 +366,7 @@ class PeerGroup(PrimaryModel, InheritanceMixin, BGPExtraAttributesMixin):
 
     source_interface = models.ForeignKey(  # update source Interface
         to="dcim.Interface",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         related_name="bgp_peer_groups",
