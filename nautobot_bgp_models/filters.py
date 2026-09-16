@@ -41,6 +41,16 @@ class AutonomousSystemFilterSet(NautobotFilterSet, StatusModelFilterSetMixin):
         method="filter_present_in_asn_range",
     )
 
+    device = NaturalKeyOrPKMultipleChoiceFilter(
+        field_name="bgproutinginstance__device",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name or ID)",
+        # An ASN is reachable through one routing instance per device, so a multi-device
+        # filter would otherwise return the same ASN once per matching device.
+        distinct=True,
+    )
+
     class Meta:
         model = models.AutonomousSystem
         fields = "__all__"
@@ -288,6 +298,13 @@ class AddressFamilyFilterSet(NautobotFilterSet):
         label="VRF (name or ID)",
         queryset=VRF.objects.all(),
         to_field_name="name",
+    )
+
+    device = NaturalKeyOrPKMultipleChoiceFilter(
+        field_name="routing_instance__device",
+        queryset=Device.objects.all(),
+        to_field_name="name",
+        label="Device (name or ID)",
     )
 
     class Meta:
