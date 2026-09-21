@@ -1,1 +1,0 @@
-Fixed the Autonomous Systems, Address Families, and BGP Peerings panels on the Device detail view linking to list views filtered by `routing_instance__device`, which is not a valid filter on those list views.
