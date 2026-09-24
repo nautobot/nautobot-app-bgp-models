@@ -46,10 +46,12 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
         ["provider", "provider__name"],
         ["status", "status__id"],
         ["status", "status__name"],
+        ["device", "bgproutinginstance__device__name"],
+        ["device", "bgproutinginstance__device__id"],
     )
 
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls):  # pylint: disable=too-many-locals
         """One-time class setup to prepopulate required data for tests."""
         status_active = Status.objects.get(name__iexact="active")
         status_active.content_types.add(ContentType.objects.get_for_model(models.AutonomousSystem))
@@ -64,13 +66,13 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
         provider_2 = Provider.objects.create(name="Test Provider2")
         provider_3 = Provider.objects.create(name="Test Provider3")
 
-        models.AutonomousSystem.objects.create(
+        asn_1 = models.AutonomousSystem.objects.create(
             asn=4200000000,
             status=status_active,
             provider=provider_1,
             description="Reserved for private use",
         )
-        models.AutonomousSystem.objects.create(
+        asn_2 = models.AutonomousSystem.objects.create(
             asn=4200000001,
             status=cls.status_primary_asn,
             provider=provider_2,
@@ -87,6 +89,32 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
             name="Private Use ASNs", asn_min=4200000001, asn_max=4294967295, description="Private Use Range"
         )
 
+        manufacturer = Manufacturer.objects.create(name="Cisco")
+        devicetype = DeviceType.objects.create(manufacturer=manufacturer, model="CSR 1000V")
+        location_type = LocationType.objects.create(name="site")
+        location_status = Status.objects.get_for_model(Location).first()
+        location = Location.objects.create(name="Site 1", location_type=location_type, status=location_status)
+        devicerole = Role.objects.create(name="Router", color="ff0000")
+        devicerole.content_types.add(ContentType.objects.get_for_model(Device))
+
+        device_1 = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Device 1", location=location, status=status_active
+        )
+        device_2 = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Device 2", location=location, status=status_active
+        )
+        device_3 = Device.objects.create(
+            device_type=devicetype, role=devicerole, name="Device 3", location=location, status=status_active
+        )
+
+        # asn_1 is advertised by two devices, so filtering on both must still yield it once.
+        for device, autonomous_system in ((device_1, asn_1), (device_2, asn_1), (device_3, asn_2)):
+            models.BGPRoutingInstance.objects.create(
+                device=device,
+                autonomous_system=autonomous_system,
+                status=status_active,
+            )
+
     def test_search(self):
         """Test filtering by Q search value."""
         self.assertEqual(self.filterset({"q": "420"}, self.queryset).qs.count(), 3)
@@ -96,6 +124,11 @@ class AutonomousSystemTestCase(FilterTestCases.FilterTestCase):
         """Test filtering by ASN Range."""
         params = {"autonomous_system_range": [self.asn_range.pk]}
         self.assertEqual(self.filterset(params, self.queryset).qs.count(), 2)
+
+    def test_device_returns_each_asn_once(self):
+        """An ASN advertised by more than one of the filtered devices is returned only once."""
+        params = {"device": ["Device 1", "Device 2"]}
+        self.assertEqual(self.filterset(params, self.queryset).qs.count(), 1)
 
 
 class AutonomousSystemRangeTestCase(FilterTestCases.FilterTestCase):
@@ -903,6 +936,8 @@ class AddressFamilyTestCase(FilterTestCases.FilterTestCase):
         ["vrf"],
         ["afi_safi"],
         ["routing_instance", "routing_instance__id"],
+        ["device", "routing_instance__device__name"],
+        ["device", "routing_instance__device__id"],
     )
 
     @classmethod

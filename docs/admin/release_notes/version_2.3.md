@@ -37,6 +37,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - [#232](https://github.com/nautobot/nautobot-app-bgp-models/issues/232) - Fixed PeerEndpoint validation to allow all interfaces (including Virtual Chassis)
 
 ### Housekeeping in v2.3.1
+
 - Rebaked from the cookie `nautobot-app-v2.4.2`.
 - Rebaked from the cookie `nautobot-app-v2.4.1`.
 
